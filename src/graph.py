@@ -10,16 +10,21 @@ Edges record dependency:
   ("var", r) -> ("eq", name)   equation `name` reads variable r
   ("eq", name) -> ("var", name) equation `name` defines/writes variable name
 
-This is built directly from the DAE `f_x` expression list (one entry per
-algebraic variable in `y`, in order, followed by one entry per state in
-`x`, in order -- verified against Model.structure().n_equations for every
-fixture model). `z`/`f_z` (algebraic-loop variables) are not present in
-any fixture model and are treated as an unsupported IR shape rather than
-silently ignored.
+PHASE 2 CORRECTION: phase 1 identified each f_x[i]'s target by *position*,
+assuming f_x is ordered as [y in dict-key order] followed by [x in
+dict-key order]. That assumption is wrong -- f_x is ordered by equation
+appearance in the source, while y/x dict order follows variable
+*declaration* order, a different ordering whenever a model's equation
+section isn't written in the same order as its declarations (true of
+ThermalNetwork). This build now identifies each equation's target from
+the equation's own content (src/ir_equations.py), not its position, and
+validates the recovered target set against ir["y"]/ir["x"] on every call.
 """
 from __future__ import annotations
 
 import networkx as nx
+
+from ir_equations import equation_targets
 
 
 def _varrefs(node) -> set[str]:
@@ -45,28 +50,12 @@ def build_dependency_graph(ir: dict) -> nx.DiGraph:
     x_names = list(ir["x"].keys())
     p_names = list(ir["p"].keys())
     u_names = list(ir["u"].keys())
-    f_x = ir["f_x"]
-
-    if ir.get("z") or ir.get("f_z"):
-        raise NotImplementedError(
-            "IR contains algebraic-loop variables (z/f_z); this graph "
-            "builder only supports the f_x = [y equations..., x-derivative "
-            "equations...] shape verified on the fixture models."
-        )
-
-    expected = len(y_names) + len(x_names)
-    if len(f_x) != expected:
-        raise ValueError(
-            f"f_x has {len(f_x)} entries but len(y)+len(x) = {expected}; "
-            "the assumed IR ordering does not hold for this model."
-        )
 
     g = nx.DiGraph()
     for name in y_names + x_names + p_names + u_names:
         g.add_node(("var", name))
 
-    targets = [("y", n) for n in y_names] + [("x", n) for n in x_names]
-    for (kind, var_name), expr in zip(targets, f_x):
+    for kind, var_name, expr in equation_targets(ir):
         eq_node = ("eq", var_name)
         g.add_node(eq_node, kind=kind)
         g.add_edge(eq_node, ("var", var_name))
