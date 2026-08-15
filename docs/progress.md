@@ -18,14 +18,53 @@ not delete history -- this is a log, not a status snapshot.
 
 ## Phase 2 status: IN PROGRESS
 
-**Next up:** Section 5 (Feature M1) -- real per-unit C emission. Rumoca's
-`embedded-c` codegen target emits one monolithic `.c` file per model (all
-equations in one `derivative_rhs` function), not one file per
-recompilation unit. Decision needed/in progress: write a small bespoke
-C emitter directly from each unit's residual-expression JSON (tractable,
-since fixture equations are simple Binary/BuiltinCall/VarRef/Literal
-trees) rather than trying to post-process Rumoca's monolithic output.
-gcc is available on this machine (`C:\msys64\mingw64\bin\gcc.exe`).
+**Next up:** Section 8 (Features B1-B3) -- MSL models spanning the
+coupling spectrum, plus sensor-add and component-removal change
+injectors. Then Section 9 (characterization), Section 11 (figures),
+Section 16 (paper upgrade).
+
+**Section 7 (Features C1-C2) is DONE.** `src/correctness_c.py` formalizes
+the correctness check into a real numeric diff (atol=rtol=1e-9); both
+real change cells show EXACTLY zero error (bit-identical binaries).
+Teeth proven by corrupting a value and confirming the diff reports it.
+Edge cases (`tests/test_c2_edge_cases.py`): a new synthetic `models/chain`
+fixture (pure forward chain, no feedback) shows 100% predicted ripple
+still produces a byte-identical incremental build; an empty change
+(same model as its own "changed" variant) recompiles 0/N units and still
+matches. "Change inside a genuine algebraic loop" is NOT exercised --
+none exists in any fixture per D2's diagnosis -- and this is recorded
+explicitly in the test module rather than silently skipped.
+
+**Section 5 (Features M1-M5) is DONE, and landed on Rung 1 of the
+fallback ladder (Section 6) -- the best case: a real per-unit C compile
+and relink with measured, not projected, speedup.** Rumoca's
+`embedded-c` codegen target turned out to emit one monolithic `.c` file
+per model, not one file per recompilation unit, so a bespoke C emitter
+was written instead (tractable, since fixture equations are simple
+Binary/BuiltinCall/VarRef/Literal trees) rather than post-processing
+Rumoca's monolithic output. gcc is available on this machine
+(`C:\msys64\mingw64\bin\gcc.exe`) and works from PowerShell (NOT
+reliably from this session's Bash -- a `gcc -c foo.c` invoked from Bash
+failed silently with exit 1 and no stderr for unclear reasons; the same
+command via PowerShell worked fine. **Do all C build/measurement work
+via PowerShell, not Bash.**).
+
+**Measured (not projected) speedup, replacing phase 1's projected
+ceiling entirely:**
+- RLCCircuit: 1/3 units recompiled, full=414.9ms±12.8ms,
+  incremental=269.6ms±9.5ms, **measured_speedup=1.54x**
+- ThermalNetwork: 2/9 units recompiled, full=910.7ms±50.6ms,
+  incremental=408.7ms±41.1ms, **measured_speedup=2.23x**
+- Both cells: fingerprint-verified true object reuse, and
+  `outputs_identical=True` -- the incrementally-linked binary and a
+  from-scratch binary produce byte-identical stdout on the same changed
+  model. This IS a strong correctness proof already, though Feature C1
+  below formalizes it as a proper numeric diff with tolerance.
+
+Run `python src\measure_c.py` from PowerShell (repo root, venv active)
+to reproduce; it deletes nothing on its own, so `rm -rf build_cache`
+first if re-running from a clean cache is wanted (harmless either way,
+just slower the second time since the "cold cache" build re-happens).
 
 ### Phase 2 commit log (newest last, matches `git log`)
 
@@ -81,24 +120,41 @@ gcc is available on this machine (`C:\msys64\mingw64\bin\gcc.exe`).
    collapsed" result for ThermalNetwork was the integration-artifact bug,
    not reality; the true ripple is small (2 of 9 units), consistent with
    the model's actual nearest-neighbor topology.
+7. `feat: emit one C translation unit per recompilation unit` -- bespoke
+   C emitter (`src/expr_c.py`, `src/model_layout.py`,
+   `src/codegen_units.py`, `src/eval_order.py`), since Rumoca's own
+   `embedded-c` target is monolithic. 9/9 ThermalNetwork unit files
+   compiled standalone to non-empty `.o`.
+8. `feat: compile per-unit objects and link a runnable simulation, and
+   add full-rebuild baseline path` -- `src/c_build.py`: real subprocess
+   `gcc` calls, timed. Linked and ran a real `.exe`, output matched the
+   hand-verified trajectory exactly.
+9. `feat: recompile only affected objects and relink incrementally, with
+   measured timing` -- `src/measure_c.py`. **Measured speedup: RLCCircuit
+   1.54x (1/3 units recompiled), ThermalNetwork 2.23x (2/9 units
+   recompiled).** Fingerprint-verified true object reuse;
+   `outputs_identical=True` for both (incremental and full-rebuild
+   binaries produce byte-identical output on the same changed model).
+   This is Rung 1 of the Section 6 fallback ladder -- the best case.
+10. `test: validate incremental output against full rebuild` -- Feature
+    C1. `src/correctness_c.py`: real numeric diff, atol=rtol=1e-9. Both
+    cells: max_abs_error=0.0 exactly. Corrupted-output teeth test.
+11. `test: cover incremental correctness edge cases` -- Feature C2. New
+    `models/chain` fixture (pure forward chain) for the near-full-ripple
+    case (3/3 units predicted affected, still byte-identical output);
+    empty-change case (same model vs. itself, 0 units recompiled).
+    "Genuine algebraic loop" case recorded as not-yet-exercised.
 
-**Section 3 (diagnosis) and Section 4 (granularity fix) are complete.**
-This is roughly Weeks 1-2 of the phase-2 PRD's own 8-10 week estimate.
+**Section 3 (diagnosis), Section 4 (granularity fix), Section 5
+(measured incremental recompile+relink), and Section 7 (correctness
+validation) are all complete.** This covers roughly Weeks 1-6 of the
+phase-2 PRD's own 8-10 week estimate, and crucially includes Section 5,
+which the PRD itself calls "the hard, risk-bearing part" that "may take
+longer than the rest of the phase combined" -- it did not turn out to be
+a hard wall on this codebase.
 
 ### What's left in Phase 2 (not started)
 
-- **Section 5 (Features M1-M5): the credibility core.** Real per-unit C
-  translation units, compiled and linked into a runnable simulation, with
-  a genuine incremental recompile (only affected `.o` files rebuilt,
-  fingerprinted to prove it) and measured (not projected) timing. PRD
-  explicitly flags this as the hardest, most time-consuming part and
-  provides a fallback ladder (Section 6) if a true per-unit relink proves
-  infeasible -- do not fake a measurement; drop down the ladder and label
-  the result honestly at whatever rung is reached.
-- **Section 7 (Features C1-C2):** real correctness validation (numeric
-  diff between incremental and full-rebuild simulation output), plus
-  edge cases (near-full-ripple change, empty change, change inside a
-  genuine algebraic loop -- moot for now since none exists yet).
 - **Section 8 (Features B1-B3):** pull in real MSL models spanning the
   coupling spectrum; add sensor-add and component-removal change
   injectors, each with its own soundness check.
