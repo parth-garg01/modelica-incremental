@@ -40,5 +40,5 @@ pip install -r requirements.txt
 ```
 
 Compiler: [Rumoca](https://pypi.org/project/rumoca/), installed as a pinned
-Python package. Exact installed version is recorded in Feature 2's commit
-evidence and in `results/provenance.json`.
+Python package (`rumoca==0.9.20`, verified via `rumoca.version()` at
+`src/compile.py`). Python 3.11.9, Windows-10-10.0.26100-SP0, AMD64.
