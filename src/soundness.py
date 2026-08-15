@@ -7,8 +7,15 @@ resolver's own output).
 This is the check the resolver is not allowed to see: if the resolver
 under-reports (misses a unit whose compiled content really changed),
 this test must catch it.
+
+PHASE 2: `graph_builder` selects which dependency graph check_soundness
+uses to independently recompute the ground-truth unit mapping. Defaults
+to the raw graph (phase 1 behavior); pass build_causalized_graph to
+re-validate against the causalized unit definition (Feature G3).
 """
 from __future__ import annotations
+
+from ir_equations import equation_targets
 
 # Position/identity bookkeeping that changes with source-file byte offsets
 # and declaration order even when an equation's actual semantics did not
@@ -29,15 +36,16 @@ def actually_changed_equations(baseline_ir: dict, changed_ir: dict) -> set[str]:
     """Ground truth: which equations' compiled expression differs between
     the baseline and post-change IR, ignoring position/identity metadata.
     Equations present in one IR but not the other count as changed too.
-    """
-    baseline_names = list(baseline_ir["y"].keys()) + list(baseline_ir["x"].keys())
-    changed_names = list(changed_ir["y"].keys()) + list(changed_ir["x"].keys())
 
-    baseline_eqs = dict(zip(baseline_names, baseline_ir["f_x"]))
-    changed_eqs = dict(zip(changed_names, changed_ir["f_x"]))
+    PHASE 2 FIX: targets are identified from each equation's own content
+    (src/ir_equations.py), not from zipping names against f_x positionally
+    -- the same f_x-ordering bug fixed in src/graph.py applies here too.
+    """
+    baseline_eqs = {name: expr for _, name, expr in equation_targets(baseline_ir)}
+    changed_eqs = {name: expr for _, name, expr in equation_targets(changed_ir)}
 
     diffed: set[str] = set()
-    for name in set(baseline_names) | set(changed_names):
+    for name in set(baseline_eqs) | set(changed_eqs):
         if name not in baseline_eqs or name not in changed_eqs:
             diffed.add(name)
             continue
@@ -46,16 +54,19 @@ def actually_changed_equations(baseline_ir: dict, changed_ir: dict) -> set[str]:
     return diffed
 
 
-def check_soundness(baseline_ir: dict, changed_ir: dict, resolver_result: dict) -> dict:
+def check_soundness(baseline_ir: dict, changed_ir: dict, resolver_result: dict, graph_builder=None) -> dict:
     from graph import build_dependency_graph
     from units import compute_units, equation_to_unit
+
+    if graph_builder is None:
+        graph_builder = build_dependency_graph
 
     changed_eq_names = actually_changed_equations(baseline_ir, changed_ir)
 
     # Units are recomputed independently here, from changed_ir directly --
     # NOT borrowed from resolver_result -- so this ground-truth mapping does
     # not inherit any bug specific to the resolver's own traversal logic.
-    g = build_dependency_graph(changed_ir)
+    g = graph_builder(changed_ir)
     units = compute_units(g)
     eq_to_unit = equation_to_unit(units)
 

@@ -10,6 +10,11 @@ This is deliberately not computed from a before/after IR diff. Diffing
 tells you what actually changed, which is exactly the ground truth used
 to check this resolver in the soundness test (Feature 10) -- using it
 here would make the resolver circular and prove nothing.
+
+PHASE 2: `graph_builder` selects which dependency graph the resolver runs
+over. Defaults to the raw graph (src/graph.py, phase 1's behavior);
+pass `causal_graph.build_causalized_graph` (Section 4) to resolve impact
+on the causalized graph instead, which is what Feature G3 re-validates.
 """
 from __future__ import annotations
 
@@ -19,8 +24,8 @@ from graph import build_dependency_graph
 from units import compute_units, equation_to_unit
 
 
-def resolve_impact(post_change_ir: dict, seed_equation_names: list[str]) -> dict:
-    g = build_dependency_graph(post_change_ir)
+def resolve_impact(post_change_ir: dict, seed_equation_names: list[str], graph_builder=build_dependency_graph) -> dict:
+    g = graph_builder(post_change_ir)
     units = compute_units(g)
     eq_to_unit = equation_to_unit(units)
 
