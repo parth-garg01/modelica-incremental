@@ -1,0 +1,179 @@
+"""Generate one C header (shared model interface) and one .c file per
+recompilation unit, plus a driver that runs a fixed-step forward-Euler
+simulation calling each unit's compute function in dependency order.
+
+This is a bespoke, scoped C emitter (see src/expr_c.py's docstring for
+why: Rumoca's own `embedded-c` codegen target emits one monolithic file
+per model, not one per recompilation unit, and splitting that output
+post-hoc would be substantial reverse-engineering). It only needs to
+handle the operators the fixture models actually use.
+"""
+from __future__ import annotations
+
+from pathlib import Path
+
+from expr_c import expr_to_c, extract_algebraic_rhs, extract_state_equation
+from ir_equations import equation_targets
+from model_layout import Layout
+
+
+def _literal_value(expr: dict) -> float:
+    lit = expr["Literal"]["value"]
+    if "Real" in lit:
+        return float(lit["Real"])
+    if "Integer" in lit:
+        return float(lit["Integer"])
+    raise NotImplementedError(f"unsupported literal for initial value: {lit}")
+
+
+def model_prefix(model_name: str) -> str:
+    return model_name.upper()
+
+
+def generate_header(model_name: str, layout: Layout) -> str:
+    prefix = model_prefix(model_name)
+    lines = [
+        "#pragma once",
+        "#include <stddef.h>",
+        "",
+        "typedef double real_t;",
+        "",
+    ]
+    for i, n in enumerate(layout.x):
+        lines.append(f"#define {prefix}_X_{n} {i}")
+    for i, n in enumerate(layout.y):
+        lines.append(f"#define {prefix}_Y_{n} {i}")
+    for i, n in enumerate(layout.p):
+        lines.append(f"#define {prefix}_P_{n} {i}")
+    lines += [
+        "",
+        f"enum {{ {prefix}_NX = {max(len(layout.x), 1)}, "
+        f"{prefix}_NY = {max(len(layout.y), 1)}, "
+        f"{prefix}_NP = {max(len(layout.p), 1)} }};",
+        "",
+        "typedef struct {",
+        "    real_t time;",
+        f"    real_t x[{prefix}_NX];",
+        f"    real_t dx[{prefix}_NX];",
+        f"    real_t y[{prefix}_NY];",
+        f"    real_t p[{prefix}_NP];",
+        f"}} {model_name}_t;",
+        "",
+    ]
+    for n in layout.y:
+        lines.append(f"void {model_name}_compute_{n}({model_name}_t *v);")
+    for n in layout.x:
+        lines.append(f"void {model_name}_compute_der_{n}({model_name}_t *v);")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def generate_unit_c(model_name: str, kind: str, name: str, expr: dict, layout: Layout) -> str:
+    name_to_c = layout.name_to_c()
+    lines = [f'#include "{model_name}.h"', "#include <math.h>", ""]
+    if kind == "y":
+        rhs_c = expr_to_c(extract_algebraic_rhs(expr), name_to_c)
+        idx = layout.y.index(name)
+        lines += [
+            f"void {model_name}_compute_{name}({model_name}_t *v) {{",
+            f"    v->y[{idx}] = {rhs_c};",
+            "}",
+        ]
+    else:
+        coef, rhs = extract_state_equation(expr)
+        rhs_c = expr_to_c(rhs, name_to_c)
+        idx = layout.x.index(name)
+        body = f"({rhs_c})" if coef is None else f"({rhs_c}) / ({expr_to_c(coef, name_to_c)})"
+        lines += [
+            f"void {model_name}_compute_der_{name}({model_name}_t *v) {{",
+            f"    v->dx[{idx}] = {body};",
+            "}",
+        ]
+    lines.append("")
+    return "\n".join(lines)
+
+
+def unit_source_filename(model_name: str, unit_id: str) -> str:
+    # unit_id is "+"-joined member equation names (src/units.py); "+" isn't
+    # a valid filename/identifier character on all platforms, so sanitize.
+    return f"{model_name}_unit_{unit_id.replace('+', '_')}.c"
+
+
+def generate_all_units(model_name: str, ir: dict, layout: Layout) -> dict[str, str]:
+    """Returns {c_filename: c_source} for every equation in ir, one file each
+    (current fixtures all causalize to singleton units, so "one file per
+    recompilation unit" and "one file per equation" coincide; a future
+    model with a genuine multi-equation unit would need Feature G2's
+    tearing/residual refinement before this 1:1 assumption holds)."""
+    files = {}
+    for kind, name, expr in equation_targets(ir):
+        filename = f"{model_name}_unit_{name}.c"
+        files[filename] = generate_unit_c(model_name, kind, name, expr, layout)
+    return files
+
+
+def generate_driver(model_name: str, ir: dict, layout: Layout, eval_order_y: list[str]) -> str:
+    prefix = model_prefix(model_name)
+    param_inits = []
+    for n in layout.p:
+        if n in ir["p"]:
+            param_inits.append(f"    v.p[{prefix}_P_{n}] = {_literal_value(ir['p'][n]['start'])!r};")
+    state_inits = []
+    for n in layout.x:
+        if n in ir["x"]:
+            state_inits.append(f"    v.x[{prefix}_X_{n}] = {_literal_value(ir['x'][n]['start'])!r};")
+
+    algebraic_calls = [f"    {model_name}_compute_{n}(&v);" for n in eval_order_y if n in layout.y]
+    der_calls = [f"    {model_name}_compute_der_{n}(&v);" for n in layout.x if n in ir["x"]]
+    state_updates = [f"    v.x[{i}] += dt * v.dx[{i}];" for i in range(len(layout.x))]
+
+    header_row = ",".join(["time"] + layout.x + layout.y)
+    print_row = ['printf("%g", v.time);'] + \
+        [f'printf(",%g", v.x[{i}]);' for i in range(len(layout.x))] + \
+        [f'printf(",%g", v.y[{i}]);' for i in range(len(layout.y))] + \
+        ['printf("\\n");']
+
+    return "\n".join([
+        f'#include "{model_name}.h"',
+        "#include <stdio.h>",
+        "#include <stdlib.h>",
+        "",
+        "int main(int argc, char **argv) {",
+        "    double t_end = argc > 1 ? atof(argv[1]) : 10.0;",
+        "    double dt = argc > 2 ? atof(argv[2]) : 0.01;",
+        f"    {model_name}_t v;",
+        "    v.time = 0.0;",
+        *param_inits,
+        *state_inits,
+        f'    printf("{header_row}\\n");',
+        "    while (v.time <= t_end + 1e-9) {",
+        *algebraic_calls,
+        *print_row,
+        *der_calls,
+        *state_updates,
+        "        v.time += dt;",
+        "    }",
+        "    return 0;",
+        "}",
+        "",
+    ])
+
+
+def write_model_sources(model_name: str, ir: dict, layout: Layout, eval_order_y: list[str], out_dir: Path) -> dict[str, Path]:
+    out_dir.mkdir(parents=True, exist_ok=True)
+    written: dict[str, Path] = {}
+
+    header_path = out_dir / f"{model_name}.h"
+    header_path.write_text(generate_header(model_name, layout), encoding="utf-8")
+    written["header"] = header_path
+
+    for filename, source in generate_all_units(model_name, ir, layout).items():
+        path = out_dir / filename
+        path.write_text(source, encoding="utf-8")
+        written[filename] = path
+
+    driver_path = out_dir / f"{model_name}_driver.c"
+    driver_path.write_text(generate_driver(model_name, ir, layout, eval_order_y), encoding="utf-8")
+    written["driver"] = driver_path
+
+    return written
