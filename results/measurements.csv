@@ -1,0 +1,3 @@
+model_name,change_type,seed_equations,total_units,affected_units,affected_fraction,projected_speedup_ceiling,compile_time_mean_s,compile_time_stdev_s,compile_time_min_s,compile_time_max_s,compile_repeats,baseline_path,changed_path
+RLCCircuit,component_swap,i,2,1,0.5,2.0,0.0038342285714471863,0.0009945272271501273,0.0027258999998593936,0.0050111000000470085,7,models/rlc_circuit/RLCCircuit.mo,models/rlc_circuit_swapped/RLCCircuit.mo
+ThermalNetwork,component_swap,Q1,1,1,1.0,1.0,0.005196999999952823,0.00113979896177318,0.003869399999985035,0.006803400000080728,7,models/thermal_network/ThermalNetwork.mo,models/thermal_network_swapped/ThermalNetwork.mo
