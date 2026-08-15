@@ -8,3 +8,4 @@ build_cache/
 *.o
 *.exe
 *.obj
+msl_src/

@@ -18,10 +18,58 @@ not delete history -- this is a log, not a status snapshot.
 
 ## Phase 2 status: IN PROGRESS
 
-**Next up:** Section 8 (Features B1-B3) -- MSL models spanning the
-coupling spectrum, plus sensor-add and component-removal change
-injectors. Then Section 9 (characterization), Section 11 (figures),
-Section 16 (paper upgrade).
+**Next up:** Section 9 (characterization), Section 11 (figures), Section
+16 (paper upgrade) all remain undone -- see the honest status note below
+before starting any of them, since Section 8's MSL attempt (B1) hit a
+real architectural blocker that affects what "characterization" can mean
+right now.
+
+**Feature B1 (real MSL models) hit a genuine blocker -- read before
+retrying.** Cloned `ModelicaStandardLibrary` (sparse checkout into
+`msl_src/`, gitignored -- NOT committed, re-clone if needed:
+`git clone --depth 1 --filter=blob:none --sparse
+https://github.com/modelica/ModelicaStandardLibrary.git msl_src` then
+`git sparse-checkout set <paths>` inside it). A single unconnected
+component (`Modelica.Electrical.Analog.Basic.Resistor`) compiles but
+is `matched=false` (needs a real circuit context). A real circuit,
+`Modelica.Electrical.Analog.Examples.CauerLowPassAnalog` (a 7th-order
+Cauer filter), DOES compile and simulate correctly through Rumoca after
+sparse-checking out its transitive dependencies (Interfaces, Sources,
+Icons, ModelicaServices, Math.Random) -- 7 states, 69 equations,
+`Model.structure()` reports `algebraic_loops=1`, a genuine one this
+time (not diagnosed as an artifact).
+
+**The blocker:** `src/ir_equations.py`'s `equation_target()` assumes
+every `f_x[i]` residual has a clean single-variable target (either
+`var = expr` or `coef*der(state) = expr`). Real MSL circuits built from
+`connect()` statements generate Kirchhoff-law balance equations in the
+form `0 = i1 + i2 + ...` (e.g. KCL at a node), which constrain MULTIPLE
+variables simultaneously and have no single "target" -- this is
+precisely the multi-equation genuine-algebraic-loop case Feature G2
+anticipated ("if tearing is not exposed, fall back to residual-function-
+level units"). Properly supporting it needs: (1) generalizing
+`ir_equations.py` to represent an anonymous residual constraint (no
+single target) as its own graph node type, and (2) extending the C
+codegen (`src/codegen_units.py`/`src/expr_c.py`) to emit a simultaneous
+linear/nonlinear solve for a torn block instead of one function with one
+output per equation -- a substantial engineering task, not a quick fix.
+**Did not attempt this fix** -- it's a real scoping decision, not
+something to force through under time pressure per the PRD's own rule 6
+("stop and report when blocked rather than inventing a workaround").
+CauerLowPassAnalog's `.mo` file was NOT added as a fixture (its IR
+export was generated once to confirm the blocker, then deleted -- it's
+not committed and not used anywhere in the pipeline). Options for
+whoever picks this up: (a) do the tearing/residual-unit engineering
+above, (b) find/construct MSL-derived models that avoid `connect()`-
+generated balance equations (rare in real MSL, defeats much of the
+realism benefit), or (c) scope Section 9's characterization to the
+current fixture set (OneLine, DecoupledPair, RLCCircuit, ThermalNetwork,
+Chain) and report the MSL blocker itself as a finding -- honestly
+representative of the "these operators aren't supported yet" limitation
+Section 15 already anticipates.
+
+**Section 8 (Features B2-B3) is DONE, B1 is a documented blocker (see
+above), not silently skipped.**
 
 **Section 7 (Features C1-C2) is DONE.** `src/correctness_c.py` formalizes
 the correctness check into a real numeric diff (atol=rtol=1e-9); both
@@ -144,23 +192,39 @@ just slower the second time since the "cold cache" build re-happens).
     case (3/3 units predicted affected, still byte-identical output);
     empty-change case (same model vs. itself, 0 units recompiled).
     "Genuine algebraic loop" case recorded as not-yet-exercised.
+12. `feat: inject sensor-add and component-removal changes with
+    soundness check` -- Features B2, B3. `add_sensor_thermal_network`
+    (adds `Qtotal`, one new equation, sound, teeth-checked) and
+    `remove_component_thermal_network` (removes room 3 cleanly, no
+    dangling references, sound, teeth-checked) in `src/change.py`.
+
+**Feature B1 (real MSL models) attempted, hit a genuine architectural
+blocker, not committed -- see the detailed note above the commit log.**
+In short: real MSL circuits generate Kirchhoff-law balance equations
+with no single "target variable" per equation, which both
+`ir_equations.py` and the C codegen currently assume. No commit for this
+because nothing was built that's safe to ship; the finding itself is
+documented above for whoever resumes.
 
 **Section 3 (diagnosis), Section 4 (granularity fix), Section 5
-(measured incremental recompile+relink), and Section 7 (correctness
-validation) are all complete.** This covers roughly Weeks 1-6 of the
-phase-2 PRD's own 8-10 week estimate, and crucially includes Section 5,
-which the PRD itself calls "the hard, risk-bearing part" that "may take
-longer than the rest of the phase combined" -- it did not turn out to be
-a hard wall on this codebase.
+(measured incremental recompile+relink), Section 7 (correctness
+validation), and Section 8's B2/B3 (sensor-add, component-removal) are
+all complete.** B1 (MSL) is a documented blocker. This covers roughly
+Weeks 1-7 of the phase-2 PRD's own 8-10 week estimate, and crucially
+includes Section 5, which the PRD itself calls "the hard, risk-bearing
+part" that "may take longer than the rest of the phase combined" -- it
+did not turn out to be a hard wall on this codebase.
 
 ### What's left in Phase 2 (not started)
 
-- **Section 8 (Features B1-B3):** pull in real MSL models spanning the
-  coupling spectrum; add sensor-add and component-removal change
-  injectors, each with its own soundness check.
+- **Section 8 (Feature B1):** blocked, see the detailed note above --
+  real MSL models need the tearing/residual-unit engineering described
+  there before they can flow through this pipeline.
 - **Section 9 (Features S1-S2):** structural metrics per model (largest
   SCC/tearing-block size, coupling density, states:algebraic ratio);
   relate ripple and measured speedup to those metrics across the suite.
+  Can proceed now on the current fixture set (OneLine, DecoupledPair,
+  RLCCircuit, ThermalNetwork, Chain) without waiting on B1.
 - **Section 11:** six new figures from measured (not projected) data.
 - **Section 16:** upgrade `docs/paper.md` to a full paper with measured
   results, the granularity fix as a named contribution, and the
