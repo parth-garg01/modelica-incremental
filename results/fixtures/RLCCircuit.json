@@ -1,0 +1,1269 @@
+{
+  "schema_version": 7,
+  "x": {
+    "i": {
+      "name": "i",
+      "component_ref": {
+        "local": false,
+        "span": {
+          "source": 814612612997492928,
+          "start": 222,
+          "end": 228
+        },
+        "parts": [
+          {
+            "ident": "i",
+            "span": {
+              "source": 814612612997492928,
+              "start": 222,
+              "end": 228
+            },
+            "subs": []
+          }
+        ],
+        "def_id": 95
+      },
+      "source_span": {
+        "source": 814612612997492928,
+        "start": 222,
+        "end": 228
+      },
+      "dims": [],
+      "start": {
+        "Literal": {
+          "value": {
+            "Real": 0.0
+          },
+          "span": {
+            "source": 814612612997492928,
+            "start": 235,
+            "end": 238
+          }
+        }
+      },
+      "start_span": {
+        "source": 814612612997492928,
+        "start": 235,
+        "end": 238
+      },
+      "fixed": null,
+      "min": null,
+      "min_span": null,
+      "max": null,
+      "max_span": null,
+      "nominal": null,
+      "nominal_span": null,
+      "unit": null,
+      "state_select": "Default",
+      "description": null,
+      "causality": "local",
+      "is_tunable": false,
+      "origin": "source"
+    },
+    "v": {
+      "name": "v",
+      "component_ref": {
+        "local": false,
+        "span": {
+          "source": 814612612997492928,
+          "start": 243,
+          "end": 249
+        },
+        "parts": [
+          {
+            "ident": "v",
+            "span": {
+              "source": 814612612997492928,
+              "start": 243,
+              "end": 249
+            },
+            "subs": []
+          }
+        ],
+        "def_id": 96
+      },
+      "source_span": {
+        "source": 814612612997492928,
+        "start": 243,
+        "end": 249
+      },
+      "dims": [],
+      "start": {
+        "Literal": {
+          "value": {
+            "Real": 0.0
+          },
+          "span": {
+            "source": 814612612997492928,
+            "start": 256,
+            "end": 259
+          }
+        }
+      },
+      "start_span": {
+        "source": 814612612997492928,
+        "start": 256,
+        "end": 259
+      },
+      "fixed": null,
+      "min": null,
+      "min_span": null,
+      "max": null,
+      "max_span": null,
+      "nominal": null,
+      "nominal_span": null,
+      "unit": null,
+      "state_select": "Default",
+      "description": null,
+      "causality": "local",
+      "is_tunable": false,
+      "origin": "source"
+    }
+  },
+  "y": {
+    "Vs": {
+      "name": "Vs",
+      "component_ref": {
+        "local": false,
+        "span": {
+          "source": 814612612997492928,
+          "start": 401,
+          "end": 408
+        },
+        "parts": [
+          {
+            "ident": "Vs",
+            "span": {
+              "source": 814612612997492928,
+              "start": 401,
+              "end": 408
+            },
+            "subs": []
+          }
+        ],
+        "def_id": 102
+      },
+      "source_span": {
+        "source": 814612612997492928,
+        "start": 401,
+        "end": 408
+      },
+      "dims": [],
+      "start": {
+        "Literal": {
+          "value": {
+            "Real": 0.0
+          },
+          "span": {
+            "source": 814612612997492928,
+            "start": 401,
+            "end": 408
+          }
+        }
+      },
+      "start_span": {
+        "source": 814612612997492928,
+        "start": 401,
+        "end": 408
+      },
+      "fixed": null,
+      "min": null,
+      "min_span": null,
+      "max": null,
+      "max_span": null,
+      "nominal": null,
+      "nominal_span": null,
+      "unit": null,
+      "state_select": "Default",
+      "description": null,
+      "causality": "local",
+      "is_tunable": false,
+      "origin": "source"
+    }
+  },
+  "u": {},
+  "w": {},
+  "p": {
+    "R": {
+      "name": "R",
+      "component_ref": {
+        "local": false,
+        "span": {
+          "source": 814612612997492928,
+          "start": 274,
+          "end": 280
+        },
+        "parts": [
+          {
+            "ident": "R",
+            "span": {
+              "source": 814612612997492928,
+              "start": 274,
+              "end": 280
+            },
+            "subs": []
+          }
+        ],
+        "def_id": 97
+      },
+      "source_span": {
+        "source": 814612612997492928,
+        "start": 274,
+        "end": 280
+      },
+      "dims": [],
+      "start": {
+        "Literal": {
+          "value": {
+            "Real": 1.0
+          },
+          "span": {
+            "source": 814612612997492928,
+            "start": 283,
+            "end": 286
+          }
+        }
+      },
+      "start_span": {
+        "source": 814612612997492928,
+        "start": 283,
+        "end": 286
+      },
+      "fixed": null,
+      "min": null,
+      "min_span": null,
+      "max": null,
+      "max_span": null,
+      "nominal": null,
+      "nominal_span": null,
+      "unit": null,
+      "state_select": "Default",
+      "description": null,
+      "causality": "parameter",
+      "is_tunable": true,
+      "origin": "source"
+    },
+    "L": {
+      "name": "L",
+      "component_ref": {
+        "local": false,
+        "span": {
+          "source": 814612612997492928,
+          "start": 300,
+          "end": 306
+        },
+        "parts": [
+          {
+            "ident": "L",
+            "span": {
+              "source": 814612612997492928,
+              "start": 300,
+              "end": 306
+            },
+            "subs": []
+          }
+        ],
+        "def_id": 98
+      },
+      "source_span": {
+        "source": 814612612997492928,
+        "start": 300,
+        "end": 306
+      },
+      "dims": [],
+      "start": {
+        "Literal": {
+          "value": {
+            "Real": 0.5
+          },
+          "span": {
+            "source": 814612612997492928,
+            "start": 309,
+            "end": 312
+          }
+        }
+      },
+      "start_span": {
+        "source": 814612612997492928,
+        "start": 309,
+        "end": 312
+      },
+      "fixed": null,
+      "min": null,
+      "min_span": null,
+      "max": null,
+      "max_span": null,
+      "nominal": null,
+      "nominal_span": null,
+      "unit": null,
+      "state_select": "Default",
+      "description": null,
+      "causality": "parameter",
+      "is_tunable": true,
+      "origin": "source"
+    },
+    "C": {
+      "name": "C",
+      "component_ref": {
+        "local": false,
+        "span": {
+          "source": 814612612997492928,
+          "start": 326,
+          "end": 332
+        },
+        "parts": [
+          {
+            "ident": "C",
+            "span": {
+              "source": 814612612997492928,
+              "start": 326,
+              "end": 332
+            },
+            "subs": []
+          }
+        ],
+        "def_id": 99
+      },
+      "source_span": {
+        "source": 814612612997492928,
+        "start": 326,
+        "end": 332
+      },
+      "dims": [],
+      "start": {
+        "Literal": {
+          "value": {
+            "Real": 0.1
+          },
+          "span": {
+            "source": 814612612997492928,
+            "start": 335,
+            "end": 338
+          }
+        }
+      },
+      "start_span": {
+        "source": 814612612997492928,
+        "start": 335,
+        "end": 338
+      },
+      "fixed": null,
+      "min": null,
+      "min_span": null,
+      "max": null,
+      "max_span": null,
+      "nominal": null,
+      "nominal_span": null,
+      "unit": null,
+      "state_select": "Default",
+      "description": null,
+      "causality": "parameter",
+      "is_tunable": true,
+      "origin": "source"
+    },
+    "Vamp": {
+      "name": "Vamp",
+      "component_ref": {
+        "local": false,
+        "span": {
+          "source": 814612612997492928,
+          "start": 352,
+          "end": 361
+        },
+        "parts": [
+          {
+            "ident": "Vamp",
+            "span": {
+              "source": 814612612997492928,
+              "start": 352,
+              "end": 361
+            },
+            "subs": []
+          }
+        ],
+        "def_id": 100
+      },
+      "source_span": {
+        "source": 814612612997492928,
+        "start": 352,
+        "end": 361
+      },
+      "dims": [],
+      "start": {
+        "Literal": {
+          "value": {
+            "Real": 1.0
+          },
+          "span": {
+            "source": 814612612997492928,
+            "start": 364,
+            "end": 367
+          }
+        }
+      },
+      "start_span": {
+        "source": 814612612997492928,
+        "start": 364,
+        "end": 367
+      },
+      "fixed": null,
+      "min": null,
+      "min_span": null,
+      "max": null,
+      "max_span": null,
+      "nominal": null,
+      "nominal_span": null,
+      "unit": null,
+      "state_select": "Default",
+      "description": null,
+      "causality": "parameter",
+      "is_tunable": true,
+      "origin": "source"
+    },
+    "omega": {
+      "name": "omega",
+      "component_ref": {
+        "local": false,
+        "span": {
+          "source": 814612612997492928,
+          "start": 381,
+          "end": 391
+        },
+        "parts": [
+          {
+            "ident": "omega",
+            "span": {
+              "source": 814612612997492928,
+              "start": 381,
+              "end": 391
+            },
+            "subs": []
+          }
+        ],
+        "def_id": 101
+      },
+      "source_span": {
+        "source": 814612612997492928,
+        "start": 381,
+        "end": 391
+      },
+      "dims": [],
+      "start": {
+        "Literal": {
+          "value": {
+            "Real": 2.0
+          },
+          "span": {
+            "source": 814612612997492928,
+            "start": 394,
+            "end": 397
+          }
+        }
+      },
+      "start_span": {
+        "source": 814612612997492928,
+        "start": 394,
+        "end": 397
+      },
+      "fixed": null,
+      "min": null,
+      "min_span": null,
+      "max": null,
+      "max_span": null,
+      "nominal": null,
+      "nominal_span": null,
+      "unit": null,
+      "state_select": "Default",
+      "description": null,
+      "causality": "parameter",
+      "is_tunable": true,
+      "origin": "source"
+    }
+  },
+  "constants": {},
+  "z": {},
+  "m": {},
+  "f_x": [
+    {
+      "lhs": null,
+      "rhs": {
+        "Binary": {
+          "op": "Sub",
+          "lhs": {
+            "VarRef": {
+              "name": {
+                "name": "Vs",
+                "component_ref": {
+                  "local": false,
+                  "span": {
+                    "source": 814612612997492928,
+                    "start": 401,
+                    "end": 408
+                  },
+                  "parts": [
+                    {
+                      "ident": "Vs",
+                      "span": {
+                        "source": 814612612997492928,
+                        "start": 401,
+                        "end": 408
+                      },
+                      "subs": []
+                    }
+                  ],
+                  "def_id": 102
+                }
+              },
+              "subscripts": [],
+              "span": {
+                "source": 814612612997492928,
+                "start": 421,
+                "end": 423
+              }
+            }
+          },
+          "rhs": {
+            "Binary": {
+              "op": "Mul",
+              "lhs": {
+                "VarRef": {
+                  "name": {
+                    "name": "Vamp",
+                    "component_ref": {
+                      "local": false,
+                      "span": {
+                        "source": 814612612997492928,
+                        "start": 352,
+                        "end": 361
+                      },
+                      "parts": [
+                        {
+                          "ident": "Vamp",
+                          "span": {
+                            "source": 814612612997492928,
+                            "start": 352,
+                            "end": 361
+                          },
+                          "subs": []
+                        }
+                      ],
+                      "def_id": 100
+                    }
+                  },
+                  "subscripts": [],
+                  "span": {
+                    "source": 814612612997492928,
+                    "start": 426,
+                    "end": 430
+                  }
+                }
+              },
+              "rhs": {
+                "BuiltinCall": {
+                  "function": "Sin",
+                  "args": [
+                    {
+                      "Binary": {
+                        "op": "Mul",
+                        "lhs": {
+                          "VarRef": {
+                            "name": {
+                              "name": "omega",
+                              "component_ref": {
+                                "local": false,
+                                "span": {
+                                  "source": 814612612997492928,
+                                  "start": 381,
+                                  "end": 391
+                                },
+                                "parts": [
+                                  {
+                                    "ident": "omega",
+                                    "span": {
+                                      "source": 814612612997492928,
+                                      "start": 381,
+                                      "end": 391
+                                    },
+                                    "subs": []
+                                  }
+                                ],
+                                "def_id": 101
+                              }
+                            },
+                            "subscripts": [],
+                            "span": {
+                              "source": 814612612997492928,
+                              "start": 435,
+                              "end": 440
+                            }
+                          }
+                        },
+                        "rhs": {
+                          "VarRef": {
+                            "name": {
+                              "name": "time",
+                              "generated": true
+                            },
+                            "subscripts": [],
+                            "span": {
+                              "source": 814612612997492928,
+                              "start": 441,
+                              "end": 445
+                            }
+                          }
+                        },
+                        "span": {
+                          "source": 814612612997492928,
+                          "start": 435,
+                          "end": 445
+                        }
+                      }
+                    }
+                  ],
+                  "span": {
+                    "source": 814612612997492928,
+                    "start": 431,
+                    "end": 434
+                  }
+                }
+              },
+              "span": {
+                "source": 814612612997492928,
+                "start": 426,
+                "end": 445
+              }
+            }
+          },
+          "span": {
+            "source": 814612612997492928,
+            "start": 421,
+            "end": 423
+          }
+        }
+      },
+      "span": {
+        "source": 814612612997492928,
+        "start": 421,
+        "end": 423
+      },
+      "origin": "top-level model equation",
+      "scalar_count": 1
+    },
+    {
+      "lhs": null,
+      "rhs": {
+        "Binary": {
+          "op": "Sub",
+          "lhs": {
+            "Binary": {
+              "op": "Mul",
+              "lhs": {
+                "VarRef": {
+                  "name": {
+                    "name": "L",
+                    "component_ref": {
+                      "local": false,
+                      "span": {
+                        "source": 814612612997492928,
+                        "start": 300,
+                        "end": 306
+                      },
+                      "parts": [
+                        {
+                          "ident": "L",
+                          "span": {
+                            "source": 814612612997492928,
+                            "start": 300,
+                            "end": 306
+                          },
+                          "subs": []
+                        }
+                      ],
+                      "def_id": 98
+                    }
+                  },
+                  "subscripts": [],
+                  "span": {
+                    "source": 814612612997492928,
+                    "start": 450,
+                    "end": 451
+                  }
+                }
+              },
+              "rhs": {
+                "BuiltinCall": {
+                  "function": "Der",
+                  "args": [
+                    {
+                      "VarRef": {
+                        "name": {
+                          "name": "i",
+                          "component_ref": {
+                            "local": false,
+                            "span": {
+                              "source": 814612612997492928,
+                              "start": 222,
+                              "end": 228
+                            },
+                            "parts": [
+                              {
+                                "ident": "i",
+                                "span": {
+                                  "source": 814612612997492928,
+                                  "start": 222,
+                                  "end": 228
+                                },
+                                "subs": []
+                              }
+                            ],
+                            "def_id": 95
+                          }
+                        },
+                        "subscripts": [],
+                        "span": {
+                          "source": 814612612997492928,
+                          "start": 456,
+                          "end": 457
+                        }
+                      }
+                    }
+                  ],
+                  "span": {
+                    "source": 814612612997492928,
+                    "start": 452,
+                    "end": 455
+                  }
+                }
+              },
+              "span": {
+                "source": 814612612997492928,
+                "start": 450,
+                "end": 457
+              }
+            }
+          },
+          "rhs": {
+            "Binary": {
+              "op": "Sub",
+              "lhs": {
+                "Binary": {
+                  "op": "Sub",
+                  "lhs": {
+                    "VarRef": {
+                      "name": {
+                        "name": "Vs",
+                        "component_ref": {
+                          "local": false,
+                          "span": {
+                            "source": 814612612997492928,
+                            "start": 401,
+                            "end": 408
+                          },
+                          "parts": [
+                            {
+                              "ident": "Vs",
+                              "span": {
+                                "source": 814612612997492928,
+                                "start": 401,
+                                "end": 408
+                              },
+                              "subs": []
+                            }
+                          ],
+                          "def_id": 102
+                        }
+                      },
+                      "subscripts": [],
+                      "span": {
+                        "source": 814612612997492928,
+                        "start": 461,
+                        "end": 463
+                      }
+                    }
+                  },
+                  "rhs": {
+                    "Binary": {
+                      "op": "Mul",
+                      "lhs": {
+                        "VarRef": {
+                          "name": {
+                            "name": "R",
+                            "component_ref": {
+                              "local": false,
+                              "span": {
+                                "source": 814612612997492928,
+                                "start": 274,
+                                "end": 280
+                              },
+                              "parts": [
+                                {
+                                  "ident": "R",
+                                  "span": {
+                                    "source": 814612612997492928,
+                                    "start": 274,
+                                    "end": 280
+                                  },
+                                  "subs": []
+                                }
+                              ],
+                              "def_id": 97
+                            }
+                          },
+                          "subscripts": [],
+                          "span": {
+                            "source": 814612612997492928,
+                            "start": 466,
+                            "end": 467
+                          }
+                        }
+                      },
+                      "rhs": {
+                        "VarRef": {
+                          "name": {
+                            "name": "i",
+                            "component_ref": {
+                              "local": false,
+                              "span": {
+                                "source": 814612612997492928,
+                                "start": 222,
+                                "end": 228
+                              },
+                              "parts": [
+                                {
+                                  "ident": "i",
+                                  "span": {
+                                    "source": 814612612997492928,
+                                    "start": 222,
+                                    "end": 228
+                                  },
+                                  "subs": []
+                                }
+                              ],
+                              "def_id": 95
+                            }
+                          },
+                          "subscripts": [],
+                          "span": {
+                            "source": 814612612997492928,
+                            "start": 468,
+                            "end": 469
+                          }
+                        }
+                      },
+                      "span": {
+                        "source": 814612612997492928,
+                        "start": 466,
+                        "end": 469
+                      }
+                    }
+                  },
+                  "span": {
+                    "source": 814612612997492928,
+                    "start": 461,
+                    "end": 469
+                  }
+                }
+              },
+              "rhs": {
+                "VarRef": {
+                  "name": {
+                    "name": "v",
+                    "component_ref": {
+                      "local": false,
+                      "span": {
+                        "source": 814612612997492928,
+                        "start": 243,
+                        "end": 249
+                      },
+                      "parts": [
+                        {
+                          "ident": "v",
+                          "span": {
+                            "source": 814612612997492928,
+                            "start": 243,
+                            "end": 249
+                          },
+                          "subs": []
+                        }
+                      ],
+                      "def_id": 96
+                    }
+                  },
+                  "subscripts": [],
+                  "span": {
+                    "source": 814612612997492928,
+                    "start": 472,
+                    "end": 473
+                  }
+                }
+              },
+              "span": {
+                "source": 814612612997492928,
+                "start": 461,
+                "end": 473
+              }
+            }
+          },
+          "span": {
+            "source": 814612612997492928,
+            "start": 450,
+            "end": 457
+          }
+        }
+      },
+      "span": {
+        "source": 814612612997492928,
+        "start": 450,
+        "end": 451
+      },
+      "origin": "top-level model equation",
+      "scalar_count": 1
+    },
+    {
+      "lhs": null,
+      "rhs": {
+        "Binary": {
+          "op": "Sub",
+          "lhs": {
+            "Binary": {
+              "op": "Mul",
+              "lhs": {
+                "VarRef": {
+                  "name": {
+                    "name": "C",
+                    "component_ref": {
+                      "local": false,
+                      "span": {
+                        "source": 814612612997492928,
+                        "start": 326,
+                        "end": 332
+                      },
+                      "parts": [
+                        {
+                          "ident": "C",
+                          "span": {
+                            "source": 814612612997492928,
+                            "start": 326,
+                            "end": 332
+                          },
+                          "subs": []
+                        }
+                      ],
+                      "def_id": 99
+                    }
+                  },
+                  "subscripts": [],
+                  "span": {
+                    "source": 814612612997492928,
+                    "start": 477,
+                    "end": 478
+                  }
+                }
+              },
+              "rhs": {
+                "BuiltinCall": {
+                  "function": "Der",
+                  "args": [
+                    {
+                      "VarRef": {
+                        "name": {
+                          "name": "v",
+                          "component_ref": {
+                            "local": false,
+                            "span": {
+                              "source": 814612612997492928,
+                              "start": 243,
+                              "end": 249
+                            },
+                            "parts": [
+                              {
+                                "ident": "v",
+                                "span": {
+                                  "source": 814612612997492928,
+                                  "start": 243,
+                                  "end": 249
+                                },
+                                "subs": []
+                              }
+                            ],
+                            "def_id": 96
+                          }
+                        },
+                        "subscripts": [],
+                        "span": {
+                          "source": 814612612997492928,
+                          "start": 483,
+                          "end": 484
+                        }
+                      }
+                    }
+                  ],
+                  "span": {
+                    "source": 814612612997492928,
+                    "start": 479,
+                    "end": 482
+                  }
+                }
+              },
+              "span": {
+                "source": 814612612997492928,
+                "start": 477,
+                "end": 484
+              }
+            }
+          },
+          "rhs": {
+            "VarRef": {
+              "name": {
+                "name": "i",
+                "component_ref": {
+                  "local": false,
+                  "span": {
+                    "source": 814612612997492928,
+                    "start": 222,
+                    "end": 228
+                  },
+                  "parts": [
+                    {
+                      "ident": "i",
+                      "span": {
+                        "source": 814612612997492928,
+                        "start": 222,
+                        "end": 228
+                      },
+                      "subs": []
+                    }
+                  ],
+                  "def_id": 95
+                }
+              },
+              "subscripts": [],
+              "span": {
+                "source": 814612612997492928,
+                "start": 488,
+                "end": 489
+              }
+            }
+          },
+          "span": {
+            "source": 814612612997492928,
+            "start": 477,
+            "end": 484
+          }
+        }
+      },
+      "span": {
+        "source": 814612612997492928,
+        "start": 477,
+        "end": 478
+      },
+      "origin": "top-level model equation",
+      "scalar_count": 1
+    }
+  ],
+  "structured_equations": [],
+  "initial_equations": [],
+  "initial_structured_equations": [],
+  "f_z": [],
+  "f_m": [],
+  "f_c": [],
+  "relation": [],
+  "synthetic_root_conditions": [],
+  "scheduled_time_events": [],
+  "scheduled_root_conditions": [],
+  "event_actions": [],
+  "constructor_exprs": [],
+  "schedules": [],
+  "triggered_conditions": [],
+  "intervals": {},
+  "timings": {},
+  "functions": {},
+  "enum_literal_ordinals": {
+    "StateSelect.never": 1,
+    "StateSelect.'never'": 1,
+    "StateSelect.avoid": 2,
+    "StateSelect.'avoid'": 2,
+    "StateSelect.default": 3,
+    "StateSelect.'default'": 3,
+    "StateSelect.prefer": 4,
+    "StateSelect.'prefer'": 4,
+    "StateSelect.always": 5,
+    "StateSelect.'always'": 5,
+    "AssertionLevel.warning": 1,
+    "AssertionLevel.'warning'": 1,
+    "AssertionLevel.error": 2,
+    "AssertionLevel.'error'": 2
+  },
+  "metadata": {
+    "is_partial": false,
+    "class_type": "Model",
+    "variable_starts": {
+      "i": {
+        "Literal": {
+          "value": {
+            "Real": 0.0
+          },
+          "span": {
+            "source": 814612612997492928,
+            "start": 235,
+            "end": 238
+          }
+        }
+      },
+      "v": {
+        "Literal": {
+          "value": {
+            "Real": 0.0
+          },
+          "span": {
+            "source": 814612612997492928,
+            "start": 256,
+            "end": 259
+          }
+        }
+      },
+      "R": {
+        "Literal": {
+          "value": {
+            "Real": 1.0
+          },
+          "span": {
+            "source": 814612612997492928,
+            "start": 283,
+            "end": 286
+          }
+        }
+      },
+      "L": {
+        "Literal": {
+          "value": {
+            "Real": 0.5
+          },
+          "span": {
+            "source": 814612612997492928,
+            "start": 309,
+            "end": 312
+          }
+        }
+      },
+      "C": {
+        "Literal": {
+          "value": {
+            "Real": 0.1
+          },
+          "span": {
+            "source": 814612612997492928,
+            "start": 335,
+            "end": 338
+          }
+        }
+      },
+      "Vamp": {
+        "Literal": {
+          "value": {
+            "Real": 1.0
+          },
+          "span": {
+            "source": 814612612997492928,
+            "start": 364,
+            "end": 367
+          }
+        }
+      },
+      "omega": {
+        "Literal": {
+          "value": {
+            "Real": 2.0
+          },
+          "span": {
+            "source": 814612612997492928,
+            "start": 394,
+            "end": 397
+          }
+        }
+      },
+      "Vs": {
+        "Literal": {
+          "value": {
+            "Real": 0.0
+          },
+          "span": {
+            "source": 814612612997492928,
+            "start": 401,
+            "end": 408
+          }
+        }
+      }
+    },
+    "interface_flow_count": 0,
+    "overconstrained_interface_count": 0,
+    "oc_break_edge_scalar_count": 0,
+    "model_description": "Series RLC circuit driven by a sinusoidal source.\n   Inductor current i and capacitor voltage v are mutually coupled through\n   the loop equation, so they should land in the same recompilation unit.",
+    "symbol_ancestry": {
+      "86": [
+        85,
+        86
+      ],
+      "95": [
+        85,
+        86
+      ],
+      "87": [
+        85,
+        87
+      ],
+      "96": [
+        85,
+        87
+      ],
+      "88": [
+        85,
+        88
+      ],
+      "97": [
+        85,
+        88
+      ],
+      "89": [
+        85,
+        89
+      ],
+      "98": [
+        85,
+        89
+      ],
+      "90": [
+        85,
+        90
+      ],
+      "99": [
+        85,
+        90
+      ],
+      "91": [
+        85,
+        91
+      ],
+      "100": [
+        85,
+        91
+      ],
+      "92": [
+        85,
+        92
+      ],
+      "101": [
+        85,
+        92
+      ],
+      "93": [
+        85,
+        93
+      ],
+      "102": [
+        85,
+        93
+      ]
+    }
+  }
+}

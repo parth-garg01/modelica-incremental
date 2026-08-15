@@ -1,0 +1,3067 @@
+{
+  "schema_version": 7,
+  "x": {
+    "T1": {
+      "name": "T1",
+      "component_ref": {
+        "local": false,
+        "span": {
+          "source": 85705774804857070,
+          "start": 625,
+          "end": 632
+        },
+        "parts": [
+          {
+            "ident": "T1",
+            "span": {
+              "source": 85705774804857070,
+              "start": 625,
+              "end": 632
+            },
+            "subs": []
+          }
+        ],
+        "def_id": 114
+      },
+      "source_span": {
+        "source": 85705774804857070,
+        "start": 625,
+        "end": 632
+      },
+      "dims": [],
+      "start": {
+        "Literal": {
+          "value": {
+            "Real": 15.0
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 639,
+            "end": 643
+          }
+        }
+      },
+      "start_span": {
+        "source": 85705774804857070,
+        "start": 639,
+        "end": 643
+      },
+      "fixed": null,
+      "min": null,
+      "min_span": null,
+      "max": null,
+      "max_span": null,
+      "nominal": null,
+      "nominal_span": null,
+      "unit": null,
+      "state_select": "Default",
+      "description": null,
+      "causality": "local",
+      "is_tunable": false,
+      "origin": "source"
+    },
+    "T2": {
+      "name": "T2",
+      "component_ref": {
+        "local": false,
+        "span": {
+          "source": 85705774804857070,
+          "start": 648,
+          "end": 655
+        },
+        "parts": [
+          {
+            "ident": "T2",
+            "span": {
+              "source": 85705774804857070,
+              "start": 648,
+              "end": 655
+            },
+            "subs": []
+          }
+        ],
+        "def_id": 115
+      },
+      "source_span": {
+        "source": 85705774804857070,
+        "start": 648,
+        "end": 655
+      },
+      "dims": [],
+      "start": {
+        "Literal": {
+          "value": {
+            "Real": 15.0
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 662,
+            "end": 666
+          }
+        }
+      },
+      "start_span": {
+        "source": 85705774804857070,
+        "start": 662,
+        "end": 666
+      },
+      "fixed": null,
+      "min": null,
+      "min_span": null,
+      "max": null,
+      "max_span": null,
+      "nominal": null,
+      "nominal_span": null,
+      "unit": null,
+      "state_select": "Default",
+      "description": null,
+      "causality": "local",
+      "is_tunable": false,
+      "origin": "source"
+    },
+    "T3": {
+      "name": "T3",
+      "component_ref": {
+        "local": false,
+        "span": {
+          "source": 85705774804857070,
+          "start": 671,
+          "end": 678
+        },
+        "parts": [
+          {
+            "ident": "T3",
+            "span": {
+              "source": 85705774804857070,
+              "start": 671,
+              "end": 678
+            },
+            "subs": []
+          }
+        ],
+        "def_id": 116
+      },
+      "source_span": {
+        "source": 85705774804857070,
+        "start": 671,
+        "end": 678
+      },
+      "dims": [],
+      "start": {
+        "Literal": {
+          "value": {
+            "Real": 15.0
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 685,
+            "end": 689
+          }
+        }
+      },
+      "start_span": {
+        "source": 85705774804857070,
+        "start": 685,
+        "end": 689
+      },
+      "fixed": null,
+      "min": null,
+      "min_span": null,
+      "max": null,
+      "max_span": null,
+      "nominal": null,
+      "nominal_span": null,
+      "unit": null,
+      "state_select": "Default",
+      "description": null,
+      "causality": "local",
+      "is_tunable": false,
+      "origin": "source"
+    }
+  },
+  "y": {
+    "Q1": {
+      "name": "Q1",
+      "component_ref": {
+        "local": false,
+        "span": {
+          "source": 85705774804857070,
+          "start": 694,
+          "end": 701
+        },
+        "parts": [
+          {
+            "ident": "Q1",
+            "span": {
+              "source": 85705774804857070,
+              "start": 694,
+              "end": 701
+            },
+            "subs": []
+          }
+        ],
+        "def_id": 117
+      },
+      "source_span": {
+        "source": 85705774804857070,
+        "start": 694,
+        "end": 701
+      },
+      "dims": [],
+      "start": {
+        "Literal": {
+          "value": {
+            "Real": 0.0
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 694,
+            "end": 701
+          }
+        }
+      },
+      "start_span": {
+        "source": 85705774804857070,
+        "start": 694,
+        "end": 701
+      },
+      "fixed": null,
+      "min": null,
+      "min_span": null,
+      "max": null,
+      "max_span": null,
+      "nominal": null,
+      "nominal_span": null,
+      "unit": null,
+      "state_select": "Default",
+      "description": null,
+      "causality": "local",
+      "is_tunable": false,
+      "origin": "source"
+    },
+    "Q12": {
+      "name": "Q12",
+      "component_ref": {
+        "local": false,
+        "span": {
+          "source": 85705774804857070,
+          "start": 694,
+          "end": 706
+        },
+        "parts": [
+          {
+            "ident": "Q12",
+            "span": {
+              "source": 85705774804857070,
+              "start": 694,
+              "end": 706
+            },
+            "subs": []
+          }
+        ],
+        "def_id": 118
+      },
+      "source_span": {
+        "source": 85705774804857070,
+        "start": 694,
+        "end": 706
+      },
+      "dims": [],
+      "start": {
+        "Literal": {
+          "value": {
+            "Real": 0.0
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 694,
+            "end": 706
+          }
+        }
+      },
+      "start_span": {
+        "source": 85705774804857070,
+        "start": 694,
+        "end": 706
+      },
+      "fixed": null,
+      "min": null,
+      "min_span": null,
+      "max": null,
+      "max_span": null,
+      "nominal": null,
+      "nominal_span": null,
+      "unit": null,
+      "state_select": "Default",
+      "description": null,
+      "causality": "local",
+      "is_tunable": false,
+      "origin": "source"
+    },
+    "Q23": {
+      "name": "Q23",
+      "component_ref": {
+        "local": false,
+        "span": {
+          "source": 85705774804857070,
+          "start": 694,
+          "end": 711
+        },
+        "parts": [
+          {
+            "ident": "Q23",
+            "span": {
+              "source": 85705774804857070,
+              "start": 694,
+              "end": 711
+            },
+            "subs": []
+          }
+        ],
+        "def_id": 119
+      },
+      "source_span": {
+        "source": 85705774804857070,
+        "start": 694,
+        "end": 711
+      },
+      "dims": [],
+      "start": {
+        "Literal": {
+          "value": {
+            "Real": 0.0
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 694,
+            "end": 711
+          }
+        }
+      },
+      "start_span": {
+        "source": 85705774804857070,
+        "start": 694,
+        "end": 711
+      },
+      "fixed": null,
+      "min": null,
+      "min_span": null,
+      "max": null,
+      "max_span": null,
+      "nominal": null,
+      "nominal_span": null,
+      "unit": null,
+      "state_select": "Default",
+      "description": null,
+      "causality": "local",
+      "is_tunable": false,
+      "origin": "source"
+    },
+    "Q1env": {
+      "name": "Q1env",
+      "component_ref": {
+        "local": false,
+        "span": {
+          "source": 85705774804857070,
+          "start": 694,
+          "end": 718
+        },
+        "parts": [
+          {
+            "ident": "Q1env",
+            "span": {
+              "source": 85705774804857070,
+              "start": 694,
+              "end": 718
+            },
+            "subs": []
+          }
+        ],
+        "def_id": 120
+      },
+      "source_span": {
+        "source": 85705774804857070,
+        "start": 694,
+        "end": 718
+      },
+      "dims": [],
+      "start": {
+        "Literal": {
+          "value": {
+            "Real": 0.0
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 694,
+            "end": 718
+          }
+        }
+      },
+      "start_span": {
+        "source": 85705774804857070,
+        "start": 694,
+        "end": 718
+      },
+      "fixed": null,
+      "min": null,
+      "min_span": null,
+      "max": null,
+      "max_span": null,
+      "nominal": null,
+      "nominal_span": null,
+      "unit": null,
+      "state_select": "Default",
+      "description": null,
+      "causality": "local",
+      "is_tunable": false,
+      "origin": "source"
+    },
+    "Q2env": {
+      "name": "Q2env",
+      "component_ref": {
+        "local": false,
+        "span": {
+          "source": 85705774804857070,
+          "start": 694,
+          "end": 725
+        },
+        "parts": [
+          {
+            "ident": "Q2env",
+            "span": {
+              "source": 85705774804857070,
+              "start": 694,
+              "end": 725
+            },
+            "subs": []
+          }
+        ],
+        "def_id": 121
+      },
+      "source_span": {
+        "source": 85705774804857070,
+        "start": 694,
+        "end": 725
+      },
+      "dims": [],
+      "start": {
+        "Literal": {
+          "value": {
+            "Real": 0.0
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 694,
+            "end": 725
+          }
+        }
+      },
+      "start_span": {
+        "source": 85705774804857070,
+        "start": 694,
+        "end": 725
+      },
+      "fixed": null,
+      "min": null,
+      "min_span": null,
+      "max": null,
+      "max_span": null,
+      "nominal": null,
+      "nominal_span": null,
+      "unit": null,
+      "state_select": "Default",
+      "description": null,
+      "causality": "local",
+      "is_tunable": false,
+      "origin": "source"
+    },
+    "Q3env": {
+      "name": "Q3env",
+      "component_ref": {
+        "local": false,
+        "span": {
+          "source": 85705774804857070,
+          "start": 694,
+          "end": 732
+        },
+        "parts": [
+          {
+            "ident": "Q3env",
+            "span": {
+              "source": 85705774804857070,
+              "start": 694,
+              "end": 732
+            },
+            "subs": []
+          }
+        ],
+        "def_id": 122
+      },
+      "source_span": {
+        "source": 85705774804857070,
+        "start": 694,
+        "end": 732
+      },
+      "dims": [],
+      "start": {
+        "Literal": {
+          "value": {
+            "Real": 0.0
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 694,
+            "end": 732
+          }
+        }
+      },
+      "start_span": {
+        "source": 85705774804857070,
+        "start": 694,
+        "end": 732
+      },
+      "fixed": null,
+      "min": null,
+      "min_span": null,
+      "max": null,
+      "max_span": null,
+      "nominal": null,
+      "nominal_span": null,
+      "unit": null,
+      "state_select": "Default",
+      "description": null,
+      "causality": "local",
+      "is_tunable": false,
+      "origin": "source"
+    }
+  },
+  "u": {},
+  "w": {},
+  "p": {
+    "Camb": {
+      "name": "Camb",
+      "component_ref": {
+        "local": false,
+        "span": {
+          "source": 85705774804857070,
+          "start": 375,
+          "end": 384
+        },
+        "parts": [
+          {
+            "ident": "Camb",
+            "span": {
+              "source": 85705774804857070,
+              "start": 375,
+              "end": 384
+            },
+            "subs": []
+          }
+        ],
+        "def_id": 105
+      },
+      "source_span": {
+        "source": 85705774804857070,
+        "start": 375,
+        "end": 384
+      },
+      "dims": [],
+      "start": {
+        "Literal": {
+          "value": {
+            "Real": 1.0
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 387,
+            "end": 390
+          }
+        }
+      },
+      "start_span": {
+        "source": 85705774804857070,
+        "start": 387,
+        "end": 390
+      },
+      "fixed": null,
+      "min": null,
+      "min_span": null,
+      "max": null,
+      "max_span": null,
+      "nominal": null,
+      "nominal_span": null,
+      "unit": null,
+      "state_select": "Default",
+      "description": null,
+      "causality": "parameter",
+      "is_tunable": true,
+      "origin": "source"
+    },
+    "C1": {
+      "name": "C1",
+      "component_ref": {
+        "local": false,
+        "span": {
+          "source": 85705774804857070,
+          "start": 404,
+          "end": 411
+        },
+        "parts": [
+          {
+            "ident": "C1",
+            "span": {
+              "source": 85705774804857070,
+              "start": 404,
+              "end": 411
+            },
+            "subs": []
+          }
+        ],
+        "def_id": 106
+      },
+      "source_span": {
+        "source": 85705774804857070,
+        "start": 404,
+        "end": 411
+      },
+      "dims": [],
+      "start": {
+        "Literal": {
+          "value": {
+            "Real": 2.0
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 414,
+            "end": 417
+          }
+        }
+      },
+      "start_span": {
+        "source": 85705774804857070,
+        "start": 414,
+        "end": 417
+      },
+      "fixed": null,
+      "min": null,
+      "min_span": null,
+      "max": null,
+      "max_span": null,
+      "nominal": null,
+      "nominal_span": null,
+      "unit": null,
+      "state_select": "Default",
+      "description": null,
+      "causality": "parameter",
+      "is_tunable": true,
+      "origin": "source"
+    },
+    "C2": {
+      "name": "C2",
+      "component_ref": {
+        "local": false,
+        "span": {
+          "source": 85705774804857070,
+          "start": 431,
+          "end": 438
+        },
+        "parts": [
+          {
+            "ident": "C2",
+            "span": {
+              "source": 85705774804857070,
+              "start": 431,
+              "end": 438
+            },
+            "subs": []
+          }
+        ],
+        "def_id": 107
+      },
+      "source_span": {
+        "source": 85705774804857070,
+        "start": 431,
+        "end": 438
+      },
+      "dims": [],
+      "start": {
+        "Literal": {
+          "value": {
+            "Real": 2.0
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 441,
+            "end": 444
+          }
+        }
+      },
+      "start_span": {
+        "source": 85705774804857070,
+        "start": 441,
+        "end": 444
+      },
+      "fixed": null,
+      "min": null,
+      "min_span": null,
+      "max": null,
+      "max_span": null,
+      "nominal": null,
+      "nominal_span": null,
+      "unit": null,
+      "state_select": "Default",
+      "description": null,
+      "causality": "parameter",
+      "is_tunable": true,
+      "origin": "source"
+    },
+    "C3": {
+      "name": "C3",
+      "component_ref": {
+        "local": false,
+        "span": {
+          "source": 85705774804857070,
+          "start": 458,
+          "end": 465
+        },
+        "parts": [
+          {
+            "ident": "C3",
+            "span": {
+              "source": 85705774804857070,
+              "start": 458,
+              "end": 465
+            },
+            "subs": []
+          }
+        ],
+        "def_id": 108
+      },
+      "source_span": {
+        "source": 85705774804857070,
+        "start": 458,
+        "end": 465
+      },
+      "dims": [],
+      "start": {
+        "Literal": {
+          "value": {
+            "Real": 2.0
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 468,
+            "end": 471
+          }
+        }
+      },
+      "start_span": {
+        "source": 85705774804857070,
+        "start": 468,
+        "end": 471
+      },
+      "fixed": null,
+      "min": null,
+      "min_span": null,
+      "max": null,
+      "max_span": null,
+      "nominal": null,
+      "nominal_span": null,
+      "unit": null,
+      "state_select": "Default",
+      "description": null,
+      "causality": "parameter",
+      "is_tunable": true,
+      "origin": "source"
+    },
+    "Genv": {
+      "name": "Genv",
+      "component_ref": {
+        "local": false,
+        "span": {
+          "source": 85705774804857070,
+          "start": 485,
+          "end": 494
+        },
+        "parts": [
+          {
+            "ident": "Genv",
+            "span": {
+              "source": 85705774804857070,
+              "start": 485,
+              "end": 494
+            },
+            "subs": []
+          }
+        ],
+        "def_id": 109
+      },
+      "source_span": {
+        "source": 85705774804857070,
+        "start": 485,
+        "end": 494
+      },
+      "dims": [],
+      "start": {
+        "Literal": {
+          "value": {
+            "Real": 0.2
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 497,
+            "end": 500
+          }
+        }
+      },
+      "start_span": {
+        "source": 85705774804857070,
+        "start": 497,
+        "end": 500
+      },
+      "fixed": null,
+      "min": null,
+      "min_span": null,
+      "max": null,
+      "max_span": null,
+      "nominal": null,
+      "nominal_span": null,
+      "unit": null,
+      "state_select": "Default",
+      "description": null,
+      "causality": "parameter",
+      "is_tunable": true,
+      "origin": "source"
+    },
+    "G12": {
+      "name": "G12",
+      "component_ref": {
+        "local": false,
+        "span": {
+          "source": 85705774804857070,
+          "start": 514,
+          "end": 522
+        },
+        "parts": [
+          {
+            "ident": "G12",
+            "span": {
+              "source": 85705774804857070,
+              "start": 514,
+              "end": 522
+            },
+            "subs": []
+          }
+        ],
+        "def_id": 110
+      },
+      "source_span": {
+        "source": 85705774804857070,
+        "start": 514,
+        "end": 522
+      },
+      "dims": [],
+      "start": {
+        "Literal": {
+          "value": {
+            "Real": 0.5
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 525,
+            "end": 528
+          }
+        }
+      },
+      "start_span": {
+        "source": 85705774804857070,
+        "start": 525,
+        "end": 528
+      },
+      "fixed": null,
+      "min": null,
+      "min_span": null,
+      "max": null,
+      "max_span": null,
+      "nominal": null,
+      "nominal_span": null,
+      "unit": null,
+      "state_select": "Default",
+      "description": null,
+      "causality": "parameter",
+      "is_tunable": true,
+      "origin": "source"
+    },
+    "G23": {
+      "name": "G23",
+      "component_ref": {
+        "local": false,
+        "span": {
+          "source": 85705774804857070,
+          "start": 542,
+          "end": 550
+        },
+        "parts": [
+          {
+            "ident": "G23",
+            "span": {
+              "source": 85705774804857070,
+              "start": 542,
+              "end": 550
+            },
+            "subs": []
+          }
+        ],
+        "def_id": 111
+      },
+      "source_span": {
+        "source": 85705774804857070,
+        "start": 542,
+        "end": 550
+      },
+      "dims": [],
+      "start": {
+        "Literal": {
+          "value": {
+            "Real": 0.5
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 553,
+            "end": 556
+          }
+        }
+      },
+      "start_span": {
+        "source": 85705774804857070,
+        "start": 553,
+        "end": 556
+      },
+      "fixed": null,
+      "min": null,
+      "min_span": null,
+      "max": null,
+      "max_span": null,
+      "nominal": null,
+      "nominal_span": null,
+      "unit": null,
+      "state_select": "Default",
+      "description": null,
+      "causality": "parameter",
+      "is_tunable": true,
+      "origin": "source"
+    },
+    "Tamb": {
+      "name": "Tamb",
+      "component_ref": {
+        "local": false,
+        "span": {
+          "source": 85705774804857070,
+          "start": 570,
+          "end": 579
+        },
+        "parts": [
+          {
+            "ident": "Tamb",
+            "span": {
+              "source": 85705774804857070,
+              "start": 570,
+              "end": 579
+            },
+            "subs": []
+          }
+        ],
+        "def_id": 112
+      },
+      "source_span": {
+        "source": 85705774804857070,
+        "start": 570,
+        "end": 579
+      },
+      "dims": [],
+      "start": {
+        "Literal": {
+          "value": {
+            "Real": 15.0
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 582,
+            "end": 586
+          }
+        }
+      },
+      "start_span": {
+        "source": 85705774804857070,
+        "start": 582,
+        "end": 586
+      },
+      "fixed": null,
+      "min": null,
+      "min_span": null,
+      "max": null,
+      "max_span": null,
+      "nominal": null,
+      "nominal_span": null,
+      "unit": null,
+      "state_select": "Default",
+      "description": null,
+      "causality": "parameter",
+      "is_tunable": true,
+      "origin": "source"
+    },
+    "Qheater": {
+      "name": "Qheater",
+      "component_ref": {
+        "local": false,
+        "span": {
+          "source": 85705774804857070,
+          "start": 600,
+          "end": 612
+        },
+        "parts": [
+          {
+            "ident": "Qheater",
+            "span": {
+              "source": 85705774804857070,
+              "start": 600,
+              "end": 612
+            },
+            "subs": []
+          }
+        ],
+        "def_id": 113
+      },
+      "source_span": {
+        "source": 85705774804857070,
+        "start": 600,
+        "end": 612
+      },
+      "dims": [],
+      "start": {
+        "Literal": {
+          "value": {
+            "Real": 100.0
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 615,
+            "end": 620
+          }
+        }
+      },
+      "start_span": {
+        "source": 85705774804857070,
+        "start": 615,
+        "end": 620
+      },
+      "fixed": null,
+      "min": null,
+      "min_span": null,
+      "max": null,
+      "max_span": null,
+      "nominal": null,
+      "nominal_span": null,
+      "unit": null,
+      "state_select": "Default",
+      "description": null,
+      "causality": "parameter",
+      "is_tunable": true,
+      "origin": "source"
+    }
+  },
+  "constants": {},
+  "z": {},
+  "m": {},
+  "f_x": [
+    {
+      "lhs": null,
+      "rhs": {
+        "Binary": {
+          "op": "Sub",
+          "lhs": {
+            "VarRef": {
+              "name": {
+                "name": "Q1",
+                "component_ref": {
+                  "local": false,
+                  "span": {
+                    "source": 85705774804857070,
+                    "start": 694,
+                    "end": 701
+                  },
+                  "parts": [
+                    {
+                      "ident": "Q1",
+                      "span": {
+                        "source": 85705774804857070,
+                        "start": 694,
+                        "end": 701
+                      },
+                      "subs": []
+                    }
+                  ],
+                  "def_id": 117
+                }
+              },
+              "subscripts": [],
+              "span": {
+                "source": 85705774804857070,
+                "start": 745,
+                "end": 747
+              }
+            }
+          },
+          "rhs": {
+            "VarRef": {
+              "name": {
+                "name": "Qheater",
+                "component_ref": {
+                  "local": false,
+                  "span": {
+                    "source": 85705774804857070,
+                    "start": 600,
+                    "end": 612
+                  },
+                  "parts": [
+                    {
+                      "ident": "Qheater",
+                      "span": {
+                        "source": 85705774804857070,
+                        "start": 600,
+                        "end": 612
+                      },
+                      "subs": []
+                    }
+                  ],
+                  "def_id": 113
+                }
+              },
+              "subscripts": [],
+              "span": {
+                "source": 85705774804857070,
+                "start": 750,
+                "end": 757
+              }
+            }
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 745,
+            "end": 747
+          }
+        }
+      },
+      "span": {
+        "source": 85705774804857070,
+        "start": 745,
+        "end": 747
+      },
+      "origin": "top-level model equation",
+      "scalar_count": 1
+    },
+    {
+      "lhs": null,
+      "rhs": {
+        "Binary": {
+          "op": "Sub",
+          "lhs": {
+            "VarRef": {
+              "name": {
+                "name": "Q1env",
+                "component_ref": {
+                  "local": false,
+                  "span": {
+                    "source": 85705774804857070,
+                    "start": 694,
+                    "end": 718
+                  },
+                  "parts": [
+                    {
+                      "ident": "Q1env",
+                      "span": {
+                        "source": 85705774804857070,
+                        "start": 694,
+                        "end": 718
+                      },
+                      "subs": []
+                    }
+                  ],
+                  "def_id": 120
+                }
+              },
+              "subscripts": [],
+              "span": {
+                "source": 85705774804857070,
+                "start": 761,
+                "end": 766
+              }
+            }
+          },
+          "rhs": {
+            "Binary": {
+              "op": "Mul",
+              "lhs": {
+                "VarRef": {
+                  "name": {
+                    "name": "Genv",
+                    "component_ref": {
+                      "local": false,
+                      "span": {
+                        "source": 85705774804857070,
+                        "start": 485,
+                        "end": 494
+                      },
+                      "parts": [
+                        {
+                          "ident": "Genv",
+                          "span": {
+                            "source": 85705774804857070,
+                            "start": 485,
+                            "end": 494
+                          },
+                          "subs": []
+                        }
+                      ],
+                      "def_id": 109
+                    }
+                  },
+                  "subscripts": [],
+                  "span": {
+                    "source": 85705774804857070,
+                    "start": 769,
+                    "end": 773
+                  }
+                }
+              },
+              "rhs": {
+                "Binary": {
+                  "op": "Sub",
+                  "lhs": {
+                    "VarRef": {
+                      "name": {
+                        "name": "T1",
+                        "component_ref": {
+                          "local": false,
+                          "span": {
+                            "source": 85705774804857070,
+                            "start": 625,
+                            "end": 632
+                          },
+                          "parts": [
+                            {
+                              "ident": "T1",
+                              "span": {
+                                "source": 85705774804857070,
+                                "start": 625,
+                                "end": 632
+                              },
+                              "subs": []
+                            }
+                          ],
+                          "def_id": 114
+                        }
+                      },
+                      "subscripts": [],
+                      "span": {
+                        "source": 85705774804857070,
+                        "start": 775,
+                        "end": 777
+                      }
+                    }
+                  },
+                  "rhs": {
+                    "VarRef": {
+                      "name": {
+                        "name": "Tamb",
+                        "component_ref": {
+                          "local": false,
+                          "span": {
+                            "source": 85705774804857070,
+                            "start": 570,
+                            "end": 579
+                          },
+                          "parts": [
+                            {
+                              "ident": "Tamb",
+                              "span": {
+                                "source": 85705774804857070,
+                                "start": 570,
+                                "end": 579
+                              },
+                              "subs": []
+                            }
+                          ],
+                          "def_id": 112
+                        }
+                      },
+                      "subscripts": [],
+                      "span": {
+                        "source": 85705774804857070,
+                        "start": 780,
+                        "end": 784
+                      }
+                    }
+                  },
+                  "span": {
+                    "source": 85705774804857070,
+                    "start": 775,
+                    "end": 784
+                  }
+                }
+              },
+              "span": {
+                "source": 85705774804857070,
+                "start": 769,
+                "end": 784
+              }
+            }
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 761,
+            "end": 766
+          }
+        }
+      },
+      "span": {
+        "source": 85705774804857070,
+        "start": 761,
+        "end": 766
+      },
+      "origin": "top-level model equation",
+      "scalar_count": 1
+    },
+    {
+      "lhs": null,
+      "rhs": {
+        "Binary": {
+          "op": "Sub",
+          "lhs": {
+            "VarRef": {
+              "name": {
+                "name": "Q2env",
+                "component_ref": {
+                  "local": false,
+                  "span": {
+                    "source": 85705774804857070,
+                    "start": 694,
+                    "end": 725
+                  },
+                  "parts": [
+                    {
+                      "ident": "Q2env",
+                      "span": {
+                        "source": 85705774804857070,
+                        "start": 694,
+                        "end": 725
+                      },
+                      "subs": []
+                    }
+                  ],
+                  "def_id": 121
+                }
+              },
+              "subscripts": [],
+              "span": {
+                "source": 85705774804857070,
+                "start": 789,
+                "end": 794
+              }
+            }
+          },
+          "rhs": {
+            "Binary": {
+              "op": "Mul",
+              "lhs": {
+                "VarRef": {
+                  "name": {
+                    "name": "Genv",
+                    "component_ref": {
+                      "local": false,
+                      "span": {
+                        "source": 85705774804857070,
+                        "start": 485,
+                        "end": 494
+                      },
+                      "parts": [
+                        {
+                          "ident": "Genv",
+                          "span": {
+                            "source": 85705774804857070,
+                            "start": 485,
+                            "end": 494
+                          },
+                          "subs": []
+                        }
+                      ],
+                      "def_id": 109
+                    }
+                  },
+                  "subscripts": [],
+                  "span": {
+                    "source": 85705774804857070,
+                    "start": 797,
+                    "end": 801
+                  }
+                }
+              },
+              "rhs": {
+                "Binary": {
+                  "op": "Sub",
+                  "lhs": {
+                    "VarRef": {
+                      "name": {
+                        "name": "T2",
+                        "component_ref": {
+                          "local": false,
+                          "span": {
+                            "source": 85705774804857070,
+                            "start": 648,
+                            "end": 655
+                          },
+                          "parts": [
+                            {
+                              "ident": "T2",
+                              "span": {
+                                "source": 85705774804857070,
+                                "start": 648,
+                                "end": 655
+                              },
+                              "subs": []
+                            }
+                          ],
+                          "def_id": 115
+                        }
+                      },
+                      "subscripts": [],
+                      "span": {
+                        "source": 85705774804857070,
+                        "start": 803,
+                        "end": 805
+                      }
+                    }
+                  },
+                  "rhs": {
+                    "VarRef": {
+                      "name": {
+                        "name": "Tamb",
+                        "component_ref": {
+                          "local": false,
+                          "span": {
+                            "source": 85705774804857070,
+                            "start": 570,
+                            "end": 579
+                          },
+                          "parts": [
+                            {
+                              "ident": "Tamb",
+                              "span": {
+                                "source": 85705774804857070,
+                                "start": 570,
+                                "end": 579
+                              },
+                              "subs": []
+                            }
+                          ],
+                          "def_id": 112
+                        }
+                      },
+                      "subscripts": [],
+                      "span": {
+                        "source": 85705774804857070,
+                        "start": 808,
+                        "end": 812
+                      }
+                    }
+                  },
+                  "span": {
+                    "source": 85705774804857070,
+                    "start": 803,
+                    "end": 812
+                  }
+                }
+              },
+              "span": {
+                "source": 85705774804857070,
+                "start": 797,
+                "end": 812
+              }
+            }
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 789,
+            "end": 794
+          }
+        }
+      },
+      "span": {
+        "source": 85705774804857070,
+        "start": 789,
+        "end": 794
+      },
+      "origin": "top-level model equation",
+      "scalar_count": 1
+    },
+    {
+      "lhs": null,
+      "rhs": {
+        "Binary": {
+          "op": "Sub",
+          "lhs": {
+            "VarRef": {
+              "name": {
+                "name": "Q3env",
+                "component_ref": {
+                  "local": false,
+                  "span": {
+                    "source": 85705774804857070,
+                    "start": 694,
+                    "end": 732
+                  },
+                  "parts": [
+                    {
+                      "ident": "Q3env",
+                      "span": {
+                        "source": 85705774804857070,
+                        "start": 694,
+                        "end": 732
+                      },
+                      "subs": []
+                    }
+                  ],
+                  "def_id": 122
+                }
+              },
+              "subscripts": [],
+              "span": {
+                "source": 85705774804857070,
+                "start": 817,
+                "end": 822
+              }
+            }
+          },
+          "rhs": {
+            "Binary": {
+              "op": "Mul",
+              "lhs": {
+                "VarRef": {
+                  "name": {
+                    "name": "Genv",
+                    "component_ref": {
+                      "local": false,
+                      "span": {
+                        "source": 85705774804857070,
+                        "start": 485,
+                        "end": 494
+                      },
+                      "parts": [
+                        {
+                          "ident": "Genv",
+                          "span": {
+                            "source": 85705774804857070,
+                            "start": 485,
+                            "end": 494
+                          },
+                          "subs": []
+                        }
+                      ],
+                      "def_id": 109
+                    }
+                  },
+                  "subscripts": [],
+                  "span": {
+                    "source": 85705774804857070,
+                    "start": 825,
+                    "end": 829
+                  }
+                }
+              },
+              "rhs": {
+                "Binary": {
+                  "op": "Sub",
+                  "lhs": {
+                    "VarRef": {
+                      "name": {
+                        "name": "T3",
+                        "component_ref": {
+                          "local": false,
+                          "span": {
+                            "source": 85705774804857070,
+                            "start": 671,
+                            "end": 678
+                          },
+                          "parts": [
+                            {
+                              "ident": "T3",
+                              "span": {
+                                "source": 85705774804857070,
+                                "start": 671,
+                                "end": 678
+                              },
+                              "subs": []
+                            }
+                          ],
+                          "def_id": 116
+                        }
+                      },
+                      "subscripts": [],
+                      "span": {
+                        "source": 85705774804857070,
+                        "start": 831,
+                        "end": 833
+                      }
+                    }
+                  },
+                  "rhs": {
+                    "VarRef": {
+                      "name": {
+                        "name": "Tamb",
+                        "component_ref": {
+                          "local": false,
+                          "span": {
+                            "source": 85705774804857070,
+                            "start": 570,
+                            "end": 579
+                          },
+                          "parts": [
+                            {
+                              "ident": "Tamb",
+                              "span": {
+                                "source": 85705774804857070,
+                                "start": 570,
+                                "end": 579
+                              },
+                              "subs": []
+                            }
+                          ],
+                          "def_id": 112
+                        }
+                      },
+                      "subscripts": [],
+                      "span": {
+                        "source": 85705774804857070,
+                        "start": 836,
+                        "end": 840
+                      }
+                    }
+                  },
+                  "span": {
+                    "source": 85705774804857070,
+                    "start": 831,
+                    "end": 840
+                  }
+                }
+              },
+              "span": {
+                "source": 85705774804857070,
+                "start": 825,
+                "end": 840
+              }
+            }
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 817,
+            "end": 822
+          }
+        }
+      },
+      "span": {
+        "source": 85705774804857070,
+        "start": 817,
+        "end": 822
+      },
+      "origin": "top-level model equation",
+      "scalar_count": 1
+    },
+    {
+      "lhs": null,
+      "rhs": {
+        "Binary": {
+          "op": "Sub",
+          "lhs": {
+            "VarRef": {
+              "name": {
+                "name": "Q12",
+                "component_ref": {
+                  "local": false,
+                  "span": {
+                    "source": 85705774804857070,
+                    "start": 694,
+                    "end": 706
+                  },
+                  "parts": [
+                    {
+                      "ident": "Q12",
+                      "span": {
+                        "source": 85705774804857070,
+                        "start": 694,
+                        "end": 706
+                      },
+                      "subs": []
+                    }
+                  ],
+                  "def_id": 118
+                }
+              },
+              "subscripts": [],
+              "span": {
+                "source": 85705774804857070,
+                "start": 845,
+                "end": 848
+              }
+            }
+          },
+          "rhs": {
+            "Binary": {
+              "op": "Mul",
+              "lhs": {
+                "VarRef": {
+                  "name": {
+                    "name": "G12",
+                    "component_ref": {
+                      "local": false,
+                      "span": {
+                        "source": 85705774804857070,
+                        "start": 514,
+                        "end": 522
+                      },
+                      "parts": [
+                        {
+                          "ident": "G12",
+                          "span": {
+                            "source": 85705774804857070,
+                            "start": 514,
+                            "end": 522
+                          },
+                          "subs": []
+                        }
+                      ],
+                      "def_id": 110
+                    }
+                  },
+                  "subscripts": [],
+                  "span": {
+                    "source": 85705774804857070,
+                    "start": 851,
+                    "end": 854
+                  }
+                }
+              },
+              "rhs": {
+                "Binary": {
+                  "op": "Sub",
+                  "lhs": {
+                    "VarRef": {
+                      "name": {
+                        "name": "T1",
+                        "component_ref": {
+                          "local": false,
+                          "span": {
+                            "source": 85705774804857070,
+                            "start": 625,
+                            "end": 632
+                          },
+                          "parts": [
+                            {
+                              "ident": "T1",
+                              "span": {
+                                "source": 85705774804857070,
+                                "start": 625,
+                                "end": 632
+                              },
+                              "subs": []
+                            }
+                          ],
+                          "def_id": 114
+                        }
+                      },
+                      "subscripts": [],
+                      "span": {
+                        "source": 85705774804857070,
+                        "start": 856,
+                        "end": 858
+                      }
+                    }
+                  },
+                  "rhs": {
+                    "VarRef": {
+                      "name": {
+                        "name": "T2",
+                        "component_ref": {
+                          "local": false,
+                          "span": {
+                            "source": 85705774804857070,
+                            "start": 648,
+                            "end": 655
+                          },
+                          "parts": [
+                            {
+                              "ident": "T2",
+                              "span": {
+                                "source": 85705774804857070,
+                                "start": 648,
+                                "end": 655
+                              },
+                              "subs": []
+                            }
+                          ],
+                          "def_id": 115
+                        }
+                      },
+                      "subscripts": [],
+                      "span": {
+                        "source": 85705774804857070,
+                        "start": 861,
+                        "end": 863
+                      }
+                    }
+                  },
+                  "span": {
+                    "source": 85705774804857070,
+                    "start": 856,
+                    "end": 863
+                  }
+                }
+              },
+              "span": {
+                "source": 85705774804857070,
+                "start": 851,
+                "end": 863
+              }
+            }
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 845,
+            "end": 848
+          }
+        }
+      },
+      "span": {
+        "source": 85705774804857070,
+        "start": 845,
+        "end": 848
+      },
+      "origin": "top-level model equation",
+      "scalar_count": 1
+    },
+    {
+      "lhs": null,
+      "rhs": {
+        "Binary": {
+          "op": "Sub",
+          "lhs": {
+            "VarRef": {
+              "name": {
+                "name": "Q23",
+                "component_ref": {
+                  "local": false,
+                  "span": {
+                    "source": 85705774804857070,
+                    "start": 694,
+                    "end": 711
+                  },
+                  "parts": [
+                    {
+                      "ident": "Q23",
+                      "span": {
+                        "source": 85705774804857070,
+                        "start": 694,
+                        "end": 711
+                      },
+                      "subs": []
+                    }
+                  ],
+                  "def_id": 119
+                }
+              },
+              "subscripts": [],
+              "span": {
+                "source": 85705774804857070,
+                "start": 868,
+                "end": 871
+              }
+            }
+          },
+          "rhs": {
+            "Binary": {
+              "op": "Mul",
+              "lhs": {
+                "VarRef": {
+                  "name": {
+                    "name": "G23",
+                    "component_ref": {
+                      "local": false,
+                      "span": {
+                        "source": 85705774804857070,
+                        "start": 542,
+                        "end": 550
+                      },
+                      "parts": [
+                        {
+                          "ident": "G23",
+                          "span": {
+                            "source": 85705774804857070,
+                            "start": 542,
+                            "end": 550
+                          },
+                          "subs": []
+                        }
+                      ],
+                      "def_id": 111
+                    }
+                  },
+                  "subscripts": [],
+                  "span": {
+                    "source": 85705774804857070,
+                    "start": 874,
+                    "end": 877
+                  }
+                }
+              },
+              "rhs": {
+                "Binary": {
+                  "op": "Sub",
+                  "lhs": {
+                    "VarRef": {
+                      "name": {
+                        "name": "T2",
+                        "component_ref": {
+                          "local": false,
+                          "span": {
+                            "source": 85705774804857070,
+                            "start": 648,
+                            "end": 655
+                          },
+                          "parts": [
+                            {
+                              "ident": "T2",
+                              "span": {
+                                "source": 85705774804857070,
+                                "start": 648,
+                                "end": 655
+                              },
+                              "subs": []
+                            }
+                          ],
+                          "def_id": 115
+                        }
+                      },
+                      "subscripts": [],
+                      "span": {
+                        "source": 85705774804857070,
+                        "start": 879,
+                        "end": 881
+                      }
+                    }
+                  },
+                  "rhs": {
+                    "VarRef": {
+                      "name": {
+                        "name": "T3",
+                        "component_ref": {
+                          "local": false,
+                          "span": {
+                            "source": 85705774804857070,
+                            "start": 671,
+                            "end": 678
+                          },
+                          "parts": [
+                            {
+                              "ident": "T3",
+                              "span": {
+                                "source": 85705774804857070,
+                                "start": 671,
+                                "end": 678
+                              },
+                              "subs": []
+                            }
+                          ],
+                          "def_id": 116
+                        }
+                      },
+                      "subscripts": [],
+                      "span": {
+                        "source": 85705774804857070,
+                        "start": 884,
+                        "end": 886
+                      }
+                    }
+                  },
+                  "span": {
+                    "source": 85705774804857070,
+                    "start": 879,
+                    "end": 886
+                  }
+                }
+              },
+              "span": {
+                "source": 85705774804857070,
+                "start": 874,
+                "end": 886
+              }
+            }
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 868,
+            "end": 871
+          }
+        }
+      },
+      "span": {
+        "source": 85705774804857070,
+        "start": 868,
+        "end": 871
+      },
+      "origin": "top-level model equation",
+      "scalar_count": 1
+    },
+    {
+      "lhs": null,
+      "rhs": {
+        "Binary": {
+          "op": "Sub",
+          "lhs": {
+            "Binary": {
+              "op": "Mul",
+              "lhs": {
+                "VarRef": {
+                  "name": {
+                    "name": "C1",
+                    "component_ref": {
+                      "local": false,
+                      "span": {
+                        "source": 85705774804857070,
+                        "start": 404,
+                        "end": 411
+                      },
+                      "parts": [
+                        {
+                          "ident": "C1",
+                          "span": {
+                            "source": 85705774804857070,
+                            "start": 404,
+                            "end": 411
+                          },
+                          "subs": []
+                        }
+                      ],
+                      "def_id": 106
+                    }
+                  },
+                  "subscripts": [],
+                  "span": {
+                    "source": 85705774804857070,
+                    "start": 892,
+                    "end": 894
+                  }
+                }
+              },
+              "rhs": {
+                "BuiltinCall": {
+                  "function": "Der",
+                  "args": [
+                    {
+                      "VarRef": {
+                        "name": {
+                          "name": "T1",
+                          "component_ref": {
+                            "local": false,
+                            "span": {
+                              "source": 85705774804857070,
+                              "start": 625,
+                              "end": 632
+                            },
+                            "parts": [
+                              {
+                                "ident": "T1",
+                                "span": {
+                                  "source": 85705774804857070,
+                                  "start": 625,
+                                  "end": 632
+                                },
+                                "subs": []
+                              }
+                            ],
+                            "def_id": 114
+                          }
+                        },
+                        "subscripts": [],
+                        "span": {
+                          "source": 85705774804857070,
+                          "start": 899,
+                          "end": 901
+                        }
+                      }
+                    }
+                  ],
+                  "span": {
+                    "source": 85705774804857070,
+                    "start": 895,
+                    "end": 898
+                  }
+                }
+              },
+              "span": {
+                "source": 85705774804857070,
+                "start": 892,
+                "end": 901
+              }
+            }
+          },
+          "rhs": {
+            "Binary": {
+              "op": "Sub",
+              "lhs": {
+                "Binary": {
+                  "op": "Sub",
+                  "lhs": {
+                    "VarRef": {
+                      "name": {
+                        "name": "Q1",
+                        "component_ref": {
+                          "local": false,
+                          "span": {
+                            "source": 85705774804857070,
+                            "start": 694,
+                            "end": 701
+                          },
+                          "parts": [
+                            {
+                              "ident": "Q1",
+                              "span": {
+                                "source": 85705774804857070,
+                                "start": 694,
+                                "end": 701
+                              },
+                              "subs": []
+                            }
+                          ],
+                          "def_id": 117
+                        }
+                      },
+                      "subscripts": [],
+                      "span": {
+                        "source": 85705774804857070,
+                        "start": 905,
+                        "end": 907
+                      }
+                    }
+                  },
+                  "rhs": {
+                    "VarRef": {
+                      "name": {
+                        "name": "Q1env",
+                        "component_ref": {
+                          "local": false,
+                          "span": {
+                            "source": 85705774804857070,
+                            "start": 694,
+                            "end": 718
+                          },
+                          "parts": [
+                            {
+                              "ident": "Q1env",
+                              "span": {
+                                "source": 85705774804857070,
+                                "start": 694,
+                                "end": 718
+                              },
+                              "subs": []
+                            }
+                          ],
+                          "def_id": 120
+                        }
+                      },
+                      "subscripts": [],
+                      "span": {
+                        "source": 85705774804857070,
+                        "start": 910,
+                        "end": 915
+                      }
+                    }
+                  },
+                  "span": {
+                    "source": 85705774804857070,
+                    "start": 905,
+                    "end": 915
+                  }
+                }
+              },
+              "rhs": {
+                "VarRef": {
+                  "name": {
+                    "name": "Q12",
+                    "component_ref": {
+                      "local": false,
+                      "span": {
+                        "source": 85705774804857070,
+                        "start": 694,
+                        "end": 706
+                      },
+                      "parts": [
+                        {
+                          "ident": "Q12",
+                          "span": {
+                            "source": 85705774804857070,
+                            "start": 694,
+                            "end": 706
+                          },
+                          "subs": []
+                        }
+                      ],
+                      "def_id": 118
+                    }
+                  },
+                  "subscripts": [],
+                  "span": {
+                    "source": 85705774804857070,
+                    "start": 918,
+                    "end": 921
+                  }
+                }
+              },
+              "span": {
+                "source": 85705774804857070,
+                "start": 905,
+                "end": 921
+              }
+            }
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 892,
+            "end": 901
+          }
+        }
+      },
+      "span": {
+        "source": 85705774804857070,
+        "start": 892,
+        "end": 894
+      },
+      "origin": "top-level model equation",
+      "scalar_count": 1
+    },
+    {
+      "lhs": null,
+      "rhs": {
+        "Binary": {
+          "op": "Sub",
+          "lhs": {
+            "Binary": {
+              "op": "Mul",
+              "lhs": {
+                "VarRef": {
+                  "name": {
+                    "name": "C2",
+                    "component_ref": {
+                      "local": false,
+                      "span": {
+                        "source": 85705774804857070,
+                        "start": 431,
+                        "end": 438
+                      },
+                      "parts": [
+                        {
+                          "ident": "C2",
+                          "span": {
+                            "source": 85705774804857070,
+                            "start": 431,
+                            "end": 438
+                          },
+                          "subs": []
+                        }
+                      ],
+                      "def_id": 107
+                    }
+                  },
+                  "subscripts": [],
+                  "span": {
+                    "source": 85705774804857070,
+                    "start": 925,
+                    "end": 927
+                  }
+                }
+              },
+              "rhs": {
+                "BuiltinCall": {
+                  "function": "Der",
+                  "args": [
+                    {
+                      "VarRef": {
+                        "name": {
+                          "name": "T2",
+                          "component_ref": {
+                            "local": false,
+                            "span": {
+                              "source": 85705774804857070,
+                              "start": 648,
+                              "end": 655
+                            },
+                            "parts": [
+                              {
+                                "ident": "T2",
+                                "span": {
+                                  "source": 85705774804857070,
+                                  "start": 648,
+                                  "end": 655
+                                },
+                                "subs": []
+                              }
+                            ],
+                            "def_id": 115
+                          }
+                        },
+                        "subscripts": [],
+                        "span": {
+                          "source": 85705774804857070,
+                          "start": 932,
+                          "end": 934
+                        }
+                      }
+                    }
+                  ],
+                  "span": {
+                    "source": 85705774804857070,
+                    "start": 928,
+                    "end": 931
+                  }
+                }
+              },
+              "span": {
+                "source": 85705774804857070,
+                "start": 925,
+                "end": 934
+              }
+            }
+          },
+          "rhs": {
+            "Binary": {
+              "op": "Sub",
+              "lhs": {
+                "Binary": {
+                  "op": "Sub",
+                  "lhs": {
+                    "VarRef": {
+                      "name": {
+                        "name": "Q12",
+                        "component_ref": {
+                          "local": false,
+                          "span": {
+                            "source": 85705774804857070,
+                            "start": 694,
+                            "end": 706
+                          },
+                          "parts": [
+                            {
+                              "ident": "Q12",
+                              "span": {
+                                "source": 85705774804857070,
+                                "start": 694,
+                                "end": 706
+                              },
+                              "subs": []
+                            }
+                          ],
+                          "def_id": 118
+                        }
+                      },
+                      "subscripts": [],
+                      "span": {
+                        "source": 85705774804857070,
+                        "start": 938,
+                        "end": 941
+                      }
+                    }
+                  },
+                  "rhs": {
+                    "VarRef": {
+                      "name": {
+                        "name": "Q2env",
+                        "component_ref": {
+                          "local": false,
+                          "span": {
+                            "source": 85705774804857070,
+                            "start": 694,
+                            "end": 725
+                          },
+                          "parts": [
+                            {
+                              "ident": "Q2env",
+                              "span": {
+                                "source": 85705774804857070,
+                                "start": 694,
+                                "end": 725
+                              },
+                              "subs": []
+                            }
+                          ],
+                          "def_id": 121
+                        }
+                      },
+                      "subscripts": [],
+                      "span": {
+                        "source": 85705774804857070,
+                        "start": 944,
+                        "end": 949
+                      }
+                    }
+                  },
+                  "span": {
+                    "source": 85705774804857070,
+                    "start": 938,
+                    "end": 949
+                  }
+                }
+              },
+              "rhs": {
+                "VarRef": {
+                  "name": {
+                    "name": "Q23",
+                    "component_ref": {
+                      "local": false,
+                      "span": {
+                        "source": 85705774804857070,
+                        "start": 694,
+                        "end": 711
+                      },
+                      "parts": [
+                        {
+                          "ident": "Q23",
+                          "span": {
+                            "source": 85705774804857070,
+                            "start": 694,
+                            "end": 711
+                          },
+                          "subs": []
+                        }
+                      ],
+                      "def_id": 119
+                    }
+                  },
+                  "subscripts": [],
+                  "span": {
+                    "source": 85705774804857070,
+                    "start": 952,
+                    "end": 955
+                  }
+                }
+              },
+              "span": {
+                "source": 85705774804857070,
+                "start": 938,
+                "end": 955
+              }
+            }
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 925,
+            "end": 934
+          }
+        }
+      },
+      "span": {
+        "source": 85705774804857070,
+        "start": 925,
+        "end": 927
+      },
+      "origin": "top-level model equation",
+      "scalar_count": 1
+    },
+    {
+      "lhs": null,
+      "rhs": {
+        "Binary": {
+          "op": "Sub",
+          "lhs": {
+            "Binary": {
+              "op": "Mul",
+              "lhs": {
+                "VarRef": {
+                  "name": {
+                    "name": "C3",
+                    "component_ref": {
+                      "local": false,
+                      "span": {
+                        "source": 85705774804857070,
+                        "start": 458,
+                        "end": 465
+                      },
+                      "parts": [
+                        {
+                          "ident": "C3",
+                          "span": {
+                            "source": 85705774804857070,
+                            "start": 458,
+                            "end": 465
+                          },
+                          "subs": []
+                        }
+                      ],
+                      "def_id": 108
+                    }
+                  },
+                  "subscripts": [],
+                  "span": {
+                    "source": 85705774804857070,
+                    "start": 959,
+                    "end": 961
+                  }
+                }
+              },
+              "rhs": {
+                "BuiltinCall": {
+                  "function": "Der",
+                  "args": [
+                    {
+                      "VarRef": {
+                        "name": {
+                          "name": "T3",
+                          "component_ref": {
+                            "local": false,
+                            "span": {
+                              "source": 85705774804857070,
+                              "start": 671,
+                              "end": 678
+                            },
+                            "parts": [
+                              {
+                                "ident": "T3",
+                                "span": {
+                                  "source": 85705774804857070,
+                                  "start": 671,
+                                  "end": 678
+                                },
+                                "subs": []
+                              }
+                            ],
+                            "def_id": 116
+                          }
+                        },
+                        "subscripts": [],
+                        "span": {
+                          "source": 85705774804857070,
+                          "start": 966,
+                          "end": 968
+                        }
+                      }
+                    }
+                  ],
+                  "span": {
+                    "source": 85705774804857070,
+                    "start": 962,
+                    "end": 965
+                  }
+                }
+              },
+              "span": {
+                "source": 85705774804857070,
+                "start": 959,
+                "end": 968
+              }
+            }
+          },
+          "rhs": {
+            "Binary": {
+              "op": "Sub",
+              "lhs": {
+                "VarRef": {
+                  "name": {
+                    "name": "Q23",
+                    "component_ref": {
+                      "local": false,
+                      "span": {
+                        "source": 85705774804857070,
+                        "start": 694,
+                        "end": 711
+                      },
+                      "parts": [
+                        {
+                          "ident": "Q23",
+                          "span": {
+                            "source": 85705774804857070,
+                            "start": 694,
+                            "end": 711
+                          },
+                          "subs": []
+                        }
+                      ],
+                      "def_id": 119
+                    }
+                  },
+                  "subscripts": [],
+                  "span": {
+                    "source": 85705774804857070,
+                    "start": 972,
+                    "end": 975
+                  }
+                }
+              },
+              "rhs": {
+                "VarRef": {
+                  "name": {
+                    "name": "Q3env",
+                    "component_ref": {
+                      "local": false,
+                      "span": {
+                        "source": 85705774804857070,
+                        "start": 694,
+                        "end": 732
+                      },
+                      "parts": [
+                        {
+                          "ident": "Q3env",
+                          "span": {
+                            "source": 85705774804857070,
+                            "start": 694,
+                            "end": 732
+                          },
+                          "subs": []
+                        }
+                      ],
+                      "def_id": 122
+                    }
+                  },
+                  "subscripts": [],
+                  "span": {
+                    "source": 85705774804857070,
+                    "start": 978,
+                    "end": 983
+                  }
+                }
+              },
+              "span": {
+                "source": 85705774804857070,
+                "start": 972,
+                "end": 983
+              }
+            }
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 959,
+            "end": 968
+          }
+        }
+      },
+      "span": {
+        "source": 85705774804857070,
+        "start": 959,
+        "end": 961
+      },
+      "origin": "top-level model equation",
+      "scalar_count": 1
+    }
+  ],
+  "structured_equations": [],
+  "initial_equations": [],
+  "initial_structured_equations": [],
+  "f_z": [],
+  "f_m": [],
+  "f_c": [],
+  "relation": [],
+  "synthetic_root_conditions": [],
+  "scheduled_time_events": [],
+  "scheduled_root_conditions": [],
+  "event_actions": [],
+  "constructor_exprs": [],
+  "schedules": [],
+  "triggered_conditions": [],
+  "intervals": {},
+  "timings": {},
+  "functions": {},
+  "enum_literal_ordinals": {
+    "StateSelect.never": 1,
+    "StateSelect.'never'": 1,
+    "StateSelect.avoid": 2,
+    "StateSelect.'avoid'": 2,
+    "StateSelect.default": 3,
+    "StateSelect.'default'": 3,
+    "StateSelect.prefer": 4,
+    "StateSelect.'prefer'": 4,
+    "StateSelect.always": 5,
+    "StateSelect.'always'": 5,
+    "AssertionLevel.warning": 1,
+    "AssertionLevel.'warning'": 1,
+    "AssertionLevel.error": 2,
+    "AssertionLevel.'error'": 2
+  },
+  "metadata": {
+    "is_partial": false,
+    "class_type": "Model",
+    "variable_starts": {
+      "Camb": {
+        "Literal": {
+          "value": {
+            "Real": 1.0
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 387,
+            "end": 390
+          }
+        }
+      },
+      "C1": {
+        "Literal": {
+          "value": {
+            "Real": 2.0
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 414,
+            "end": 417
+          }
+        }
+      },
+      "C2": {
+        "Literal": {
+          "value": {
+            "Real": 2.0
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 441,
+            "end": 444
+          }
+        }
+      },
+      "C3": {
+        "Literal": {
+          "value": {
+            "Real": 2.0
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 468,
+            "end": 471
+          }
+        }
+      },
+      "Genv": {
+        "Literal": {
+          "value": {
+            "Real": 0.2
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 497,
+            "end": 500
+          }
+        }
+      },
+      "G12": {
+        "Literal": {
+          "value": {
+            "Real": 0.5
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 525,
+            "end": 528
+          }
+        }
+      },
+      "G23": {
+        "Literal": {
+          "value": {
+            "Real": 0.5
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 553,
+            "end": 556
+          }
+        }
+      },
+      "Tamb": {
+        "Literal": {
+          "value": {
+            "Real": 15.0
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 582,
+            "end": 586
+          }
+        }
+      },
+      "Qheater": {
+        "Literal": {
+          "value": {
+            "Real": 100.0
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 615,
+            "end": 620
+          }
+        }
+      },
+      "T1": {
+        "Literal": {
+          "value": {
+            "Real": 15.0
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 639,
+            "end": 643
+          }
+        }
+      },
+      "T2": {
+        "Literal": {
+          "value": {
+            "Real": 15.0
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 662,
+            "end": 666
+          }
+        }
+      },
+      "T3": {
+        "Literal": {
+          "value": {
+            "Real": 15.0
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 685,
+            "end": 689
+          }
+        }
+      },
+      "Q1": {
+        "Literal": {
+          "value": {
+            "Real": 0.0
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 694,
+            "end": 701
+          }
+        }
+      },
+      "Q12": {
+        "Literal": {
+          "value": {
+            "Real": 0.0
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 694,
+            "end": 706
+          }
+        }
+      },
+      "Q23": {
+        "Literal": {
+          "value": {
+            "Real": 0.0
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 694,
+            "end": 711
+          }
+        }
+      },
+      "Q1env": {
+        "Literal": {
+          "value": {
+            "Real": 0.0
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 694,
+            "end": 718
+          }
+        }
+      },
+      "Q2env": {
+        "Literal": {
+          "value": {
+            "Real": 0.0
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 694,
+            "end": 725
+          }
+        }
+      },
+      "Q3env": {
+        "Literal": {
+          "value": {
+            "Real": 0.0
+          },
+          "span": {
+            "source": 85705774804857070,
+            "start": 694,
+            "end": 732
+          }
+        }
+      }
+    },
+    "interface_flow_count": 0,
+    "overconstrained_interface_count": 0,
+    "oc_break_edge_scalar_count": 0,
+    "model_description": "Three-room thermal network: each room exchanges heat with its neighbors\n   and with the ambient, and room 1 has a heater. This is the closest of\n   the three fixture models to a real digital-twin subsystem (a small\n   building-heating model), and it is the one used for the component-swap\n   change (swapping the heater model in room 1).",
+    "symbol_ancestry": {
+      "86": [
+        85,
+        86
+      ],
+      "105": [
+        85,
+        86
+      ],
+      "87": [
+        85,
+        87
+      ],
+      "106": [
+        85,
+        87
+      ],
+      "88": [
+        85,
+        88
+      ],
+      "107": [
+        85,
+        88
+      ],
+      "89": [
+        85,
+        89
+      ],
+      "108": [
+        85,
+        89
+      ],
+      "90": [
+        85,
+        90
+      ],
+      "109": [
+        85,
+        90
+      ],
+      "91": [
+        85,
+        91
+      ],
+      "110": [
+        85,
+        91
+      ],
+      "92": [
+        85,
+        92
+      ],
+      "111": [
+        85,
+        92
+      ],
+      "93": [
+        85,
+        93
+      ],
+      "112": [
+        85,
+        93
+      ],
+      "94": [
+        85,
+        94
+      ],
+      "113": [
+        85,
+        94
+      ],
+      "95": [
+        85,
+        95
+      ],
+      "114": [
+        85,
+        95
+      ],
+      "96": [
+        85,
+        96
+      ],
+      "115": [
+        85,
+        96
+      ],
+      "97": [
+        85,
+        97
+      ],
+      "116": [
+        85,
+        97
+      ],
+      "98": [
+        85,
+        98
+      ],
+      "117": [
+        85,
+        98
+      ],
+      "99": [
+        85,
+        99
+      ],
+      "118": [
+        85,
+        99
+      ],
+      "100": [
+        85,
+        100
+      ],
+      "119": [
+        85,
+        100
+      ],
+      "101": [
+        85,
+        101
+      ],
+      "120": [
+        85,
+        101
+      ],
+      "102": [
+        85,
+        102
+      ],
+      "121": [
+        85,
+        102
+      ],
+      "103": [
+        85,
+        103
+      ],
+      "122": [
+        85,
+        103
+      ]
+    }
+  }
+}

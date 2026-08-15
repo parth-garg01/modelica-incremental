@@ -1,0 +1,678 @@
+{
+  "schema_version": 7,
+  "x": {
+    "x1": {
+      "name": "x1",
+      "component_ref": {
+        "local": false,
+        "span": {
+          "source": 11048344382280751742,
+          "start": 157,
+          "end": 164
+        },
+        "parts": [
+          {
+            "ident": "x1",
+            "span": {
+              "source": 11048344382280751742,
+              "start": 157,
+              "end": 164
+            },
+            "subs": []
+          }
+        ],
+        "def_id": 91
+      },
+      "source_span": {
+        "source": 11048344382280751742,
+        "start": 157,
+        "end": 164
+      },
+      "dims": [],
+      "start": {
+        "Literal": {
+          "value": {
+            "Real": 1.0
+          },
+          "span": {
+            "source": 11048344382280751742,
+            "start": 171,
+            "end": 174
+          }
+        }
+      },
+      "start_span": {
+        "source": 11048344382280751742,
+        "start": 171,
+        "end": 174
+      },
+      "fixed": null,
+      "min": null,
+      "min_span": null,
+      "max": null,
+      "max_span": null,
+      "nominal": null,
+      "nominal_span": null,
+      "unit": null,
+      "state_select": "Default",
+      "description": null,
+      "causality": "local",
+      "is_tunable": false,
+      "origin": "source"
+    },
+    "x2": {
+      "name": "x2",
+      "component_ref": {
+        "local": false,
+        "span": {
+          "source": 11048344382280751742,
+          "start": 179,
+          "end": 186
+        },
+        "parts": [
+          {
+            "ident": "x2",
+            "span": {
+              "source": 11048344382280751742,
+              "start": 179,
+              "end": 186
+            },
+            "subs": []
+          }
+        ],
+        "def_id": 92
+      },
+      "source_span": {
+        "source": 11048344382280751742,
+        "start": 179,
+        "end": 186
+      },
+      "dims": [],
+      "start": {
+        "Literal": {
+          "value": {
+            "Real": 2.0
+          },
+          "span": {
+            "source": 11048344382280751742,
+            "start": 193,
+            "end": 196
+          }
+        }
+      },
+      "start_span": {
+        "source": 11048344382280751742,
+        "start": 193,
+        "end": 196
+      },
+      "fixed": null,
+      "min": null,
+      "min_span": null,
+      "max": null,
+      "max_span": null,
+      "nominal": null,
+      "nominal_span": null,
+      "unit": null,
+      "state_select": "Default",
+      "description": null,
+      "causality": "local",
+      "is_tunable": false,
+      "origin": "source"
+    }
+  },
+  "y": {},
+  "u": {},
+  "w": {},
+  "p": {
+    "k1": {
+      "name": "k1",
+      "component_ref": {
+        "local": false,
+        "span": {
+          "source": 11048344382280751742,
+          "start": 211,
+          "end": 218
+        },
+        "parts": [
+          {
+            "ident": "k1",
+            "span": {
+              "source": 11048344382280751742,
+              "start": 211,
+              "end": 218
+            },
+            "subs": []
+          }
+        ],
+        "def_id": 93
+      },
+      "source_span": {
+        "source": 11048344382280751742,
+        "start": 211,
+        "end": 218
+      },
+      "dims": [],
+      "start": {
+        "Literal": {
+          "value": {
+            "Real": 0.5
+          },
+          "span": {
+            "source": 11048344382280751742,
+            "start": 221,
+            "end": 224
+          }
+        }
+      },
+      "start_span": {
+        "source": 11048344382280751742,
+        "start": 221,
+        "end": 224
+      },
+      "fixed": null,
+      "min": null,
+      "min_span": null,
+      "max": null,
+      "max_span": null,
+      "nominal": null,
+      "nominal_span": null,
+      "unit": null,
+      "state_select": "Default",
+      "description": null,
+      "causality": "parameter",
+      "is_tunable": true,
+      "origin": "source"
+    },
+    "k2": {
+      "name": "k2",
+      "component_ref": {
+        "local": false,
+        "span": {
+          "source": 11048344382280751742,
+          "start": 238,
+          "end": 245
+        },
+        "parts": [
+          {
+            "ident": "k2",
+            "span": {
+              "source": 11048344382280751742,
+              "start": 238,
+              "end": 245
+            },
+            "subs": []
+          }
+        ],
+        "def_id": 94
+      },
+      "source_span": {
+        "source": 11048344382280751742,
+        "start": 238,
+        "end": 245
+      },
+      "dims": [],
+      "start": {
+        "Literal": {
+          "value": {
+            "Real": 0.3
+          },
+          "span": {
+            "source": 11048344382280751742,
+            "start": 248,
+            "end": 251
+          }
+        }
+      },
+      "start_span": {
+        "source": 11048344382280751742,
+        "start": 248,
+        "end": 251
+      },
+      "fixed": null,
+      "min": null,
+      "min_span": null,
+      "max": null,
+      "max_span": null,
+      "nominal": null,
+      "nominal_span": null,
+      "unit": null,
+      "state_select": "Default",
+      "description": null,
+      "causality": "parameter",
+      "is_tunable": true,
+      "origin": "source"
+    }
+  },
+  "constants": {},
+  "z": {},
+  "m": {},
+  "f_x": [
+    {
+      "lhs": null,
+      "rhs": {
+        "Binary": {
+          "op": "Sub",
+          "lhs": {
+            "BuiltinCall": {
+              "function": "Der",
+              "args": [
+                {
+                  "VarRef": {
+                    "name": {
+                      "name": "x1",
+                      "component_ref": {
+                        "local": false,
+                        "span": {
+                          "source": 11048344382280751742,
+                          "start": 157,
+                          "end": 164
+                        },
+                        "parts": [
+                          {
+                            "ident": "x1",
+                            "span": {
+                              "source": 11048344382280751742,
+                              "start": 157,
+                              "end": 164
+                            },
+                            "subs": []
+                          }
+                        ],
+                        "def_id": 91
+                      }
+                    },
+                    "subscripts": [],
+                    "span": {
+                      "source": 11048344382280751742,
+                      "start": 268,
+                      "end": 270
+                    }
+                  }
+                }
+              ],
+              "span": {
+                "source": 11048344382280751742,
+                "start": 264,
+                "end": 267
+              }
+            }
+          },
+          "rhs": {
+            "Unary": {
+              "op": "Minus",
+              "rhs": {
+                "Binary": {
+                  "op": "Mul",
+                  "lhs": {
+                    "VarRef": {
+                      "name": {
+                        "name": "k1",
+                        "component_ref": {
+                          "local": false,
+                          "span": {
+                            "source": 11048344382280751742,
+                            "start": 211,
+                            "end": 218
+                          },
+                          "parts": [
+                            {
+                              "ident": "k1",
+                              "span": {
+                                "source": 11048344382280751742,
+                                "start": 211,
+                                "end": 218
+                              },
+                              "subs": []
+                            }
+                          ],
+                          "def_id": 93
+                        }
+                      },
+                      "subscripts": [],
+                      "span": {
+                        "source": 11048344382280751742,
+                        "start": 275,
+                        "end": 277
+                      }
+                    }
+                  },
+                  "rhs": {
+                    "VarRef": {
+                      "name": {
+                        "name": "x1",
+                        "component_ref": {
+                          "local": false,
+                          "span": {
+                            "source": 11048344382280751742,
+                            "start": 157,
+                            "end": 164
+                          },
+                          "parts": [
+                            {
+                              "ident": "x1",
+                              "span": {
+                                "source": 11048344382280751742,
+                                "start": 157,
+                                "end": 164
+                              },
+                              "subs": []
+                            }
+                          ],
+                          "def_id": 91
+                        }
+                      },
+                      "subscripts": [],
+                      "span": {
+                        "source": 11048344382280751742,
+                        "start": 278,
+                        "end": 280
+                      }
+                    }
+                  },
+                  "span": {
+                    "source": 11048344382280751742,
+                    "start": 275,
+                    "end": 280
+                  }
+                }
+              },
+              "span": {
+                "source": 11048344382280751742,
+                "start": 274,
+                "end": 280
+              }
+            }
+          },
+          "span": {
+            "source": 11048344382280751742,
+            "start": 264,
+            "end": 270
+          }
+        }
+      },
+      "span": {
+        "source": 11048344382280751742,
+        "start": 264,
+        "end": 267
+      },
+      "origin": "top-level model equation",
+      "scalar_count": 1
+    },
+    {
+      "lhs": null,
+      "rhs": {
+        "Binary": {
+          "op": "Sub",
+          "lhs": {
+            "BuiltinCall": {
+              "function": "Der",
+              "args": [
+                {
+                  "VarRef": {
+                    "name": {
+                      "name": "x2",
+                      "component_ref": {
+                        "local": false,
+                        "span": {
+                          "source": 11048344382280751742,
+                          "start": 179,
+                          "end": 186
+                        },
+                        "parts": [
+                          {
+                            "ident": "x2",
+                            "span": {
+                              "source": 11048344382280751742,
+                              "start": 179,
+                              "end": 186
+                            },
+                            "subs": []
+                          }
+                        ],
+                        "def_id": 92
+                      }
+                    },
+                    "subscripts": [],
+                    "span": {
+                      "source": 11048344382280751742,
+                      "start": 288,
+                      "end": 290
+                    }
+                  }
+                }
+              ],
+              "span": {
+                "source": 11048344382280751742,
+                "start": 284,
+                "end": 287
+              }
+            }
+          },
+          "rhs": {
+            "Unary": {
+              "op": "Minus",
+              "rhs": {
+                "Binary": {
+                  "op": "Mul",
+                  "lhs": {
+                    "VarRef": {
+                      "name": {
+                        "name": "k2",
+                        "component_ref": {
+                          "local": false,
+                          "span": {
+                            "source": 11048344382280751742,
+                            "start": 238,
+                            "end": 245
+                          },
+                          "parts": [
+                            {
+                              "ident": "k2",
+                              "span": {
+                                "source": 11048344382280751742,
+                                "start": 238,
+                                "end": 245
+                              },
+                              "subs": []
+                            }
+                          ],
+                          "def_id": 94
+                        }
+                      },
+                      "subscripts": [],
+                      "span": {
+                        "source": 11048344382280751742,
+                        "start": 295,
+                        "end": 297
+                      }
+                    }
+                  },
+                  "rhs": {
+                    "VarRef": {
+                      "name": {
+                        "name": "x2",
+                        "component_ref": {
+                          "local": false,
+                          "span": {
+                            "source": 11048344382280751742,
+                            "start": 179,
+                            "end": 186
+                          },
+                          "parts": [
+                            {
+                              "ident": "x2",
+                              "span": {
+                                "source": 11048344382280751742,
+                                "start": 179,
+                                "end": 186
+                              },
+                              "subs": []
+                            }
+                          ],
+                          "def_id": 92
+                        }
+                      },
+                      "subscripts": [],
+                      "span": {
+                        "source": 11048344382280751742,
+                        "start": 298,
+                        "end": 300
+                      }
+                    }
+                  },
+                  "span": {
+                    "source": 11048344382280751742,
+                    "start": 295,
+                    "end": 300
+                  }
+                }
+              },
+              "span": {
+                "source": 11048344382280751742,
+                "start": 294,
+                "end": 300
+              }
+            }
+          },
+          "span": {
+            "source": 11048344382280751742,
+            "start": 284,
+            "end": 290
+          }
+        }
+      },
+      "span": {
+        "source": 11048344382280751742,
+        "start": 284,
+        "end": 287
+      },
+      "origin": "top-level model equation",
+      "scalar_count": 1
+    }
+  ],
+  "structured_equations": [],
+  "initial_equations": [],
+  "initial_structured_equations": [],
+  "f_z": [],
+  "f_m": [],
+  "f_c": [],
+  "relation": [],
+  "synthetic_root_conditions": [],
+  "scheduled_time_events": [],
+  "scheduled_root_conditions": [],
+  "event_actions": [],
+  "constructor_exprs": [],
+  "schedules": [],
+  "triggered_conditions": [],
+  "intervals": {},
+  "timings": {},
+  "functions": {},
+  "enum_literal_ordinals": {
+    "StateSelect.never": 1,
+    "StateSelect.'never'": 1,
+    "StateSelect.avoid": 2,
+    "StateSelect.'avoid'": 2,
+    "StateSelect.default": 3,
+    "StateSelect.'default'": 3,
+    "StateSelect.prefer": 4,
+    "StateSelect.'prefer'": 4,
+    "StateSelect.always": 5,
+    "StateSelect.'always'": 5,
+    "AssertionLevel.warning": 1,
+    "AssertionLevel.'warning'": 1,
+    "AssertionLevel.error": 2,
+    "AssertionLevel.'error'": 2
+  },
+  "metadata": {
+    "is_partial": false,
+    "class_type": "Model",
+    "variable_starts": {
+      "x1": {
+        "Literal": {
+          "value": {
+            "Real": 1.0
+          },
+          "span": {
+            "source": 11048344382280751742,
+            "start": 171,
+            "end": 174
+          }
+        }
+      },
+      "x2": {
+        "Literal": {
+          "value": {
+            "Real": 2.0
+          },
+          "span": {
+            "source": 11048344382280751742,
+            "start": 193,
+            "end": 196
+          }
+        }
+      },
+      "k1": {
+        "Literal": {
+          "value": {
+            "Real": 0.5
+          },
+          "span": {
+            "source": 11048344382280751742,
+            "start": 221,
+            "end": 224
+          }
+        }
+      },
+      "k2": {
+        "Literal": {
+          "value": {
+            "Real": 0.3
+          },
+          "span": {
+            "source": 11048344382280751742,
+            "start": 248,
+            "end": 251
+          }
+        }
+      }
+    },
+    "interface_flow_count": 0,
+    "overconstrained_interface_count": 0,
+    "oc_break_edge_scalar_count": 0,
+    "model_description": "Two independent first-order decays with no coupling between them.\n   Ground truth: every recompilation unit should be a singleton.",
+    "symbol_ancestry": {
+      "86": [
+        85,
+        86
+      ],
+      "91": [
+        85,
+        86
+      ],
+      "87": [
+        85,
+        87
+      ],
+      "92": [
+        85,
+        87
+      ],
+      "88": [
+        85,
+        88
+      ],
+      "93": [
+        85,
+        88
+      ],
+      "89": [
+        85,
+        89
+      ],
+      "94": [
+        85,
+        89
+      ]
+    }
+  }
+}

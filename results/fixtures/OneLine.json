@@ -1,0 +1,246 @@
+{
+  "schema_version": 7,
+  "x": {
+    "x": {
+      "name": "x",
+      "component_ref": {
+        "local": false,
+        "span": {
+          "source": 950986643942113616,
+          "start": 16,
+          "end": 22
+        },
+        "parts": [
+          {
+            "ident": "x",
+            "span": {
+              "source": 950986643942113616,
+              "start": 16,
+              "end": 22
+            },
+            "subs": []
+          }
+        ],
+        "def_id": 88
+      },
+      "source_span": {
+        "source": 950986643942113616,
+        "start": 16,
+        "end": 22
+      },
+      "dims": [],
+      "start": {
+        "Literal": {
+          "value": {
+            "Real": 1.0
+          },
+          "span": {
+            "source": 950986643942113616,
+            "start": 29,
+            "end": 32
+          }
+        }
+      },
+      "start_span": {
+        "source": 950986643942113616,
+        "start": 29,
+        "end": 32
+      },
+      "fixed": null,
+      "min": null,
+      "min_span": null,
+      "max": null,
+      "max_span": null,
+      "nominal": null,
+      "nominal_span": null,
+      "unit": null,
+      "state_select": "Default",
+      "description": null,
+      "causality": "local",
+      "is_tunable": false,
+      "origin": "source"
+    }
+  },
+  "y": {},
+  "u": {},
+  "w": {},
+  "p": {},
+  "constants": {},
+  "z": {},
+  "m": {},
+  "f_x": [
+    {
+      "lhs": null,
+      "rhs": {
+        "Binary": {
+          "op": "Sub",
+          "lhs": {
+            "BuiltinCall": {
+              "function": "Der",
+              "args": [
+                {
+                  "VarRef": {
+                    "name": {
+                      "name": "x",
+                      "component_ref": {
+                        "local": false,
+                        "span": {
+                          "source": 950986643942113616,
+                          "start": 16,
+                          "end": 22
+                        },
+                        "parts": [
+                          {
+                            "ident": "x",
+                            "span": {
+                              "source": 950986643942113616,
+                              "start": 16,
+                              "end": 22
+                            },
+                            "subs": []
+                          }
+                        ],
+                        "def_id": 88
+                      }
+                    },
+                    "subscripts": [],
+                    "span": {
+                      "source": 950986643942113616,
+                      "start": 50,
+                      "end": 51
+                    }
+                  }
+                }
+              ],
+              "span": {
+                "source": 950986643942113616,
+                "start": 46,
+                "end": 49
+              }
+            }
+          },
+          "rhs": {
+            "Unary": {
+              "op": "Minus",
+              "rhs": {
+                "VarRef": {
+                  "name": {
+                    "name": "x",
+                    "component_ref": {
+                      "local": false,
+                      "span": {
+                        "source": 950986643942113616,
+                        "start": 16,
+                        "end": 22
+                      },
+                      "parts": [
+                        {
+                          "ident": "x",
+                          "span": {
+                            "source": 950986643942113616,
+                            "start": 16,
+                            "end": 22
+                          },
+                          "subs": []
+                        }
+                      ],
+                      "def_id": 88
+                    }
+                  },
+                  "subscripts": [],
+                  "span": {
+                    "source": 950986643942113616,
+                    "start": 56,
+                    "end": 57
+                  }
+                }
+              },
+              "span": {
+                "source": 950986643942113616,
+                "start": 55,
+                "end": 57
+              }
+            }
+          },
+          "span": {
+            "source": 950986643942113616,
+            "start": 46,
+            "end": 51
+          }
+        }
+      },
+      "span": {
+        "source": 950986643942113616,
+        "start": 46,
+        "end": 49
+      },
+      "origin": "top-level model equation",
+      "scalar_count": 1
+    }
+  ],
+  "structured_equations": [],
+  "initial_equations": [],
+  "initial_structured_equations": [],
+  "f_z": [],
+  "f_m": [],
+  "f_c": [],
+  "relation": [],
+  "synthetic_root_conditions": [],
+  "scheduled_time_events": [],
+  "scheduled_root_conditions": [],
+  "event_actions": [],
+  "constructor_exprs": [],
+  "schedules": [],
+  "triggered_conditions": [],
+  "intervals": {},
+  "timings": {},
+  "functions": {},
+  "enum_literal_ordinals": {
+    "StateSelect.never": 1,
+    "StateSelect.'never'": 1,
+    "StateSelect.avoid": 2,
+    "StateSelect.'avoid'": 2,
+    "StateSelect.default": 3,
+    "StateSelect.'default'": 3,
+    "StateSelect.prefer": 4,
+    "StateSelect.'prefer'": 4,
+    "StateSelect.always": 5,
+    "StateSelect.'always'": 5,
+    "AssertionLevel.warning": 1,
+    "AssertionLevel.'warning'": 1,
+    "AssertionLevel.error": 2,
+    "AssertionLevel.'error'": 2
+  },
+  "metadata": {
+    "is_partial": false,
+    "class_type": "Model",
+    "variable_starts": {
+      "x": {
+        "Literal": {
+          "value": {
+            "Real": 1.0
+          },
+          "span": {
+            "source": 950986643942113616,
+            "start": 29,
+            "end": 32
+          }
+        }
+      }
+    },
+    "interface_flow_count": 0,
+    "overconstrained_interface_count": 0,
+    "oc_break_edge_scalar_count": 0,
+    "model_description": null,
+    "symbol_ancestry": {
+      "86": [
+        85,
+        86
+      ],
+      "88": [
+        85,
+        86
+      ]
+    }
+  }
+}

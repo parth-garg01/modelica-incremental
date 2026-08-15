@@ -1,0 +1,50 @@
+{
+  "provenance": {
+    "rumoca_version": "0.9.20",
+    "python_version": "3.11.9",
+    "platform": "Windows-10-10.0.26100-SP0",
+    "machine": "AMD64"
+  },
+  "models": [
+    {
+      "model_name": "OneLine",
+      "source_path": "models/one_line/OneLine.mo",
+      "description": "hand-written, one-state decay ODE, used as the compiler smoke test",
+      "fixture_path": "results\\fixtures\\OneLine.json",
+      "n_states": 1,
+      "n_algebraic": 0,
+      "n_equations": 1,
+      "compile_seconds": 0.00362619999987146
+    },
+    {
+      "model_name": "DecoupledPair",
+      "source_path": "models/decoupled_pair/DecoupledPair.mo",
+      "description": "hand-written, two independent first-order decays with no coupling; ground truth for singleton recompilation units",
+      "fixture_path": "results\\fixtures\\DecoupledPair.json",
+      "n_states": 2,
+      "n_algebraic": 0,
+      "n_equations": 2,
+      "compile_seconds": 0.002330199999960314
+    },
+    {
+      "model_name": "RLCCircuit",
+      "source_path": "models/rlc_circuit/RLCCircuit.mo",
+      "description": "hand-written, canonical series RLC circuit; inductor current and capacitor voltage are genuinely coupled through the loop equation",
+      "fixture_path": "results\\fixtures\\RLCCircuit.json",
+      "n_states": 2,
+      "n_algebraic": 1,
+      "n_equations": 3,
+      "compile_seconds": 0.0029494999998860294
+    },
+    {
+      "model_name": "ThermalNetwork",
+      "source_path": "models/thermal_network/ThermalNetwork.mo",
+      "description": "hand-written, three-room thermal network with a heater in room 1; used for the component-swap change injection",
+      "fixture_path": "results\\fixtures\\ThermalNetwork.json",
+      "n_states": 3,
+      "n_algebraic": 6,
+      "n_equations": 9,
+      "compile_seconds": 0.0035964999997304403
+    }
+  ]
+}
