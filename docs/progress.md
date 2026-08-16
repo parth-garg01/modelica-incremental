@@ -24,9 +24,49 @@ not delete history -- this is a log, not a status snapshot.
 ## the bottom of the Phase 2 section below -- prd-combined.md subsumes
 ## everything phase 2 hadn't finished, plus a large amount of new scope)
 
-**Next up:** Stage A Feature 6 (nonlinear block solve -- SKIP, no model
-needs one, see below) then Feature 7 (full change-type suite on real
-models).
+**Next up: STAGE A IS COMPLETE (Features 1-9, commit `fb977fa`). Stage B
+(Features 10-17: scale to >=100,000 equations, break-even change-
+frequency sweep) starts now**, per prd-combined.md Section 2's hard
+ordering constraint (Stage B cannot start until Stage A fully finishes
+-- it now has).
+
+**Stage A summary (full detail in the dated entries below).** All 9
+features done. Headline results: a real per-unit C compile-and-relink
+pipeline (not projected) with MEASURED speedup on real
+`connect()`-wired MSL components (1.66x, 5.75x, 1.50x across swap/
+sensor-add/removal, all bit-identical output); the phase-1 "100% ripple"
+negative result was diagnosed and fixed (was an integration-graph
+artifact, true ripple 22%); Rumoca's own matching isn't exposed via its
+API, so a from-scratch bipartite matcher was built and validated
+(catching a real `networkx` non-determinism bug along the way); the
+Cauer filter needs genuine index reduction and is out of scope,
+documented precisely rather than forced or hidden; Feature 6 (nonlinear
+blocks) skipped, no tested model needs one; getting real MSL models
+working surfaced and fixed 6 more real latent bugs (Unary node key,
+state-equation der-on-either-side, Boolean/expression parameter
+defaults, dotted C identifiers, the serious "matched != natural target"
+singleton codegen bug, `ir["w"]` never getting a layout slot, and
+uninitialized driver memory corrupting output comparisons on removal
+changes) -- NONE of which any hand-written fixture had ever exercised.
+One real generality wall hit and scoped around rather than solved
+under budget: MSL's standard signal-source blocks (Ramp, Sine, ...)
+need discrete/event "If"-expression codegen this project doesn't have;
+worked around by picking a different swap target (documented in
+src/msl_change.py, not silently substituted). 134 tests passing, 1
+xfailed (a documented third-party Rumoca bug, not this project's).
+
+**Known environment gotcha found in Stage B prep, read before scaling
+scripts:** `nx.strongly_connected_components`/Tarjan-based code is safe
+under hash randomization (see the Feature 1-era determinism audit
+below), but ANYTHING using bipartite matching (src/matching.py) MUST use
+the hand-rolled `_kuhn_max_bipartite_matching`, never
+`networkx.bipartite.hopcroft_karp_matching` -- re-confirm this wasn't
+reintroduced if matching.py is ever touched again at scale (a natural
+temptation when optimizing for 100k+ equations, since a real
+Hopcroft-Karp is asymptotically faster than the current O(V*E) Kuhn's
+implementation -- if replaced for performance, the replacement MUST
+independently be re-verified deterministic across hash seeds via
+tests/test_determinism_audit.py's pattern, not assumed safe).
 
 **Stage A Feature 5 is DONE**, pivoted to an index-1 MSL flagship as
 planned: `models/msl_rc_circuit/MslRcCircuit.mo` (real
@@ -230,6 +270,72 @@ correctness fails"): manually dropped the Sub-handling negation in
 `linear_block.py`, rebuilt and ran the real C binary -- y1 came out -0.6
 instead of 0.6. Reverted, codified as a permanent monkeypatch-based test.
 110 tests passing, 1 xfailed (the documented Rumoca bug).
+
+**Stage A Feature 5 (`de4f1e5`): Cauer filter end to end, pivoted to an
+index-1 MSL flagship** (`models/msl_rc_circuit/MslRcCircuit.mo`, real
+Resistor+Capacitor+Ground+ConstantVoltage). Confirmed index-1
+(`structure()`: blocks=23, algebraic_loops=0; own matcher 23/23).
+Surfaced and fixed 4 real bugs no hand-written fixture ever exercised:
+(1) MSL's Capacitor writes `i = C*der(v)` (der on the RHS) --
+`extract_state_equation` only checked the LHS; (2) a real parameter can
+default to an expression referencing another parameter; (3) real MSL
+names contain dots, invalid in C identifiers -- new
+`sanitize_c_ident()`; (4) **the serious one**: singleton codegen
+assumed "matched var = natural target" and grabbed "the other side" of
+the residual -- silently wrong (`R.i = R.R_actual * R.i`) whenever the
+matcher assigns an equation to a DIFFERENT variable than its natural
+one. Fixed by routing singleton codegen through the same affine-form
+extraction Feature 4 built for coupled blocks -- singleton and coupled
+codegen now share one foundation. Checked against an independent RC-
+circuit-theory discrete recursion (exact match) plus a Rumoca sanity
+cross-check. 113 tests passing.
+
+**Stage A Feature 6 (`07068a8`): nonlinear block solve -- SKIPPED**, no
+tested model (real or hand-written) has a genuine nonlinear coupled
+block. Recorded why per the PRD's own instruction.
+
+**Stage A Feature 7 (`6d3ecfc`): full change-type suite on real
+models.** New bridge `src/matched_graph.py` (matching-based graph
+compatible with `resolver.py`/`soundness.py`'s existing `graph_builder`
+interface -- verified SCC-over-this-graph reproduces `matched_units.py`
+exactly on all 8 fixtures). Second real model,
+`models/msl_resistor_network/MslResistorNetwork.mo`, surfaced a REAL
+14-equation LINEAR coupled block (a resistive KCL loop) -- a real-world
+stress test for Feature 4's solver well beyond the 2-equation fixtures.
+`soundness.py` generalized to use `matching.py` instead of
+`ir_equations.equation_targets()` (proven behavior-preserving on every
+prior fixture). All 3 change types (component swap, sensor add,
+component removal) sound and teeth-tested on the 2 real models; real
+finding: the swap's seed needed BOTH the edited equation AND a
+genuinely NEW one the swap introduced -- codified as a permanent
+regression test. 133 tests passing.
+
+**Stage A Feature 8 (`06e5504`): measured ripple and real speedup on
+real models.** New `src/measure_msl.py` (generalizes Stage-0's
+`measure_c.py` to per-UNIT not per-equation codegen + matching-based
+resolver). Fixed 3 more real bugs: `ir["w"]` ("output"-declared
+variables, e.g. a Ramp block's internal signal) never got a layout
+slot; the ORIGINALLY-PLANNED swap (ConstantVoltage->RampVoltage) hit a
+genuine wall -- every MSL signal-source block compiles its
+`startTime`-conditional to an "If" expression over a synthetic
+Rumoca-generated condition variable this project's C emitter can't
+translate (real discrete/event-signal support, out of scope, documented
+in `msl_change.py`, swapped to Resistor->Conductor instead); the
+driver's struct was left uninitialized, harmless for swap/sensor-add but
+NOT for removal (an orphaned slot's uninitialized garbage differed
+between separately-built full/incremental binaries) -- fixed with
+`memset`. **Real measured speedups: 1.66x (swap, 56.5% ripple), 5.75x
+(sensor-add, 4.2% ripple), 1.50x (removal, 61.1% ripple)**, all
+bit-identical output, logged to `results/measurements_msl.{parquet,csv}`.
+134 tests passing, 1 xfailed.
+
+**Stage A Feature 9 (`fb977fa`): figures + paper draft updated, STAGE A
+COMPLETE.** 3 new deterministic figures (`src/figures_msl.py`).
+`docs/paper.md` Section 4.5 added (Stage A addendum with the measured-
+speedup table); limitations section rewritten, explicitly marking the
+phase-1 "speedup is projected"/"no incremental compiler" limitations as
+SUPERSEDED rather than left stale. 134 tests passing, 1 xfailed
+(unchanged, docs/figures-only feature).
 
 ---
 
