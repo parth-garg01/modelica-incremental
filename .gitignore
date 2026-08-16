@@ -9,3 +9,4 @@ build_cache/
 *.exe
 *.obj
 msl_src/
+models/scaled/

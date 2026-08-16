@@ -6,10 +6,12 @@ time.perf_counter().
 from __future__ import annotations
 
 import hashlib
+import os
 import shutil
 import statistics
 import subprocess
 import time
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -18,6 +20,23 @@ from eval_order import algebraic_eval_order
 from model_layout import Layout, build_layout
 
 GCC = r"C:\msys64\mingw64\bin\gcc.exe"
+
+# Feature 12 (Stage B): a single gcc subprocess invocation carries a fixed
+# ~85ms overhead (process spawn + compile + exit), measured directly --
+# at industrial scale (tens of thousands of recompilation units) that
+# turns "compile every unit" into tens of minutes if done one file at a
+# time, confirmed by an actual 2-minute timeout compiling ~3000 files
+# sequentially. Compiling with a thread pool (gcc subprocess calls
+# release the GIL while waiting on the child process, so threads, not
+# processes, are the right tool -- no pickling overhead either) is not a
+# shortcut around the measurement: real incremental build systems
+# (make -j, ninja) parallelize compilation by default, so this makes the
+# comparison MORE representative of a real system, not less. The
+# resulting speedup-ratio effect is real and expected, not a distortion:
+# a full rebuild (many files) benefits from parallel cores much more
+# than an incremental rebuild (few files) does, exactly as on a real
+# multi-core machine.
+_MAX_WORKERS = max(1, os.cpu_count() or 1)
 
 
 def _sha256(path: Path) -> str:
@@ -67,6 +86,22 @@ def compile_c(c_path: Path, o_path: Path) -> float:
     return _run_timed([GCC, "-c", str(c_path), "-o", str(o_path)], cwd=c_path.parent)
 
 
+def compile_many(jobs: list[tuple[Path, Path]], max_workers: int = _MAX_WORKERS) -> dict[Path, float]:
+    """Compile a batch of (c_path, o_path) pairs in parallel. Returns
+    {c_path: elapsed_seconds} in job order, but jobs actually run
+    concurrently across max_workers threads -- see the module-level note
+    on why threads and why this isn't a shortcut."""
+    if not jobs:
+        return {}
+    with ThreadPoolExecutor(max_workers=max_workers) as pool:
+        futures = {pool.submit(compile_c, c_path, o_path): c_path for c_path, o_path in jobs}
+        results: dict[Path, float] = {}
+        for future in futures:
+            c_path = futures[future]
+            results[c_path] = future.result()
+    return results
+
+
 def link(o_paths: list[Path], exe_path: Path) -> float:
     o_paths = [p.resolve() for p in o_paths]
     exe_path = exe_path.resolve()
@@ -89,16 +124,20 @@ class BuildResult:
 
 
 def full_rebuild(sources: BuildSources, src_dir: Path, build_dir: Path) -> BuildResult:
-    """Compile every unit from scratch and link. The control path."""
+    """Compile every unit from scratch (in parallel, see compile_many)
+    and link. The control path."""
     build_dir.mkdir(parents=True, exist_ok=True)
-    compile_times: dict[str, float] = {}
     object_paths: dict[str, Path] = {}
-
+    jobs: list[tuple[Path, Path]] = []
     for c_filename in sources.unit_files:
-        c_path = src_dir / c_filename
         o_path = build_dir / (Path(c_filename).stem + ".o")
-        compile_times[c_filename] = compile_c(c_path, o_path)
         object_paths[c_filename] = o_path
+        jobs.append((src_dir / c_filename, o_path))
+
+    elapsed_by_path = compile_many(jobs)
+    compile_times = {
+        c_filename: elapsed_by_path[src_dir / c_filename] for c_filename in sources.unit_files
+    }
 
     driver_name, _ = sources.driver_file
     driver_o = build_dir / (Path(driver_name).stem + ".o")
@@ -123,18 +162,24 @@ def incremental_rebuild(
     header/layout) that is copied in, not recompiled, for every
     unaffected unit."""
     build_dir.mkdir(parents=True, exist_ok=True)
-    compile_times: dict[str, float] = {}
     object_paths: dict[str, Path] = {}
+    jobs: list[tuple[Path, Path]] = []
 
     for c_filename in sources.unit_files:
         o_path = build_dir / (Path(c_filename).stem + ".o")
+        object_paths[c_filename] = o_path
         if c_filename in affected_c_filenames:
-            compile_times[c_filename] = compile_c(src_dir / c_filename, o_path)
+            jobs.append((src_dir / c_filename, o_path))
         else:
             if c_filename not in cached_objects:
                 raise KeyError(f"no cached object for unaffected unit {c_filename}")
             shutil.copyfile(cached_objects[c_filename], o_path)
-        object_paths[c_filename] = o_path
+
+    elapsed_by_path = compile_many(jobs)
+    compile_times = {
+        c_filename: elapsed_by_path[src_dir / c_filename]
+        for c_filename in sources.unit_files if c_filename in affected_c_filenames
+    }
 
     driver_name, _ = sources.driver_file
     driver_o = build_dir / (Path(driver_name).stem + ".o")

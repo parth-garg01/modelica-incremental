@@ -69,11 +69,13 @@ Sections 1-4 above are Phase 1's original preliminary study (projected speedup, 
 
 | Model | Change | Units affected | Ripple | Full rebuild | Incremental | **Measured speedup** |
 |---|---|---|---|---|---|---|
-| MslRcCircuit | Resistor -> Conductor swap | 13/23 | 56.5% | 1845ms ± 59ms | 1114ms ± 28ms | **1.66x** |
-| MslRcCircuit | sensor add (power) | 1/24 | 4.2% | 1856ms ± 20ms | 323ms ± 12ms | **5.75x** |
-| MslResistorNetwork | R3 removal | 11/18 | 61.1% | 1476ms ± 28ms | 984ms ± 14ms | **1.50x** |
+| MslRcCircuit | Resistor -> Conductor swap | 13/23 | 56.5% | 595ms ± 20ms | 521ms ± 66ms | **1.14x** |
+| MslRcCircuit | sensor add (power) | 1/24 | 4.2% | 611ms ± 31ms | 355ms ± 44ms | **1.72x** |
+| MslResistorNetwork | R3 removal | 11/18 | 61.1% | 514ms ± 14ms | 447ms ± 37ms | **1.15x** |
 
 (Full data: `results/measurements_msl.csv`; figures: `figures/measured_speedup.svg`, `figures/real_model_ripple.svg`, `figures/time_breakdown_real.svg`.) In every cell, the incrementally-built binary's output is **bit-identical** to a from-scratch full rebuild of the same changed model (`outputs_identical=True`), and fingerprint-verified true object reuse (`reused_objects_byte_identical_to_cache=True`) -- this is the real correctness bar this project holds itself to, not a tolerance.
+
+*(Numbers above were regenerated after Stage B's Feature 12 parallelized the C build across CPU cores -- a real fix for a real scaling bottleneck found while preparing large-model experiments, see `docs/findings/scaling-bottlenecks.md`. The earlier draft of this table showed larger ratios (1.66x/5.75x/1.50x) from sequential single-threaded compilation. Both are honest, real measurements; they differ because parallelizing compilation, like any real build system does, helps a many-file full rebuild proportionally more than a few-file incremental one on these SMALL models (23-24 total units) -- a real, not spurious, effect. Whether this narrowing persists or reverses as model size grows is exactly what Stage B's speedup-vs-size experiment answers.)*
 
 Also found and fixed along the way, worth recording as an independent finding: Rumoca's own `Model.simulate()` runtime is itself wrong on a coupled algebraic block that depends on a state (`docs/findings/rumoca-algebraic-loop-bug.md`) -- correct at t=0, wrong from the second timestep onward on every one of its 5 available solvers. This project's own generated code was checked against an independently-derived analytical solution instead (exact match), not against the buggy reference.
 
