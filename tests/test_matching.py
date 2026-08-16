@@ -31,7 +31,7 @@ def test_fully_assignment_form_models_match_completely_and_agree(model_name):
 
 
 @pytest.mark.parametrize("model_name,expected_blocks", [
-    ("OneLine", 1), ("DecoupledPair", 2), ("RLCCircuit", 3), ("ThermalNetwork", 9),
+    ("OneLine", 1), ("DecoupledPair", 2), ("RLCCircuit", 3), ("ThermalNetwork", 9), ("Chain", 3),
 ])
 def test_block_count_matches_rumocas_own_structural_info(model_name, expected_blocks):
     """Cross-check against Model.structure().n_blocks, captured when the
@@ -41,6 +41,31 @@ def test_block_count_matches_rumocas_own_structural_info(model_name, expected_bl
     m = compute_matching(ir)
     blocks = blt_blocks(ir, m)
     assert len(blocks) == expected_blocks
+
+
+@pytest.mark.parametrize("model_name", ASSIGNMENT_FORM_MODELS)
+def test_block_count_agreement_is_full_partition_agreement_not_just_a_coincidence(model_name):
+    """Block COUNT matching Rumoca's structure().n_blocks is necessary but
+    not sufficient on its own -- two different partitions of the same
+    equation set can have the same block count. What actually closes that
+    gap here: every one of these five models causalizes to all-singleton
+    blocks (n_blocks == n_equations, asserted below), and every equation's
+    matched target agrees with its independently-known-correct natural
+    target (asserted in test_fully_assignment_form_models_match_completely_
+    and_agree). Singleton blocks + per-equation target agreement together
+    leave no room for a different partition to produce the same count --
+    each equation IS its own block, correctly identified. This is full
+    partition agreement, verified per equation, not a count coincidence."""
+    ir = load_ir(model_name)
+    m = compute_matching(ir)
+    assert m.agrees_with_natural_targets() is True
+    blocks = blt_blocks(ir, m)
+    n_equations = len(ir["f_x"])
+    assert len(blocks) == n_equations, (
+        f"{model_name} has a non-singleton block; count-matches-Rumoca alone "
+        f"would NOT be sufficient evidence of correct partitioning here"
+    )
+    assert all(len(b) == 1 for b in blocks)
 
 
 def test_kuhn_matching_is_deterministic_across_repeated_calls():
