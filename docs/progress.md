@@ -24,17 +24,49 @@ not delete history -- this is a log, not a status snapshot.
 ## the bottom of the Phase 2 section below -- prd-combined.md subsumes
 ## everything phase 2 hadn't finished, plus a large amount of new scope)
 
-**Next up:** Stage A Feature 5 -- Cauer filter end to end. **Gated and
-resolved:** the user asked for gap classification before treating Cauer
-as the flagship (see Feature-1-through-4 log below); classification is
-genuine index reduction, so Cauer is NOT the flagship. Feature 5 needs a
-small real-MSL-component circuit with connect()-generated KCL residuals
-but NO reactive-only loop/cutset (e.g. a series R-C-Ground-Source
-circuit using real Modelica.Electrical.Analog.Basic/Sources components)
--- not yet built. `msl_src/` (gitignored MSL sparse clone) is already
-present locally with Electrical.Analog.{Basic,Sources,Interfaces,Icons}
-and ModelicaServices checked out; extend the sparse-checkout set if a
-different component is needed.
+**Next up:** Stage A Feature 6 (nonlinear block solve -- SKIP, no model
+needs one, see below) then Feature 7 (full change-type suite on real
+models).
+
+**Stage A Feature 5 is DONE**, pivoted to an index-1 MSL flagship as
+planned: `models/msl_rc_circuit/MslRcCircuit.mo` (real
+Resistor+Capacitor+Ground+ConstantVoltage, `connect()`-wired,
+`structure()` confirms `blocks=23, algebraic_loops=0, matched=true`,
+this project's own matcher achieves 23/23). Getting a REAL MSL model
+through the pipeline for the first time surfaced and fixed 4 real bugs
+no hand-written fixture had ever exercised: (1) MSL's Capacitor writes
+`i = C*der(v)` (der on the RHS, opposite of every hand-written fixture)
+-- `extract_state_equation` only checked the LHS, fixed to check both;
+(2) a real MSL parameter can default to an expression referencing
+ANOTHER parameter (`Resistor.T` defaults to `T_ref`) -- driver init
+generalized with topological param ordering; (3) real MSL names contain
+dots (`R.p.i`), invalid in C identifiers -- new
+`model_layout.sanitize_c_ident()` applied everywhere; (4) **the serious
+one**: singleton codegen naively assumed "matched variable = natural
+syntactic target" and just grabbed "the other side" of the residual --
+silently wrong (`R.i = R.R_actual * R.i`, self-referential) whenever the
+bipartite matcher assigns an equation to a DIFFERENT variable than its
+natural one (confirmed: Ohm's law naturally targets `R.v`, matched to
+solve for `R.i` since `R.v` was already claimed). Fixed by routing
+singleton codegen through the SAME affine-form extraction Feature 4
+built for coupled blocks (`linear_block.affine_form`) -- singleton and
+coupled codegen now share one provably-correct foundation instead of two
+paths that could silently diverge. Correctness checked against an
+independent RC-circuit-theory discrete recursion (exact %g-precision
+match) plus a sanity cross-check against Rumoca's own (trustworthy here)
+simulation. 113 tests passing, 1 xfailed.
+
+`msl_src/` (gitignored MSL sparse clone) has Electrical.Analog.{Basic,
+Sources,Interfaces,Icons} and ModelicaServices checked out; extend the
+sparse-checkout set if a different component is needed. Tests needing it
+skip gracefully (not error) if it's absent.
+
+**Stage A Feature 6 (nonlinear block solve): SKIPPED, recorded why per
+the PRD's own instruction ("only if a real target model needs it...
+record that no tested model required it").** Every coupled block built
+or found so far (CoupledAlgebraic, CoupledDynamic's y1/y2 pair) is
+exactly linear; MslRcCircuit has zero coupled blocks at all (23/23
+singleton). No tested model has a genuine nonlinear algebraic loop.
 
 **Honest scope assessment, read this before continuing or reporting
 status to the user.** prd-combined.md Section 1 defines "done" as: the
