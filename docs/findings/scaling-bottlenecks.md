@@ -1,4 +1,4 @@
-# Finding: two real scaling bottlenecks discovered while building toward 100,000 equations
+# Finding: real scaling bottlenecks discovered while building toward 100,000 equations
 
 Measured while validating `src/scaled_models.py` (Feature 10) before committing to
 an experimental target size for the rest of Stage B.
@@ -56,6 +56,50 @@ further (24, 48 workers) gave only marginal further improvement (61.3s,
 machine (gcc's own startup cost, filesystem I/O, or Windows process-
 creation overhead, not thread scheduling), not something more threads
 alone resolves.
+
+## Bottleneck 3: Windows command-line length limit at link time
+
+Found while running Feature 11's end-to-end correctness check at N=500
+rooms (1499 recompilation units, 1501 object files including the
+driver). `src/c_build.py`'s `link()` originally passed every object
+file's full absolute path directly as a `gcc` command-line argument.
+Windows' `CreateProcess` has a real, hard command-line length limit
+(roughly 32KB); with 1501 long absolute paths, this was exceeded,
+confirmed directly: `FileNotFoundError: [WinError 206] The filename or
+extension is too long`.
+
+**Fixed, not documented-around**: `link()` now writes a gcc/ld
+"response file" (`@file` syntax, one path per line) and passes that
+single `@responsefile` argument instead -- the standard mechanism gcc/ld
+provide for exactly this situation, not a workaround. One subtlety hit
+and fixed along the way: gcc's response-file parser treats `\` as an
+escape character (as on a shell command line), which silently ate every
+backslash in Windows paths (`C:\Users\...` became `C:Users...` in `ld`'s
+own error output) -- fixed by writing paths with forward slashes in the
+response file, which Windows' filesystem APIs accept natively and which
+aren't escape-special.
+
+## Bottleneck 4: relinking a large object count dominates incremental time
+
+A second finding from the N=500 correctness run, not yet "fixed" (a
+genuine design-level tradeoff, not a bug): with 1499 total units and
+only 2 affected by the change, the incremental rebuild still took
+11.3s against the full rebuild's 29.8s (measured_speedup=2.64x) -- a
+real, bit-identical, correct result, but NOT proportional to the tiny
+2/1499 affected fraction. Recompiling 2 files is near-instant;
+**relinking still needs all 1499 cached objects**, and at this file
+count that relink step, not recompilation, is what dominates
+incremental time. This is exactly the failure mode the original
+year-long prd.md's Section 10 playbook anticipated ("if relinking and
+re-matching overhead swamps the saving... change the relink strategy:
+cache compiled artifacts per unit and relink only the delta, using
+incremental linking or shared objects rather than relinking
+everything"). Not addressed in Stage B's current scope (this project's
+relink strategy stays "relink everything" throughout); recorded here as
+the honest reason speedup should be expected to plateau or even shrink,
+not grow without bound, as N grows very large under the current design
+-- exactly the kind of finding Feature 13 (speedup vs. model size) needs
+to characterize precisely rather than assume away.
 
 ## Consequence for Stage B's experimental scope
 

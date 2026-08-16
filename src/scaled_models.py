@@ -116,6 +116,26 @@ def generate_rc_ladder(n_segments: int, out_path: str | Path) -> Path:
     return out_path
 
 
+def swap_room_conductance(
+    source_path: str | Path, room_index: int, out_path: str | Path,
+) -> Path:
+    """Feature 11: a local structural change on a generated thermal
+    chain -- double room `room_index`'s heat-loss coefficient (a genuine
+    formula edit, not a parameter override: the doubling factor isn't
+    tied to any declared parameter). The seed equation this change
+    injects is Q{room_index}env."""
+    text = Path(source_path).read_text(encoding="utf-8")
+    old = f"  Q{room_index}env = Genv*(T{room_index} - Tamb);\n"
+    new = f"  Q{room_index}env = 2*Genv*(T{room_index} - Tamb);\n"
+    assert old in text, f"expected Q{room_index}env equation line not found"
+    text = text.replace(old, new)
+
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(text, encoding="utf-8")
+    return out_path
+
+
 if __name__ == "__main__":
     import sys
 

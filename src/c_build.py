@@ -103,9 +103,25 @@ def compile_many(jobs: list[tuple[Path, Path]], max_workers: int = _MAX_WORKERS)
 
 
 def link(o_paths: list[Path], exe_path: Path) -> float:
+    """Feature 11 (Stage B): linking a few thousand+ object files by
+    passing every path directly on the command line hits a real wall on
+    Windows -- CreateProcess's ~32KB command-line length limit
+    (confirmed: FileNotFoundError("The filename or extension is too
+    long") at 1501 files). Fixed with a gcc/ld "response file" (`@file`
+    syntax, one argument per line), which is exactly what response files
+    exist for -- not a workaround, the standard mechanism for this."""
     o_paths = [p.resolve() for p in o_paths]
     exe_path = exe_path.resolve()
-    return _run_timed([GCC, *[str(p) for p in o_paths], "-o", str(exe_path), "-lm"], cwd=exe_path.parent)
+
+    # gcc/ld's response-file parser treats "\" as an escape character (as
+    # in a shell command line), silently eating Windows path separators
+    # (confirmed: "C:\Users\..." became "C:Users..." in ld's own error
+    # output). Forward slashes are accepted fine by the Windows
+    # filesystem APIs gcc/ld ultimately call, and aren't escape-special.
+    response_path = exe_path.parent / f"{exe_path.stem}_objects.rsp"
+    response_path.write_text("\n".join(str(p).replace("\\", "/") for p in o_paths), encoding="utf-8")
+
+    return _run_timed([GCC, f"@{response_path}", "-o", str(exe_path), "-lm"], cwd=exe_path.parent)
 
 
 def run_sim(exe_path: Path, t_end: float, dt: float) -> str:
