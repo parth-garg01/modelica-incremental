@@ -11,11 +11,13 @@ this test must catch it.
 PHASE 2: `graph_builder` selects which dependency graph check_soundness
 uses to independently recompute the ground-truth unit mapping. Defaults
 to the raw graph (phase 1 behavior); pass build_causalized_graph to
-re-validate against the causalized unit definition (Feature G3).
+re-validate against the causalized unit definition (Feature G3); pass
+build_matched_graph (Stage A) for real models with anonymous KCL/KVL
+residuals, which the raw/causalized graphs cannot process at all.
 """
 from __future__ import annotations
 
-from ir_equations import equation_targets
+from matching import compute_matching
 
 # Position/identity bookkeeping that changes with source-file byte offsets
 # and declaration order even when an equation's actual semantics did not
@@ -37,12 +39,19 @@ def actually_changed_equations(baseline_ir: dict, changed_ir: dict) -> set[str]:
     the baseline and post-change IR, ignoring position/identity metadata.
     Equations present in one IR but not the other count as changed too.
 
-    PHASE 2 FIX: targets are identified from each equation's own content
-    (src/ir_equations.py), not from zipping names against f_x positionally
-    -- the same f_x-ordering bug fixed in src/graph.py applies here too.
+    STAGE A: targets come from src/matching.py's bipartite matching
+    (`eq_to_var`), not src/ir_equations.equation_targets() (which raises
+    on any model with an anonymous KCL/KVL residual -- every real MSL
+    model). Proven behavior-preserving on every fully-assignment-form
+    fixture by Feature 1's agrees_with_natural_targets() (matching.py's
+    assignment is IDENTICAL to equation_targets()'s on those models), so
+    this is a strict generalization, not a behavior change, for anything
+    already working before Stage A.
     """
-    baseline_eqs = {name: expr for _, name, expr in equation_targets(baseline_ir)}
-    changed_eqs = {name: expr for _, name, expr in equation_targets(changed_ir)}
+    baseline_match = compute_matching(baseline_ir)
+    changed_match = compute_matching(changed_ir)
+    baseline_eqs = {name: baseline_ir["f_x"][i] for i, name in baseline_match.eq_to_var.items()}
+    changed_eqs = {name: changed_ir["f_x"][i] for i, name in changed_match.eq_to_var.items()}
 
     diffed: set[str] = set()
     for name in set(baseline_eqs) | set(changed_eqs):

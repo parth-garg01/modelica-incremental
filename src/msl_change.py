@@ -1,0 +1,95 @@
+"""Feature 7: structural change injectors for the real-MSL-component
+models (models/msl_rc_circuit, models/msl_resistor_network). Same
+text-level source transformation discipline as src/change.py (phase 1),
+applied to real Modelica.Electrical.Analog component instantiations
+instead of hand-written flat equations.
+"""
+from __future__ import annotations
+
+from pathlib import Path
+
+
+def swap_constant_to_ramp_voltage(
+    source_path: str | Path = "models/msl_rc_circuit/MslRcCircuit.mo",
+    out_path: str | Path = "models/msl_rc_circuit_swapped/MslRcCircuit.mo",
+) -> Path:
+    """Component swap: replace the constant voltage source with a ramp
+    voltage source -- both are genuine MSL "VoltageSource"-interface
+    components (same two pins p/n), different behavior. Same role,
+    different model, exactly the change-type definition."""
+    text = Path(source_path).read_text(encoding="utf-8")
+
+    old = "  Modelica.Electrical.Analog.Sources.ConstantVoltage V(V=5)\n"
+    new = "  Modelica.Electrical.Analog.Sources.RampVoltage V(V=5, duration=2)\n"
+    assert old in text, "expected ConstantVoltage instantiation line not found"
+    text = text.replace(old, new)
+
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(text, encoding="utf-8")
+    return out_path
+
+
+def add_power_sensor_equation(
+    source_path: str | Path = "models/msl_rc_circuit/MslRcCircuit.mo",
+    out_path: str | Path = "models/msl_rc_circuit_sensor/MslRcCircuit.mo",
+) -> Path:
+    """Sensor-add: a new equation computing the resistor's instantaneous
+    power dissipation, reading two EXISTING variables (R.v, R.i),
+    touching nothing else -- same pattern as phase 1/2's sensor-add
+    (src/change.py's add_sensor_thermal_network)."""
+    text = Path(source_path).read_text(encoding="utf-8")
+
+    # The ConstantVoltage instantiation is one statement spanning TWO
+    # lines (declaration, then its trailing annotation(...); on the next
+    # line) -- the new declaration must go AFTER the whole statement
+    # (including the annotation's closing ";"), not between them.
+    anchor = (
+        "  Modelica.Electrical.Analog.Sources.ConstantVoltage V(V=5)\n"
+        "    annotation (Placement(transformation(extent={{-80,-20},{-60,0}})));\n"
+    )
+    assert anchor in text, "expected full ConstantVoltage declaration+annotation not found"
+    text = text.replace(anchor, anchor + "  Real P_R \"Power dissipated in R, a derived sensor quantity\";\n")
+
+    old_eq = "equation\n"
+    new_eq = "equation\n  P_R = R.v * R.i;\n"
+    assert old_eq in text
+    text = text.replace(old_eq, new_eq, 1)
+
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(text, encoding="utf-8")
+    return out_path
+
+
+def remove_r3_from_resistor_network(
+    source_path: str | Path = "models/msl_resistor_network/MslResistorNetwork.mo",
+    out_path: str | Path = "models/msl_resistor_network_removed/MslResistorNetwork.mo",
+) -> Path:
+    """Component removal: delete R3 entirely (its instantiation and both
+    connect() statements that reference it), leaving R2 as the sole
+    parallel branch -- no dangling reference to R3 anywhere."""
+    text = Path(source_path).read_text(encoding="utf-8")
+
+    old_decl = (
+        "  Modelica.Electrical.Analog.Basic.Resistor R3(R=300)\n"
+        "    annotation (Placement(transformation(extent={{-10,-20},{10,0}})));\n"
+    )
+    assert old_decl in text
+    text = text.replace(old_decl, "")
+
+    old_conn1 = '  connect(R1.p, R3.n) annotation (Line(points={{-40,30},{-10,30},{-10,-10}}, color={0,0,255}));\n'
+    old_conn2 = '  connect(R3.p, G.p) annotation (Line(points={{10,-10},{20,-10},{20,-40},{0,-40}}, color={0,0,255}));\n'
+    assert old_conn1 in text and old_conn2 in text
+    text = text.replace(old_conn1, "").replace(old_conn2, "")
+
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(text, encoding="utf-8")
+    return out_path
+
+
+if __name__ == "__main__":
+    print("wrote", swap_constant_to_ramp_voltage())
+    print("wrote", add_power_sensor_equation())
+    print("wrote", remove_r3_from_resistor_network())
