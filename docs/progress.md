@@ -24,18 +24,37 @@ not delete history -- this is a log, not a status snapshot.
 ## the bottom of the Phase 2 section below -- prd-combined.md subsumes
 ## everything phase 2 hadn't finished, plus a large amount of new scope)
 
-**Next up: STAGE A IS COMPLETE (Features 1-9, commit `fb977fa`). Stage B
-is IN PROGRESS: Features 10 (`410c852`), 11 (`c51af07`), and 12 (this
-entry) are done. Features 13-17 (speedup vs. size, overhead vs. size,
-change-frequency harness, break-even measurement, scaling/break-even
-figures) remain.**
+**Next up: STAGE A IS COMPLETE (Features 1-9, commit `fb977fa`). STAGE B
+IS NOW COMPLETE (Features 10-17, commits `410c852` through `194f35e`).
+Stage C (Features 18-23: target venue, full-length restructure,
+related work, reproducibility package, threats to validity, final
+review) starts now.**
 
-**Feature 12 (O(n^2) codegen fix) is DONE, not yet committed as of this
-edit -- see the dedicated entry below and `docs/findings/scaling-
-bottlenecks.md`'s Bottleneck 5 for full detail.** Headline: codegen at
-15,000 equations dropped from 88.86s to 1.81s (~49x) by replacing
-per-unit O(N) list scans/dict rebuilds with O(1) dict lookups built
-once per model. 144 passed, 1 xfailed, unchanged.
+**Stage B summary (full detail in the dated entries below).** All 8
+features done, real measurements throughout, no projections. Headline
+results: codegen's confirmed O(n^2) bottleneck fixed (Feature 12,
+~49x faster at 15,000 equations); incremental-vs-full speedup measured
+across a 20x size range (149 to 2,999 equations), staying in a 1.8x-2.3x
+band rather than growing with size (Feature 13); one-time setup
+overhead (Rumoca compile + matching/partition/graph-build) stays under
+~5.2% of full-rebuild time at every tested size (Feature 14); a real
+change-frequency harness (Feature 15) driving a genuine cumulative
+10-change sequence through both a streaming-incremental and a
+batched-full-rebuild path; a measured break-even crossing at batch
+size 4 -- batching wins once 4+ changes accumulate before a rebuild,
+confirmed stable both within measured spread and across an independent
+rerun of the same sequence (Feature 16); three figures regenerated
+byte-identically across two independent runs (Feature 17). 152 passed,
+1 xfailed (up from 144 -- 8 new tests for Features 13-16, all on small
+automated sizes; the reported numbers above come from dedicated larger
+one-off runs, documented in the feature-by-feature entries below, not
+re-run on every test invocation).
+
+**Feature 12 (O(n^2) codegen fix, commit `b0e7ec9`) -- see the dedicated
+entry below and `docs/findings/scaling-bottlenecks.md`'s Bottleneck 5
+for full detail.** Headline: codegen at 15,000 equations dropped from
+88.86s to 1.81s (~49x) by replacing per-unit O(N) list scans/dict
+rebuilds with O(1) dict lookups built once per model.
 
 **Environment gotcha found while triaging Feature 12: use PowerShell,
 not the Bash tool, for anything that shells out to gcc in this repo.**
@@ -428,6 +447,86 @@ environment gotcha) that the Bash tool's PATH breaks gcc's internal
 `cc1.exe` DLL resolution on this machine -- see the "Next up" note
 above; cost real time mid-session before being traced to a PATH
 conflict rather than a real regression.
+
+**Stage B Feature 13 (`9fb61d9`): incremental speedup measured across
+model sizes.** `src/measure_scale.py` sweeps `ThermalChain{N}` for N in
+{50, 100, 250, 500, 1000} rooms (149-2,999 equations), reusing
+`measure_msl.run_cell()` unchanged (already model-agnostic) with a new
+optional `repeats` parameter (default unchanged at 5, used here at 3 to
+keep the whole 5-size sweep affordable -- calibrated directly first: one
+N=1000 cell at 3 repeats took 470.9s end to end). Logged to
+`results/measurements_scale.{csv,parquet}`. Real measured speedups:
+2.27x (N=50), 1.88x (N=100), 2.05x (N=250), 2.13x (N=500), 1.84x
+(N=1000) -- all outputs bit-identical, all reused objects
+byte-identical to cache. Honest trend: speedup stays in a ~1.8x-2.3x
+band across the whole 20x size range instead of growing with size,
+consistent with `docs/findings/scaling-bottlenecks.md`'s Bottleneck 4
+(relinking the full object set, not recompiling, dominates incremental
+cost at this file count -- confirmed again here, not merely
+theorized: at N=1000, incremental_stdev_s=11.9s on a 39.3s mean, a
+large relative spread consistent with relink-dominated timing being
+noisier than compile-dominated timing).
+
+**Stage B Feature 14 (`29d9ac6`): one-time setup overhead measured
+across model sizes.** `src/measure_overhead.py` reuses the exact same
+sizes as Feature 13 (joins on `n_rooms` against
+`results/measurements_scale.csv` for the ratio, no need to re-run
+expensive full rebuilds) and measures, per size: Rumoca's own compile
+time, plus matching/partition/graph-build time (the "one-time setup"
+Feature 12 already profiled and confirmed near-linear). This
+measurement itself is cheap (sub-4s even at the largest size tested
+here), so it's measured directly rather than reusing old profiling
+numbers. Real result at N=1000 (2,999 equations): rumoca_compile=2.70s,
+graph_and_partition=1.02s, total_setup=3.72s against a 72.18s full
+rebuild -- **5.16% of full-rebuild time.** Across the whole range the
+ratio stays in 2.9%-5.2%, never trending sharply upward -- setup cost
+stays acceptable at scale over this range, reported at the sizes
+actually run, not extrapolated to 100,000 equations.
+
+**Stage B Feature 15 (`f6a120b`): change-frequency harness.**
+`src/change_frequency.py` builds a real, CUMULATIVE sequence of K
+structural changes (each edit written on top of the previous step's
+already-edited `.mo` source, via `swap_room_conductance`, the way a
+real codebase actually accumulates edits over time -- not K independent
+edits to one original), then drives it through two independently timed
+strategies: STREAMING (recompile+relink after every single change,
+chained so each step's object cache is the PREVIOUS step's own
+incremental build output, never a fresh full rebuild) and BATCHED
+(accumulate changes, one real full rebuild per batch). Both are real
+gcc/ld wall-clock measurements end to end, nothing arithmetic-derived.
+Real sample sequence: N=300 rooms (899 equations), 10 changes (one
+every 30 rooms) -- every step affects exactly 2/899 units; streaming
+totals 65.522s across 10 steps (5.2s-15.5s per step); batched at
+batch_size=5 (2 full rebuilds) totals 44.498s, already cheaper than
+streaming at that batch size.
+
+**Stage B Feature 16 (`80407d1`): break-even change frequency
+measured.** `src/break_even.py` sweeps batch size (frequency and batch
+size are the same knob under a fixed-rate change-arrival model, see
+`change_frequency.py`'s docstring) using the real streaming total from
+Feature 15's harness (fixed, doesn't depend on batch size) against a
+REPEATED (3x), directly measured full-rebuild cost at one representative
+point in the chain -- justified, not assumed, by confirming
+`total_units` is identical at every step of the chain first (the
+harness raises if it isn't). Real crossing found on the same N=300,
+10-change sequence: full_rebuild=18.932s +/- 0.332s; streaming_total=
+63.009s; **BREAK-EVEN at batch_size=4** (batching wins once 4+ changes
+accumulate per rebuild), stable within measured spread (even
+batch_size=4's worst-case-slow batched estimate beats streaming's
+mean). Rerun-stability check: this run's streaming total (63.009s) was
+an INDEPENDENT re-measurement of the identical 10-change sequence
+Feature 15 already measured at 65.522s -- within ~4% of each other,
+real evidence of stable timings across reruns, not a cherry-picked
+number.
+
+**Stage B Feature 17 (`194f35e`): scaling and break-even figures,
+STAGE B COMPLETE.** `src/figures_scale.py` -- three new figures
+(`speedup_vs_size.svg`, `overhead_vs_size.svg`,
+`break_even_crossing.svg`), regenerated from Features 13/14/16's logs
+and verified BYTE-IDENTICAL across two independent regenerations
+(diffed directly, not just visually inspected). 152 passed, 1 xfailed
+(full suite, including all Stage B tests) -- up from 144 at Stage A's
+close.
 
 ---
 

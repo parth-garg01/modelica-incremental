@@ -101,6 +101,17 @@ not grow without bound, as N grows very large under the current design
 -- exactly the kind of finding Feature 13 (speedup vs. model size) needs
 to characterize precisely rather than assume away.
 
+**Confirmed empirically by Feature 13 (`results/measurements_scale.csv`).**
+Measured speedup across a 20x size range (149 to 2,999 equations)
+stayed in a ~1.8x-2.3x band rather than growing with size (2.27x at
+N=50 rooms, 1.84x at N=1000 rooms) -- the plateau predicted above,
+not a projection. Also visible directly in the per-size data:
+`incremental_stdev_s` grows disproportionately with size relative to
+`incremental_mean_s` (11.9s stdev on a 39.3s mean at N=1000, a ~30%
+relative spread), consistent with relink (I/O- and process-spawn-bound,
+noisier) dominating over recompilation (CPU-bound, more consistent) at
+this file count.
+
 ## Bottleneck 5: O(n^2) codegen, found and fixed (Feature 12)
 
 Profiling the pipeline stage-by-stage on `ThermalChain{N}` surfaced a
