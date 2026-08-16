@@ -12,9 +12,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from expr_c import expr_to_c, extract_algebraic_rhs, extract_state_equation
+from expr_c import expr_to_c, extract_state_equation
 from ir_equations import equation_targets
-from model_layout import Layout
+from linear_block import CONST, affine_form
+from model_layout import Layout, sanitize_c_ident
 
 
 def _literal_value(expr: dict) -> float:
@@ -23,6 +24,8 @@ def _literal_value(expr: dict) -> float:
         return float(lit["Real"])
     if "Integer" in lit:
         return float(lit["Integer"])
+    if "Boolean" in lit:
+        return 1.0 if lit["Boolean"] else 0.0
     raise NotImplementedError(f"unsupported literal for initial value: {lit}")
 
 
@@ -40,11 +43,11 @@ def generate_header(model_name: str, layout: Layout) -> str:
         "",
     ]
     for i, n in enumerate(layout.x):
-        lines.append(f"#define {prefix}_X_{n} {i}")
+        lines.append(f"#define {prefix}_X_{sanitize_c_ident(n)} {i}")
     for i, n in enumerate(layout.y):
-        lines.append(f"#define {prefix}_Y_{n} {i}")
+        lines.append(f"#define {prefix}_Y_{sanitize_c_ident(n)} {i}")
     for i, n in enumerate(layout.p):
-        lines.append(f"#define {prefix}_P_{n} {i}")
+        lines.append(f"#define {prefix}_P_{sanitize_c_ident(n)} {i}")
     lines += [
         "",
         f"enum {{ {prefix}_NX = {max(len(layout.x), 1)}, "
@@ -61,22 +64,36 @@ def generate_header(model_name: str, layout: Layout) -> str:
         "",
     ]
     for n in layout.y:
-        lines.append(f"void {model_name}_compute_{n}({model_name}_t *v);")
+        lines.append(f"void {model_name}_compute_{sanitize_c_ident(n)}({model_name}_t *v);")
     for n in layout.x:
-        lines.append(f"void {model_name}_compute_der_{n}({model_name}_t *v);")
+        lines.append(f"void {model_name}_compute_der_{sanitize_c_ident(n)}({model_name}_t *v);")
     lines.append("")
     return "\n".join(lines)
 
 
 def generate_unit_c(model_name: str, kind: str, name: str, expr: dict, layout: Layout) -> str:
     name_to_c = layout.name_to_c()
+    ident = sanitize_c_ident(name)
     lines = [f'#include "{model_name}.h"', "#include <math.h>", ""]
     if kind == "y":
-        rhs_c = expr_to_c(extract_algebraic_rhs(expr), name_to_c)
+        # Solved via the SAME affine-form extraction Feature 4 uses for
+        # coupled blocks (src/linear_block.py), not by naively assuming
+        # `name` sits alone on one side of the residual (the equation
+        # `name` was MATCHED to is not guaranteed to be the equation
+        # whose natural/syntactic left-hand side IS `name` -- confirmed
+        # against a real MSL component: Resistor's Ohm's-law equation
+        # naturally targets R.v, but the bipartite matcher can assign it
+        # to solve for R.i instead, when R.v's own dedicated equation
+        # already claimed R.v. The old naive "just take the other side"
+        # extraction silently emitted `R.i = R.R_actual * R.i` -- a
+        # self-referential, wrong assignment -- for exactly this case).
+        row = affine_form(expr["rhs"], {name}, name_to_c)
+        coef_c = row.get(name, "0.0")
+        const_c = row.get(CONST, "0.0")
         idx = layout.y.index(name)
         lines += [
-            f"void {model_name}_compute_{name}({model_name}_t *v) {{",
-            f"    v->y[{idx}] = {rhs_c};",
+            f"void {model_name}_compute_{ident}({model_name}_t *v) {{",
+            f"    v->y[{idx}] = (-({const_c})) / ({coef_c});",
             "}",
         ]
     else:
@@ -85,7 +102,7 @@ def generate_unit_c(model_name: str, kind: str, name: str, expr: dict, layout: L
         idx = layout.x.index(name)
         body = f"({rhs_c})" if coef is None else f"({rhs_c}) / ({expr_to_c(coef, name_to_c)})"
         lines += [
-            f"void {model_name}_compute_der_{name}({model_name}_t *v) {{",
+            f"void {model_name}_compute_der_{ident}({model_name}_t *v) {{",
             f"    v->dx[{idx}] = {body};",
             "}",
         ]
@@ -94,9 +111,10 @@ def generate_unit_c(model_name: str, kind: str, name: str, expr: dict, layout: L
 
 
 def unit_source_filename(model_name: str, unit_id: str) -> str:
-    # unit_id is "+"-joined member equation names (src/units.py); "+" isn't
-    # a valid filename/identifier character on all platforms, so sanitize.
-    return f"{model_name}_unit_{unit_id.replace('+', '_')}.c"
+    # unit_id is "+"-joined member equation names (src/units.py); "+" and
+    # "." (real MSL qualified names, e.g. "R.p.i") aren't valid
+    # filename/identifier characters on all platforms, so sanitize.
+    return f"{model_name}_unit_{sanitize_c_ident(unit_id)}.c"
 
 
 def generate_all_units(model_name: str, ir: dict, layout: Layout) -> dict[str, str]:
@@ -117,14 +135,14 @@ def generate_driver(model_name: str, ir: dict, layout: Layout, eval_order_y: lis
     param_inits = []
     for n in layout.p:
         if n in ir["p"]:
-            param_inits.append(f"    v.p[{prefix}_P_{n}] = {_literal_value(ir['p'][n]['start'])!r};")
+            param_inits.append(f"    v.p[{prefix}_P_{sanitize_c_ident(n)}] = {_literal_value(ir['p'][n]['start'])!r};")
     state_inits = []
     for n in layout.x:
         if n in ir["x"]:
-            state_inits.append(f"    v.x[{prefix}_X_{n}] = {_literal_value(ir['x'][n]['start'])!r};")
+            state_inits.append(f"    v.x[{prefix}_X_{sanitize_c_ident(n)}] = {_literal_value(ir['x'][n]['start'])!r};")
 
-    algebraic_calls = [f"    {model_name}_compute_{n}(&v);" for n in eval_order_y if n in layout.y]
-    der_calls = [f"    {model_name}_compute_der_{n}(&v);" for n in layout.x if n in ir["x"]]
+    algebraic_calls = [f"    {model_name}_compute_{sanitize_c_ident(n)}(&v);" for n in eval_order_y if n in layout.y]
+    der_calls = [f"    {model_name}_compute_der_{sanitize_c_ident(n)}(&v);" for n in layout.x if n in ir["x"]]
     state_updates = [f"    v.x[{i}] += dt * v.dx[{i}];" for i in range(len(layout.x))]
 
     header_row = ",".join(["time"] + layout.x + layout.y)

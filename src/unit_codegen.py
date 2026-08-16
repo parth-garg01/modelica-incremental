@@ -15,17 +15,27 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import networkx as nx
+
 from block_codegen import generate_block_unit_c
 from codegen_units import generate_header, model_prefix
 from eval_order import unit_eval_order
+from expr_c import expr_to_c
+from graph import _varrefs
 from matched_codegen import generate_unit_c
 from matched_units import compute_matched_units
 from matching import compute_matching
-from model_layout import Layout
+from model_layout import Layout, sanitize_c_ident
 
 
 def unit_function_suffix(unit_id: str, members: list[str]) -> str:
-    return members[0] if len(members) == 1 else unit_id.replace("+", "_")
+    """A valid C identifier fragment for this unit's compute function
+    name and source filename -- sanitized, since a real MSL variable
+    name (e.g. "R.p.i") or a coupled unit id (src/matched_units.py's
+    "+"-joined convention, e.g. "y1+y2") can contain characters that
+    aren't valid in a C identifier."""
+    raw = members[0] if len(members) == 1 else unit_id
+    return sanitize_c_ident(raw)
 
 
 def generate_all_unit_sources(model_name: str, ir: dict, layout: Layout) -> dict[str, str]:
@@ -46,18 +56,55 @@ def generate_all_unit_sources(model_name: str, ir: dict, layout: Layout) -> dict
     return files
 
 
+def _driver_name_to_c(layout: Layout) -> dict[str, str]:
+    """Same slot layout as Layout.name_to_c(), but with "v." (dot access
+    to a stack-local struct) instead of "v->" (pointer access) -- this is
+    only used for generating the driver's own init code, which owns its
+    ModelName_t as a plain local, not a pointer."""
+    mapping = {"time": "v.time"}
+    for i, n in enumerate(layout.x):
+        mapping[n] = f"v.x[{i}]"
+    for i, n in enumerate(layout.y):
+        mapping[n] = f"v.y[{i}]"
+    for i, n in enumerate(layout.p):
+        mapping[n] = f"v.p[{i}]"
+    return mapping
+
+
+def _param_eval_order(ir: dict, layout: Layout) -> list[str]:
+    """A parameter's default/start value can be an arbitrary expression
+    referencing another parameter (real Modelica feature, confirmed
+    against a real MSL component: Resistor's `T` parameter defaults to
+    `T_ref`, not a literal) -- topologically order parameter
+    initialization by that dependency, the same way unit_eval_order does
+    for algebraic units."""
+    g = nx.DiGraph()
+    g.add_nodes_from(layout.p)
+    for n in layout.p:
+        if n not in ir["p"]:
+            continue
+        for ref in _varrefs(ir["p"][n]["start"]) & set(layout.p):
+            if ref != n:
+                g.add_edge(ref, n)
+    try:
+        return list(nx.topological_sort(g))
+    except nx.NetworkXUnfeasible as e:
+        raise ValueError("parameter start-value expressions have a cycle") from e
+
+
 def generate_unit_driver(model_name: str, ir: dict, layout: Layout) -> str:
     prefix = model_prefix(model_name)
     m = compute_matching(ir)
     units = compute_matched_units(ir)
     order = unit_eval_order(ir)
+    driver_name_to_c = _driver_name_to_c(layout)
 
     param_inits = [
-        f"    v.p[{prefix}_P_{n}] = {_literal(ir['p'][n]['start'])!r};"
-        for n in layout.p if n in ir["p"]
+        f"    v.p[{layout.p.index(n)}] = {expr_to_c(ir['p'][n]['start'], driver_name_to_c)};"
+        for n in _param_eval_order(ir, layout) if n in ir["p"]
     ]
     state_inits = [
-        f"    v.x[{prefix}_X_{n}] = {_literal(ir['x'][n]['start'])!r};"
+        f"    v.x[{layout.x.index(n)}] = {expr_to_c(ir['x'][n]['start'], driver_name_to_c)};"
         for n in layout.x if n in ir["x"]
     ]
 
@@ -67,7 +114,7 @@ def generate_unit_driver(model_name: str, ir: dict, layout: Layout) -> str:
     ]
     state_unit_ids = [uid for uid, members in units.items() if set(members) & set(layout.x)]
     der_calls = [
-        f"    {model_name}_compute_der_{units[uid][0]}(&v);"
+        f"    {model_name}_compute_der_{sanitize_c_ident(units[uid][0])}(&v);"
         for uid in state_unit_ids
     ]
     state_updates = [f"    v.x[{i}] += dt * v.dx[{i}];" for i in range(len(layout.x))]
@@ -78,8 +125,14 @@ def generate_unit_driver(model_name: str, ir: dict, layout: Layout) -> str:
         [f'printf(",%g", v.y[{i}]);' for i in range(len(layout.y))] + \
         ['printf("\\n");']
 
+    # State units are defined as compute_der_<name> (see matched_codegen's
+    # generate_unit_c), not compute_<name> -- this used to declare the
+    # wrong prototype for every state unit (harmless in itself, since
+    # nothing ever called the wrongly-named one, but wrong is wrong).
     unit_prototypes = [
-        f"void {model_name}_compute_{unit_function_suffix(uid, members)}({model_name}_t *v);"
+        f"void {model_name}_compute_der_{unit_function_suffix(uid, members)}({model_name}_t *v);"
+        if set(members) & set(layout.x)
+        else f"void {model_name}_compute_{unit_function_suffix(uid, members)}({model_name}_t *v);"
         for uid, members in units.items()
     ]
 
@@ -109,15 +162,6 @@ def generate_unit_driver(model_name: str, ir: dict, layout: Layout) -> str:
         "}",
         "",
     ])
-
-
-def _literal(expr: dict) -> float:
-    lit = expr["Literal"]["value"]
-    if "Real" in lit:
-        return float(lit["Real"])
-    if "Integer" in lit:
-        return float(lit["Integer"])
-    raise NotImplementedError(f"unsupported literal for initial value: {lit}")
 
 
 def write_unit_sources(model_name: str, ir: dict, layout: Layout, out_dir: Path) -> dict[str, Path]:

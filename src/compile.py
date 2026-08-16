@@ -22,15 +22,18 @@ class CompileResult:
     compile_seconds: float
 
 
-def compile_model(source_path: str | Path, model_name: str) -> CompileResult:
+def compile_model(source_path: str | Path, model_name: str, roots: list[str] | None = None) -> CompileResult:
     """Compile `model_name` out of `source_path` and export its DAE IR.
 
     `source_path` is resolved relative to the current working directory,
     matching how `rumoca.Session().load()` resolves paths (no explicit
-    `roots` needed for a single-file model).
+    `roots` needed for a single-file model). `roots` is needed for any
+    model that references an external library (e.g. the Modelica
+    Standard Library sparse-cloned into msl_src/) via `import`/qualified
+    type names.
     """
     source_path = Path(source_path)
-    session = rm.Session()
+    session = rm.Session(roots=roots) if roots else rm.Session()
     start = time.perf_counter()
     model = session.load(str(source_path), model=model_name)
     elapsed = time.perf_counter() - start

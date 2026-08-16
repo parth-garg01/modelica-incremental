@@ -28,6 +28,8 @@ def expr_to_c(node: dict, name_to_c: dict[str, str]) -> str:
             return repr(float(value["Real"]))
         if "Integer" in value:
             return f"{int(value['Integer'])}.0"
+        if "Boolean" in value:
+            return "1.0" if value["Boolean"] else "0.0"
         raise NotImplementedError(f"unsupported literal value: {value}")
 
     if "Binary" in node:
@@ -70,26 +72,52 @@ def extract_algebraic_rhs(expr: dict) -> dict:
     return expr["rhs"]["Binary"]["rhs"]
 
 
+def _der_coefficient(node: dict) -> dict | None | bool:
+    """If `node` is exactly `Der(x)` or `coef*Der(x)` (either operand
+    order), return the coefficient expr (or None for a bare Der). Returns
+    False (not a der pattern at all) otherwise -- False, not None, since
+    None is itself a meaningful "no coefficient" result."""
+    if "BuiltinCall" in node and node["BuiltinCall"]["function"] == "Der":
+        return None
+    if "Binary" in node and node["Binary"]["op"] == "Mul":
+        mul_lhs, mul_rhs = node["Binary"]["lhs"], node["Binary"]["rhs"]
+        if "BuiltinCall" in mul_rhs and mul_rhs["BuiltinCall"]["function"] == "Der":
+            return mul_lhs
+        if "BuiltinCall" in mul_lhs and mul_lhs["BuiltinCall"]["function"] == "Der":
+            return mul_rhs
+    return False
+
+
 def extract_state_equation(expr: dict) -> tuple[dict | None, dict]:
     """For a state equation's residual, return (coefficient_expr_or_None,
     rhs_expr) such that der(state) = rhs_expr [/ coefficient_expr].
 
-    Handles two source forms actually used by the fixtures:
-      der(x) = rhs                  -> top.lhs is BuiltinCall{Der}     -> (None, top.rhs)
-      coef*der(x) = rhs             -> top.lhs is Binary{Mul, ., Der}  -> (coef, top.rhs)
+    The der(state) term (bare, or coefficient-multiplied, either operand
+    order) can be on EITHER side of the original equation's "=" -- e.g.
+    a hand-written "coef*der(x) = rhs" puts it on the residual's top-level
+    lhs, but MSL's own Capacitor writes its defining equation the other
+    way, "i = C*der(v)", putting it on the residual's top-level rhs
+    (confirmed against models/msl_rc_circuit's compiled IR; the earlier
+    lhs-only version raised NotImplementedError on this real MSL
+    component the first time a model using it was compiled). Both sides
+    are checked; when the der term is on the residual's rhs, the sign
+    doesn't flip (residual = lhs - rhs = 0 => lhs = coef*der(x) => der(x)
+    = lhs/coef, the same formula, just returning the OTHER side's
+    expression as the "rhs_expr" to divide).
     """
     top = expr["rhs"]["Binary"]
-    lhs = top["lhs"]
-    rhs = top["rhs"]
+    lhs, rhs = top["lhs"], top["rhs"]
 
-    if "BuiltinCall" in lhs and lhs["BuiltinCall"]["function"] == "Der":
-        return None, rhs
+    coef = _der_coefficient(lhs)
+    if coef is not False:
+        return coef, rhs
 
-    if "Binary" in lhs and lhs["Binary"]["op"] == "Mul":
-        mul_lhs, mul_rhs = lhs["Binary"]["lhs"], lhs["Binary"]["rhs"]
-        if "BuiltinCall" in mul_rhs and mul_rhs["BuiltinCall"]["function"] == "Der":
-            return mul_lhs, rhs
-        if "BuiltinCall" in mul_lhs and mul_lhs["BuiltinCall"]["function"] == "Der":
-            return mul_rhs, rhs
+    coef = _der_coefficient(rhs)
+    if coef is not False:
+        return coef, lhs
 
-    raise NotImplementedError(f"unsupported state-equation source form: {list(lhs.keys())}")
+    raise NotImplementedError(
+        f"unsupported state-equation source form: der() term not found directly "
+        f"on either side of the top-level residual (lhs keys={list(lhs.keys())}, "
+        f"rhs keys={list(rhs.keys())})"
+    )

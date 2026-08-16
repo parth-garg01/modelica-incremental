@@ -97,7 +97,7 @@ if __name__ == "__main__":
     from compile import compile_model
     from matched_units import compute_matched_units
     from matching import compute_matching
-    from model_layout import build_layout
+    from model_layout import build_layout, sanitize_c_ident
 
     path = sys.argv[1] if len(sys.argv) > 1 else "models/coupled_algebraic/CoupledAlgebraic.mo"
     model_name = sys.argv[2] if len(sys.argv) > 2 else "CoupledAlgebraic"
@@ -111,5 +111,5 @@ if __name__ == "__main__":
         if len(members) <= 1:
             continue
         member_indices = [m.var_to_eq[name] for name in members]
-        c_source = generate_block_unit_c(model_name, unit_id.replace("+", "_"), member_indices, members, result.ir, layout)
+        c_source = generate_block_unit_c(model_name, sanitize_c_ident(unit_id), member_indices, members, result.ir, layout)
         print(c_source)

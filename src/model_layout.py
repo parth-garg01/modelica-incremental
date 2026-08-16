@@ -16,6 +16,21 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 
+def sanitize_c_ident(name: str) -> str:
+    """A Modelica variable/unit name used as (part of) a C identifier
+    (macro name, function name, filename) -- e.g. "R.p.i" (a qualified
+    reference into component R's pin p, a perfectly normal Modelica name
+    once real MSL components are involved) or "y1+y2" (a coupled unit
+    id, src/matched_units.py's "+"-joined convention). Neither "." nor
+    "+" is a valid C identifier character; both are replaced with "_".
+    Never used for VALUE access (Layout.name_to_c() maps straight to an
+    array index, side-stepping this entirely) -- only for identifiers
+    that must compile, where collisions across sanitized names are an
+    accepted, unenforced risk at this project's scope (e.g. "R.p.i" and
+    "R_p_i" would collide; no fixture has ever produced this)."""
+    return name.replace(".", "_").replace("+", "_")
+
+
 @dataclass
 class Layout:
     x: list[str] = field(default_factory=list)  # states

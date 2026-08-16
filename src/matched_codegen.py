@@ -47,7 +47,7 @@ def generate_all_units_from_matching(model_name: str, ir: dict, layout: Layout) 
     for i, name in m.eq_to_var.items():
         kind = "y" if m.eq_kind[i] == "algebraic" else "x"
         expr = ir["f_x"][i]
-        filename = f"{model_name}_unit_{name}.c"
+        filename = unit_source_filename(model_name, name)
         files[filename] = generate_unit_c(model_name, kind, name, expr, layout)
     return files
 
