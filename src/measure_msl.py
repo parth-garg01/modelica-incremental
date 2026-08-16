@@ -57,7 +57,7 @@ def _affected_c_filenames(model_name: str, changed_ir: dict, impact: dict) -> se
 def run_cell(
     baseline_path: str, changed_path: str, model_name: str, seed: list[str],
     t_end: float, dt: float, baseline_roots: list[str] | None = None,
-    changed_roots: list[str] | None = None,
+    changed_roots: list[str] | None = None, repeats: int = REPEATS,
 ) -> dict:
     # Separate roots per compile: a root pointing at the OTHER variant's
     # directory would make the session see two files both defining class
@@ -81,13 +81,13 @@ def run_cell(
     impact = resolve_impact(changed.ir, seed, graph_builder=build_matched_graph)
     affected_c_filenames = _affected_c_filenames(model_name, changed.ir, impact)
 
-    full_times = repeated_full_rebuild_time(changed_sources, changed_src_dir, cell_dir / "full_repeats", REPEATS)
+    full_times = repeated_full_rebuild_time(changed_sources, changed_src_dir, cell_dir / "full_repeats", repeats)
     full_result = full_rebuild(changed_sources, changed_src_dir, cell_dir / "full_reference")
 
     cached_objects = cache_build.object_paths
     incr_times = repeated_incremental_rebuild_time(
         changed_sources, changed_src_dir, cell_dir / "incr_repeats",
-        affected_c_filenames, cached_objects, REPEATS,
+        affected_c_filenames, cached_objects, repeats,
     )
     incr_result = incremental_rebuild(
         changed_sources, changed_src_dir, cell_dir / "incr_reference",

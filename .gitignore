@@ -5,6 +5,8 @@ __pycache__/
 *.egg-info/
 build_test/
 build_cache/
+build_cache_msl/
+build_cache_freq/
 *.o
 *.exe
 *.obj
