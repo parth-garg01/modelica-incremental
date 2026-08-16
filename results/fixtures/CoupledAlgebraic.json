@@ -1,0 +1,477 @@
+{
+  "schema_version": 7,
+  "x": {},
+  "y": {
+    "y1": {
+      "name": "y1",
+      "component_ref": {
+        "local": false,
+        "span": {
+          "source": 6384238002372519158,
+          "start": 512,
+          "end": 519
+        },
+        "parts": [
+          {
+            "ident": "y1",
+            "span": {
+              "source": 6384238002372519158,
+              "start": 512,
+              "end": 519
+            },
+            "subs": []
+          }
+        ],
+        "def_id": 89
+      },
+      "source_span": {
+        "source": 6384238002372519158,
+        "start": 512,
+        "end": 519
+      },
+      "dims": [],
+      "start": {
+        "Literal": {
+          "value": {
+            "Real": 0.0
+          },
+          "span": {
+            "source": 6384238002372519158,
+            "start": 512,
+            "end": 519
+          }
+        }
+      },
+      "start_span": {
+        "source": 6384238002372519158,
+        "start": 512,
+        "end": 519
+      },
+      "fixed": null,
+      "min": null,
+      "min_span": null,
+      "max": null,
+      "max_span": null,
+      "nominal": null,
+      "nominal_span": null,
+      "unit": null,
+      "state_select": "Default",
+      "description": null,
+      "causality": "local",
+      "is_tunable": false,
+      "origin": "source"
+    },
+    "y2": {
+      "name": "y2",
+      "component_ref": {
+        "local": false,
+        "span": {
+          "source": 6384238002372519158,
+          "start": 512,
+          "end": 523
+        },
+        "parts": [
+          {
+            "ident": "y2",
+            "span": {
+              "source": 6384238002372519158,
+              "start": 512,
+              "end": 523
+            },
+            "subs": []
+          }
+        ],
+        "def_id": 90
+      },
+      "source_span": {
+        "source": 6384238002372519158,
+        "start": 512,
+        "end": 523
+      },
+      "dims": [],
+      "start": {
+        "Literal": {
+          "value": {
+            "Real": 0.0
+          },
+          "span": {
+            "source": 6384238002372519158,
+            "start": 512,
+            "end": 523
+          }
+        }
+      },
+      "start_span": {
+        "source": 6384238002372519158,
+        "start": 512,
+        "end": 523
+      },
+      "fixed": null,
+      "min": null,
+      "min_span": null,
+      "max": null,
+      "max_span": null,
+      "nominal": null,
+      "nominal_span": null,
+      "unit": null,
+      "state_select": "Default",
+      "description": null,
+      "causality": "local",
+      "is_tunable": false,
+      "origin": "source"
+    }
+  },
+  "u": {},
+  "w": {},
+  "p": {},
+  "constants": {},
+  "z": {},
+  "m": {},
+  "f_x": [
+    {
+      "lhs": null,
+      "rhs": {
+        "Binary": {
+          "op": "Sub",
+          "lhs": {
+            "VarRef": {
+              "name": {
+                "name": "y1",
+                "component_ref": {
+                  "local": false,
+                  "span": {
+                    "source": 6384238002372519158,
+                    "start": 512,
+                    "end": 519
+                  },
+                  "parts": [
+                    {
+                      "ident": "y1",
+                      "span": {
+                        "source": 6384238002372519158,
+                        "start": 512,
+                        "end": 519
+                      },
+                      "subs": []
+                    }
+                  ],
+                  "def_id": 89
+                }
+              },
+              "subscripts": [],
+              "span": {
+                "source": 6384238002372519158,
+                "start": 536,
+                "end": 538
+              }
+            }
+          },
+          "rhs": {
+            "Binary": {
+              "op": "Add",
+              "lhs": {
+                "Binary": {
+                  "op": "Mul",
+                  "lhs": {
+                    "Literal": {
+                      "value": {
+                        "Integer": 2
+                      },
+                      "span": {
+                        "source": 6384238002372519158,
+                        "start": 541,
+                        "end": 542
+                      }
+                    }
+                  },
+                  "rhs": {
+                    "VarRef": {
+                      "name": {
+                        "name": "y2",
+                        "component_ref": {
+                          "local": false,
+                          "span": {
+                            "source": 6384238002372519158,
+                            "start": 512,
+                            "end": 523
+                          },
+                          "parts": [
+                            {
+                              "ident": "y2",
+                              "span": {
+                                "source": 6384238002372519158,
+                                "start": 512,
+                                "end": 523
+                              },
+                              "subs": []
+                            }
+                          ],
+                          "def_id": 90
+                        }
+                      },
+                      "subscripts": [],
+                      "span": {
+                        "source": 6384238002372519158,
+                        "start": 543,
+                        "end": 545
+                      }
+                    }
+                  },
+                  "span": {
+                    "source": 6384238002372519158,
+                    "start": 541,
+                    "end": 545
+                  }
+                }
+              },
+              "rhs": {
+                "Literal": {
+                  "value": {
+                    "Integer": 1
+                  },
+                  "span": {
+                    "source": 6384238002372519158,
+                    "start": 548,
+                    "end": 549
+                  }
+                }
+              },
+              "span": {
+                "source": 6384238002372519158,
+                "start": 541,
+                "end": 549
+              }
+            }
+          },
+          "span": {
+            "source": 6384238002372519158,
+            "start": 536,
+            "end": 538
+          }
+        }
+      },
+      "span": {
+        "source": 6384238002372519158,
+        "start": 536,
+        "end": 538
+      },
+      "origin": "top-level model equation",
+      "scalar_count": 1
+    },
+    {
+      "lhs": null,
+      "rhs": {
+        "Binary": {
+          "op": "Sub",
+          "lhs": {
+            "VarRef": {
+              "name": {
+                "name": "y2",
+                "component_ref": {
+                  "local": false,
+                  "span": {
+                    "source": 6384238002372519158,
+                    "start": 512,
+                    "end": 523
+                  },
+                  "parts": [
+                    {
+                      "ident": "y2",
+                      "span": {
+                        "source": 6384238002372519158,
+                        "start": 512,
+                        "end": 523
+                      },
+                      "subs": []
+                    }
+                  ],
+                  "def_id": 90
+                }
+              },
+              "subscripts": [],
+              "span": {
+                "source": 6384238002372519158,
+                "start": 553,
+                "end": 555
+              }
+            }
+          },
+          "rhs": {
+            "Binary": {
+              "op": "Sub",
+              "lhs": {
+                "Binary": {
+                  "op": "Mul",
+                  "lhs": {
+                    "Literal": {
+                      "value": {
+                        "Integer": 3
+                      },
+                      "span": {
+                        "source": 6384238002372519158,
+                        "start": 558,
+                        "end": 559
+                      }
+                    }
+                  },
+                  "rhs": {
+                    "VarRef": {
+                      "name": {
+                        "name": "y1",
+                        "component_ref": {
+                          "local": false,
+                          "span": {
+                            "source": 6384238002372519158,
+                            "start": 512,
+                            "end": 519
+                          },
+                          "parts": [
+                            {
+                              "ident": "y1",
+                              "span": {
+                                "source": 6384238002372519158,
+                                "start": 512,
+                                "end": 519
+                              },
+                              "subs": []
+                            }
+                          ],
+                          "def_id": 89
+                        }
+                      },
+                      "subscripts": [],
+                      "span": {
+                        "source": 6384238002372519158,
+                        "start": 560,
+                        "end": 562
+                      }
+                    }
+                  },
+                  "span": {
+                    "source": 6384238002372519158,
+                    "start": 558,
+                    "end": 562
+                  }
+                }
+              },
+              "rhs": {
+                "Literal": {
+                  "value": {
+                    "Integer": 2
+                  },
+                  "span": {
+                    "source": 6384238002372519158,
+                    "start": 565,
+                    "end": 566
+                  }
+                }
+              },
+              "span": {
+                "source": 6384238002372519158,
+                "start": 558,
+                "end": 566
+              }
+            }
+          },
+          "span": {
+            "source": 6384238002372519158,
+            "start": 553,
+            "end": 555
+          }
+        }
+      },
+      "span": {
+        "source": 6384238002372519158,
+        "start": 553,
+        "end": 555
+      },
+      "origin": "top-level model equation",
+      "scalar_count": 1
+    }
+  ],
+  "structured_equations": [],
+  "initial_equations": [],
+  "initial_structured_equations": [],
+  "f_z": [],
+  "f_m": [],
+  "f_c": [],
+  "relation": [],
+  "synthetic_root_conditions": [],
+  "scheduled_time_events": [],
+  "scheduled_root_conditions": [],
+  "event_actions": [],
+  "constructor_exprs": [],
+  "schedules": [],
+  "triggered_conditions": [],
+  "intervals": {},
+  "timings": {},
+  "functions": {},
+  "enum_literal_ordinals": {
+    "StateSelect.never": 1,
+    "StateSelect.'never'": 1,
+    "StateSelect.avoid": 2,
+    "StateSelect.'avoid'": 2,
+    "StateSelect.default": 3,
+    "StateSelect.'default'": 3,
+    "StateSelect.prefer": 4,
+    "StateSelect.'prefer'": 4,
+    "StateSelect.always": 5,
+    "StateSelect.'always'": 5,
+    "AssertionLevel.warning": 1,
+    "AssertionLevel.'warning'": 1,
+    "AssertionLevel.error": 2,
+    "AssertionLevel.'error'": 2
+  },
+  "metadata": {
+    "is_partial": false,
+    "class_type": "Model",
+    "variable_starts": {
+      "y1": {
+        "Literal": {
+          "value": {
+            "Real": 0.0
+          },
+          "span": {
+            "source": 6384238002372519158,
+            "start": 512,
+            "end": 519
+          }
+        }
+      },
+      "y2": {
+        "Literal": {
+          "value": {
+            "Real": 0.0
+          },
+          "span": {
+            "source": 6384238002372519158,
+            "start": 512,
+            "end": 523
+          }
+        }
+      }
+    },
+    "interface_flow_count": 0,
+    "overconstrained_interface_count": 0,
+    "oc_break_edge_scalar_count": 0,
+    "model_description": "Two mutually-dependent algebraic equations forming a genuine 2x2 coupled\n   BLT block, hand-solvable: y1 = 2*y2 + 1, y2 = 3*y1 - 2\n   => y1 = 6*y1 - 3 => y1 = 0.6, y2 = 3*0.6 - 2 = -0.2.\n   Built specifically to exercise a non-singleton block: none of the other\n   fixtures (OneLine/DecoupledPair/RLCCircuit/ThermalNetwork/Chain) have one\n   after causalization -- every equation there is independently solvable,\n   which is exactly why Feature 2 needs a case that genuinely is not.",
+    "symbol_ancestry": {
+      "86": [
+        85,
+        86
+      ],
+      "89": [
+        85,
+        86
+      ],
+      "87": [
+        85,
+        87
+      ],
+      "90": [
+        85,
+        87
+      ]
+    }
+  }
+}

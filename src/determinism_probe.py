@@ -16,7 +16,7 @@ from units import compute_units
 from matching import compute_matching, blt_blocks
 
 FIXTURES = Path(__file__).resolve().parent.parent / "results" / "fixtures"
-MODELS = ["OneLine", "DecoupledPair", "RLCCircuit", "ThermalNetwork", "Chain", "CauerLowPassAnalog"]
+MODELS = ["OneLine", "DecoupledPair", "RLCCircuit", "ThermalNetwork", "Chain", "CoupledAlgebraic", "CauerLowPassAnalog"]
 
 
 def fingerprint() -> dict:
