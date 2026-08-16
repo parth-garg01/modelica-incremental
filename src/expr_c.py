@@ -42,7 +42,13 @@ def expr_to_c(node: dict, name_to_c: dict[str, str]) -> str:
 
     if "Unary" in node:
         op = node["Unary"]["op"]
-        arg = expr_to_c(node["Unary"]["arg"], name_to_c)
+        # The operand key is "rhs" (mirroring Binary's lhs/rhs naming),
+        # not "arg" -- confirmed against OneLine's "der(x) = -x", the
+        # first equation in this whole project to actually exercise a
+        # Unary node through codegen; the previous "arg" key was wrong
+        # from the start and had never been run until Feature 3's
+        # regression check against all 5 clean fixtures caught it.
+        arg = expr_to_c(node["Unary"]["rhs"], name_to_c)
         if op in ("Minus", "Neg"):
             return f"(-{arg})"
         raise NotImplementedError(f"unsupported unary op: {op}")
