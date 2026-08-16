@@ -25,10 +25,30 @@ not delete history -- this is a log, not a status snapshot.
 ## everything phase 2 hadn't finished, plus a large amount of new scope)
 
 **Next up: STAGE A IS COMPLETE (Features 1-9, commit `fb977fa`). Stage B
-(Features 10-17: scale to >=100,000 equations, break-even change-
-frequency sweep) starts now**, per prd-combined.md Section 2's hard
-ordering constraint (Stage B cannot start until Stage A fully finishes
--- it now has).
+is IN PROGRESS: Features 10 (`410c852`), 11 (`c51af07`), and 12 (this
+entry) are done. Features 13-17 (speedup vs. size, overhead vs. size,
+change-frequency harness, break-even measurement, scaling/break-even
+figures) remain.**
+
+**Feature 12 (O(n^2) codegen fix) is DONE, not yet committed as of this
+edit -- see the dedicated entry below and `docs/findings/scaling-
+bottlenecks.md`'s Bottleneck 5 for full detail.** Headline: codegen at
+15,000 equations dropped from 88.86s to 1.81s (~49x) by replacing
+per-unit O(N) list scans/dict rebuilds with O(1) dict lookups built
+once per model. 144 passed, 1 xfailed, unchanged.
+
+**Environment gotcha found while triaging Feature 12: use PowerShell,
+not the Bash tool, for anything that shells out to gcc in this repo.**
+Git Bash's PATH puts Git for Windows' own bundled MinGW runtime ahead of
+`C:\msys64\mingw64\bin`; `gcc.exe` itself is invoked by absolute path
+so it's unaffected, but its internal `cc1.exe` subprocess resolves ITS
+OWN runtime DLLs via standard Windows DLL search order (falls through
+to PATH), silently loading Git's mismatched DLLs and crashing with exit
+code 1 and completely empty stdout/stderr -- indistinguishable from a
+real code regression at a glance. Confirmed directly: identical `gcc -c`
+invocation failed under Bash, succeeded under PowerShell, on the exact
+same file. PowerShell's PATH has only the MSYS2 mingw64 directory, no
+conflict.
 
 **Stage A summary (full detail in the dated entries below).** All 9
 features done. Headline results: a real per-unit C compile-and-relink
@@ -336,6 +356,78 @@ speedup table); limitations section rewritten, explicitly marking the
 phase-1 "speedup is projected"/"no incremental compiler" limitations as
 SUPERSEDED rather than left stale. 134 tests passing, 1 xfailed
 (unchanged, docs/figures-only feature).
+
+**Stage B Feature 10 (`410c852`): parameterized model generators for
+scale.** `src/scaled_models.py` -- `generate_thermal_chain(n)` (3N-1
+equations, same topology as `models/thermal_network`, index-1 by
+construction) and `generate_rc_ladder(n)` (2N+1 equations, same coupling
+flavor as `models/rlc_circuit`), plus `swap_room_conductance()` (Feature
+11's change injector). Hand-written flat equations, not real MSL
+component instantiations, deliberately: a real MSL Resistor alone drags
+in ~9 equations unrelated to what Stage B tests (pipeline scaling
+behavior); Stage A's real-MSL generality claim already stands on its
+own. While validating this, found and documented (not "fixed", since
+they're third-party/OS limits, not this project's bugs)
+`docs/findings/scaling-bottlenecks.md` Bottlenecks 1-4: Rumoca's own
+O(n^1.7) compile time, gcc's ~85ms/file subprocess overhead (fixed via
+`ThreadPoolExecutor`-based parallel compilation, `src/c_build.py`'s
+`compile_many()`, ~4x speedup), Windows' ~32KB command-line length limit
+at link time (fixed with gcc/ld response files, `@file` syntax, forward
+slashes to dodge gcc's own backslash-escaping in response files), and
+relinking a large object count dominating incremental time at scale (a
+real design tradeoff, not fixed -- recorded as the honest reason speedup
+should plateau, not grow without bound, as N grows).
+
+**Stage B Feature 11 (`c51af07`): correctness and soundness at scale.**
+`tests/test_scale_correctness.py` runs the full detect-resolve-
+recompile-relink-bit-diff pipeline on a generated 100-room thermal chain
+(299 equations) for a local change, asserting: affected units stay
+bounded (<=4, not proportional to N), affected fraction stays small
+(<2%), and incremental output is BIT-IDENTICAL to a full rebuild -- the
+real correctness bar, still met at scale. A larger one-off N=500 run
+(1499 equations) validated the same pipeline at real scale outside the
+fast automated test (documented in `docs/findings/scaling-
+bottlenecks.md`, not re-run every invocation). Found and fixed along the
+way: uninitialized driver struct memory on orphaned variable slots
+(removal changes leave a shared-layout slot with no writer) made full
+vs. incremental builds read different garbage, producing false
+correctness failures -- fixed with `memset(&v, 0, sizeof(v))` at driver
+start.
+
+**Stage B Feature 12 (O(n^2) codegen fix): DONE.** Per prd-combined.md's
+explicit instruction ("Profile and harden the scaling path... If
+anything is superlinear, fix it with sparse structures or incremental
+construction"), profiled every pipeline stage stage-by-stage on
+`ThermalChain{N}` and found codegen genuinely quadratic: 3.13s at 2,999
+equations -> 88.86s at 14,999 equations, a 28.4x increase for a 5x size
+increase (matching, block-partitioning, and graph-building stages were
+all confirmed roughly linear, not superlinear -- codegen was the one
+real offender). Root cause: `src/codegen_units.py`'s `generate_unit_c()`
+called `layout.name_to_c()` (rebuilds an O(N) dict) and
+`layout.y.index(name)` / `layout.x.index(name)` (O(N) list scans)
+INSIDE the function body, called once per recompilation unit in a loop
+over all N units -- O(N) work done N times, O(N^2) total.
+`src/block_codegen.py`'s `generate_block_unit_c()` had the identical
+pattern; `src/unit_codegen.py`'s `generate_unit_driver()` had a
+smaller-magnitude version over parameters/states. Fixed with two new
+O(1) lookup methods on `Layout` (`y_index_map()`, `x_index_map()`,
+`src/model_layout.py`), built ONCE per model in the hot-path callers
+(`generate_all_unit_sources()`, `generate_unit_driver()`) and threaded
+through as optional parameters (falling back to computing them inline
+for single-unit callers, e.g. `block_codegen.py`'s own `__main__` demo,
+so no call site broke). After the fix: codegen at 14,999 equations
+dropped from 88.86s to 1.81s (~49x speedup on that stage), and the
+5x-size growth from N=1,000 to N=5,000 now costs 4.85x time --
+log(4.85)/log(5) ~= 0.99, linear, not quadratic. Full detail and the
+before/after table: `docs/findings/scaling-bottlenecks.md`'s
+Bottleneck 5. Teeth: full pytest suite re-run clean after the fix, 144
+passed 1 xfailed, identical to before -- confirms the lookup-mechanism
+change (list scan -> dict lookup for the same keys) altered no output,
+only performance. Also surfaced and documented (not a code bug, an
+environment gotcha) that the Bash tool's PATH breaks gcc's internal
+`cc1.exe` DLL resolution on this machine -- see the "Next up" note
+above; cost real time mid-session before being traced to a PATH
+conflict rather than a real regression.
 
 ---
 

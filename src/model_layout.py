@@ -47,6 +47,20 @@ class Layout:
             mapping[n] = f"v->p[{i}]"
         return mapping
 
+    def y_index_map(self) -> dict[str, int]:
+        """{name: index} for layout.y, O(1) lookup. Feature 12 (Stage B):
+        codegen used to call `layout.y.index(name)` (an O(N) linear scan
+        over a Python list) once PER UNIT inside a loop over all N units
+        -- O(N^2) total, confirmed as a real quadratic bottleneck at
+        scale (88.9s at 14,999 equations vs. 3.1s at 2,999, a ~28x
+        slowdown for a 5x size increase). Build this once per model and
+        pass it through instead of re-deriving it (or re-scanning the
+        list) per unit."""
+        return {n: i for i, n in enumerate(self.y)}
+
+    def x_index_map(self) -> dict[str, int]:
+        return {n: i for i, n in enumerate(self.x)}
+
 
 def _union_first_seen(*name_lists: list[str]) -> list[str]:
     seen: list[str] = []

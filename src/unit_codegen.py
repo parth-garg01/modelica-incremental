@@ -42,6 +42,14 @@ def generate_all_unit_sources(model_name: str, ir: dict, layout: Layout) -> dict
     m = compute_matching(ir)
     units = compute_matched_units(ir)
 
+    # Built ONCE per model, not per unit -- see Layout.y_index_map()'s
+    # docstring: passing these through avoids the confirmed O(N^2)
+    # bottleneck (an O(N) dict build / list scan repeated N times, once
+    # per recompilation unit).
+    name_to_c = layout.name_to_c()
+    y_index_map = layout.y_index_map()
+    x_index_map = layout.x_index_map()
+
     files: dict[str, str] = {}
     for unit_id, members in units.items():
         suffix = unit_function_suffix(unit_id, members)
@@ -49,10 +57,16 @@ def generate_all_unit_sources(model_name: str, ir: dict, layout: Layout) -> dict
         if len(members) == 1:
             i = m.var_to_eq[members[0]]
             kind = "y" if m.eq_kind[i] == "algebraic" else "x"
-            files[filename] = generate_unit_c(model_name, kind, members[0], ir["f_x"][i], layout)
+            files[filename] = generate_unit_c(
+                model_name, kind, members[0], ir["f_x"][i], layout,
+                name_to_c, y_index_map, x_index_map,
+            )
         else:
             indices = [m.var_to_eq[name] for name in members]
-            files[filename] = generate_block_unit_c(model_name, suffix, indices, members, ir, layout)
+            files[filename] = generate_block_unit_c(
+                model_name, suffix, indices, members, ir, layout,
+                name_to_c, y_index_map, x_index_map,
+            )
     return files
 
 
@@ -98,13 +112,20 @@ def generate_unit_driver(model_name: str, ir: dict, layout: Layout) -> str:
     units = compute_matched_units(ir)
     order = unit_eval_order(ir)
     driver_name_to_c = _driver_name_to_c(layout)
+    # O(1) lookups instead of `layout.p.index(n)`/`layout.x.index(n)`
+    # (O(N) list scans) inside a loop over all P params / X states --
+    # same O(N^2) pattern as Layout.y_index_map()'s docstring describes
+    # for unit codegen, confirmed to matter at scale since P and X both
+    # grow with N on the generated scaling models.
+    p_index_map = {n: i for i, n in enumerate(layout.p)}
+    x_index_map = {n: i for i, n in enumerate(layout.x)}
 
     param_inits = [
-        f"    v.p[{layout.p.index(n)}] = {expr_to_c(ir['p'][n]['start'], driver_name_to_c)};"
+        f"    v.p[{p_index_map[n]}] = {expr_to_c(ir['p'][n]['start'], driver_name_to_c)};"
         for n in _param_eval_order(ir, layout) if n in ir["p"]
     ]
     state_inits = [
-        f"    v.x[{layout.x.index(n)}] = {expr_to_c(ir['x'][n]['start'], driver_name_to_c)};"
+        f"    v.x[{x_index_map[n]}] = {expr_to_c(ir['x'][n]['start'], driver_name_to_c)};"
         for n in layout.x if n in ir["x"]
     ]
 

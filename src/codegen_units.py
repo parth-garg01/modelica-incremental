@@ -71,8 +71,23 @@ def generate_header(model_name: str, layout: Layout) -> str:
     return "\n".join(lines)
 
 
-def generate_unit_c(model_name: str, kind: str, name: str, expr: dict, layout: Layout) -> str:
-    name_to_c = layout.name_to_c()
+def generate_unit_c(
+    model_name: str, kind: str, name: str, expr: dict, layout: Layout,
+    name_to_c: dict[str, str] | None = None,
+    y_index_map: dict[str, int] | None = None,
+    x_index_map: dict[str, int] | None = None,
+) -> str:
+    """`name_to_c`/`y_index_map`/`x_index_map` are optional precomputed
+    caches (see Layout.y_index_map()'s docstring for why this matters at
+    scale): pass them when generating many units in a loop to avoid
+    O(N) work (a dict build, a list.index() scan) repeated N times.
+    Computed on the fly if omitted, for callers generating just one unit."""
+    if name_to_c is None:
+        name_to_c = layout.name_to_c()
+    if y_index_map is None:
+        y_index_map = layout.y_index_map()
+    if x_index_map is None:
+        x_index_map = layout.x_index_map()
     ident = sanitize_c_ident(name)
     lines = [f'#include "{model_name}.h"', "#include <math.h>", ""]
     if kind == "y":
@@ -90,7 +105,7 @@ def generate_unit_c(model_name: str, kind: str, name: str, expr: dict, layout: L
         row = affine_form(expr["rhs"], {name}, name_to_c)
         coef_c = row.get(name, "0.0")
         const_c = row.get(CONST, "0.0")
-        idx = layout.y.index(name)
+        idx = y_index_map[name]
         lines += [
             f"void {model_name}_compute_{ident}({model_name}_t *v) {{",
             f"    v->y[{idx}] = (-({const_c})) / ({coef_c});",
@@ -99,7 +114,7 @@ def generate_unit_c(model_name: str, kind: str, name: str, expr: dict, layout: L
     else:
         coef, rhs = extract_state_equation(expr)
         rhs_c = expr_to_c(rhs, name_to_c)
-        idx = layout.x.index(name)
+        idx = x_index_map[name]
         body = f"({rhs_c})" if coef is None else f"({rhs_c}) / ({expr_to_c(coef, name_to_c)})"
         lines += [
             f"void {model_name}_compute_der_{ident}({model_name}_t *v) {{",
@@ -123,10 +138,15 @@ def generate_all_units(model_name: str, ir: dict, layout: Layout) -> dict[str, s
     recompilation unit" and "one file per equation" coincide; a future
     model with a genuine multi-equation unit would need Feature G2's
     tearing/residual refinement before this 1:1 assumption holds)."""
+    name_to_c = layout.name_to_c()
+    y_index_map = layout.y_index_map()
+    x_index_map = layout.x_index_map()
     files = {}
     for kind, name, expr in equation_targets(ir):
         filename = f"{model_name}_unit_{name}.c"
-        files[filename] = generate_unit_c(model_name, kind, name, expr, layout)
+        files[filename] = generate_unit_c(
+            model_name, kind, name, expr, layout, name_to_c, y_index_map, x_index_map
+        )
     return files
 
 

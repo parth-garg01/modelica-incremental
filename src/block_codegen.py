@@ -59,10 +59,23 @@ static void {_SOLVER_NAME}(int n, real_t A[n][n], real_t *b, real_t *x) {{
 def generate_block_unit_c(
     model_name: str, unit_function_name: str, member_equation_indices: list[int],
     unknown_names: list[str], ir: dict, layout: Layout,
+    name_to_c: dict[str, str] | None = None,
+    y_index_map: dict[str, int] | None = None,
+    x_index_map: dict[str, int] | None = None,
 ) -> str:
     """`member_equation_indices` and `unknown_names` must already be in
-    the SAME fixed order (row i's equation corresponds to unknown i)."""
-    name_to_c = layout.name_to_c()
+    the SAME fixed order (row i's equation corresponds to unknown i).
+    `name_to_c`/`y_index_map`/`x_index_map` are optional precomputed
+    caches (see Layout.y_index_map()'s docstring): pass them when
+    generating many blocks in a loop to avoid rebuilding a dict or
+    scanning `layout.y`/`layout.x` with `in`/`.index()` (both O(N)) once
+    per unknown per block."""
+    if name_to_c is None:
+        name_to_c = layout.name_to_c()
+    if y_index_map is None:
+        y_index_map = layout.y_index_map()
+    if x_index_map is None:
+        x_index_map = layout.x_index_map()
     equations = [(i, ir["f_x"][i]) for i in member_equation_indices]
     A, b = build_linear_system(equations, unknown_names, name_to_c)
     n = len(unknown_names)
@@ -78,11 +91,11 @@ def generate_block_unit_c(
         lines.append(f"    b[{i}] = {b[i]};")
     lines.append(f"    {_SOLVER_NAME}({n}, A, b, x);")
     for i, name in enumerate(unknown_names):
-        if name in layout.y:
-            idx = layout.y.index(name)
+        if name in y_index_map:
+            idx = y_index_map[name]
             lines.append(f"    v->y[{idx}] = x[{i}];")
-        elif name in layout.x:
-            idx = layout.x.index(name)
+        elif name in x_index_map:
+            idx = x_index_map[name]
             lines.append(f"    v->dx[{idx}] = x[{i}];")
         else:
             raise ValueError(f"unknown {name!r} is neither a declared algebraic nor a state")

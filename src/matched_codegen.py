@@ -43,12 +43,17 @@ def generate_all_units_from_matching(model_name: str, ir: dict, layout: Layout) 
             f"does not handle coupled blocks -- that is Feature 4."
         )
 
+    name_to_c = layout.name_to_c()
+    y_index_map = layout.y_index_map()
+    x_index_map = layout.x_index_map()
     files = {}
     for i, name in m.eq_to_var.items():
         kind = "y" if m.eq_kind[i] == "algebraic" else "x"
         expr = ir["f_x"][i]
         filename = unit_source_filename(model_name, name)
-        files[filename] = generate_unit_c(model_name, kind, name, expr, layout)
+        files[filename] = generate_unit_c(
+            model_name, kind, name, expr, layout, name_to_c, y_index_map, x_index_map
+        )
     return files
 
 

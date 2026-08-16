@@ -101,6 +101,56 @@ not grow without bound, as N grows very large under the current design
 -- exactly the kind of finding Feature 13 (speedup vs. model size) needs
 to characterize precisely rather than assume away.
 
+## Bottleneck 5: O(n^2) codegen, found and fixed (Feature 12)
+
+Profiling the pipeline stage-by-stage on `ThermalChain{N}` surfaced a
+second, genuinely fixable bottleneck -- this one in this project's own
+code, not a third-party tool:
+
+| N (rooms) | Equations | codegen (before) | codegen (after) |
+|---|---|---|---|
+| 100 | 299 | (not separately measured) | 0.033s |
+| 1,000 | 2,999 | 3.13s | 0.37s |
+| 5,000 | 14,999 | 88.86s | 1.81s |
+
+Before the fix, codegen alone grew 28.4x for a 5x increase in model
+size (log(28.4)/log(5) ~= 2.09, i.e. quadratic). Root cause: `src/
+codegen_units.py`'s `generate_unit_c()` called `layout.name_to_c()`
+(rebuilds a full O(N) dict) and `layout.y.index(name)` / `layout.x.
+index(name)` (Python list `.index()`, an O(N) linear scan) -- all
+INSIDE the function body, which runs once per recompilation unit in a
+loop over all N units (`generate_all_unit_sources` in `src/unit_
+codegen.py`). O(N) work done N times is O(N^2). `src/block_codegen.
+py`'s `generate_block_unit_c()` had the identical pattern (`name in
+layout.y`, `layout.y.index(name)`), and `src/unit_codegen.py`'s
+`generate_unit_driver()` had a smaller-magnitude version of the same
+bug over parameters and states (`layout.p.index(n)`, `layout.x.
+index(n)` inside loops over all P params / X states, both O(N) on the
+generated scaling models).
+
+Fixed with O(1) dict-based lookups built ONCE per model and threaded
+through every call site, not recomputed per unit: `Layout.
+y_index_map()` / `Layout.x_index_map()` (new methods on `src/model_
+layout.py`'s `Layout`), plus `name_to_c()` computed once in `generate_
+all_unit_sources()` and `generate_unit_driver()` and passed as
+optional parameters into `generate_unit_c()` / `generate_block_unit_c()`
+(both fall back to computing them internally if omitted, for callers
+generating a single unit in isolation, e.g. `block_codegen.py`'s own
+`__main__` demo).
+
+After the fix: codegen at N=5,000 went from 88.86s to 1.81s (a ~49x
+speedup on this stage alone), and the growth from N=1,000 to N=5,000
+(5x size) is now 4.85x time -- log(4.85)/log(5) ~= 0.99, i.e. linear,
+not quadratic. Full pytest suite re-run clean after the fix: 144
+passed, 1 xfailed, same as before -- no behavior change, only the
+lookup mechanism changed (list scan -> dict lookup for the exact same
+keys).
+
+Compile time (Bottleneck 1, Rumoca's own O(n^1.7)) is now the
+dominant cost by far at this scale (28.4s at N=5,000 vs. codegen's
+1.81s) -- expected and consistent with Bottleneck 1's own measurements,
+and not something this project's code can fix.
+
 ## Consequence for Stage B's experimental scope
 
 Even with the gcc-parallelization fix, Rumoca's own superlinear compile
