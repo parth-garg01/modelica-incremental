@@ -7,13 +7,13 @@ model MslRcCircuit
    capacitor-only loop (the index-reduction cause found in the Cauer
    filter, see docs/findings/cauer-index-reduction.md) is not even
    topologically possible. Index-1, matched=true expected."
-  Modelica.Electrical.Analog.Basic.Resistor R(R=100)
+  Modelica.Electrical.Analog.Basic.Conductor R(G=0.02)
     annotation (Placement(transformation(extent={{-40,20},{-20,40}})));
   Modelica.Electrical.Analog.Basic.Capacitor C(C=0.01, v(start=0, fixed=true))
     annotation (Placement(transformation(extent={{0,-20},{20,0}})));
   Modelica.Electrical.Analog.Basic.Ground G
     annotation (Placement(transformation(extent={{-10,-60},{10,-40}})));
-  Modelica.Electrical.Analog.Sources.RampVoltage V(V=5, duration=2)
+  Modelica.Electrical.Analog.Sources.ConstantVoltage V(V=5)
     annotation (Placement(transformation(extent={{-80,-20},{-60,0}})));
 equation
   connect(V.p, R.n) annotation (Line(points={{-70,0},{-70,30},{-40,30}}, color={0,0,255}));

@@ -140,6 +140,7 @@ def generate_unit_driver(model_name: str, ir: dict, layout: Layout) -> str:
         f'#include "{model_name}.h"',
         "#include <stdio.h>",
         "#include <stdlib.h>",
+        "#include <string.h>",
         "",
         *unit_prototypes,
         "",
@@ -147,6 +148,17 @@ def generate_unit_driver(model_name: str, ir: dict, layout: Layout) -> str:
         "    double t_end = argc > 1 ? atof(argv[1]) : 10.0;",
         "    double dt = argc > 2 ? atof(argv[2]) : 0.01;",
         f"    {model_name}_t v;",
+        # Zero-init, not just leaving it uninitialized: the shared
+        # variable-slot layout (src/model_layout.py) is the UNION of
+        # baseline and changed variable names, so a change that REMOVES
+        # a variable (e.g. Feature 7's R3 removal) leaves its slot with
+        # no equation ever writing to it in the changed model's driver.
+        # Uninitialized stack memory there is not just cosmetic: it read
+        # as different (random) garbage between separately-built full
+        # and incremental binaries, making a real correctness check
+        # (output must be identical) fail on OTHERWISE-irrelevant
+        # orphaned slots. memset makes any unwritten slot deterministic.
+        "    memset(&v, 0, sizeof(v));",
         "    v.time = 0.0;",
         *param_inits,
         *state_inits,

@@ -60,8 +60,15 @@ def _union_first_seen(*name_lists: list[str]) -> list[str]:
 
 
 def build_layout(*irs: dict) -> Layout:
+    # ir["w"] ("output"-declared variables, e.g. a Blocks.Sources.Ramp's
+    # `output Real y`) are structurally algebraic -- src/matching.py's
+    # unknown pool already includes them (`ir["y"] | ir["w"]`), but this
+    # function didn't allocate them a slot at all until a real MSL model
+    # (RampVoltage, via its internal signalSource.y) needed one: without
+    # this, matching correctly assigns an equation to solve for a "w"
+    # name, but codegen has no `v->y[idx]` slot to write it into.
     return Layout(
         x=_union_first_seen(*[list(ir["x"].keys()) for ir in irs]),
-        y=_union_first_seen(*[list(ir["y"].keys()) for ir in irs]),
+        y=_union_first_seen(*[list(ir["y"].keys()) + list(ir.get("w", {}).keys()) for ir in irs]),
         p=_union_first_seen(*[list(ir["p"].keys()) for ir in irs]),
     )

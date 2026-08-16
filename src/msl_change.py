@@ -9,19 +9,41 @@ from __future__ import annotations
 from pathlib import Path
 
 
-def swap_constant_to_ramp_voltage(
+def swap_resistor_to_conductor(
     source_path: str | Path = "models/msl_rc_circuit/MslRcCircuit.mo",
     out_path: str | Path = "models/msl_rc_circuit_swapped/MslRcCircuit.mo",
 ) -> Path:
-    """Component swap: replace the constant voltage source with a ramp
-    voltage source -- both are genuine MSL "VoltageSource"-interface
-    components (same two pins p/n), different behavior. Same role,
-    different model, exactly the change-type definition."""
+    """Component swap: replace the linear resistor with its dual, an
+    ideal linear conductor -- both are genuine MSL two-pin components
+    (Interfaces.OnePort), same role, different governing equation
+    (v=R*i vs i=G*v). Same role, different model, exactly the
+    change-type definition.
+
+    NOTE: the originally-planned swap (ConstantVoltage -> RampVoltage,
+    a source-type swap) was abandoned after it surfaced that EVERY
+    standard MSL Blocks.Sources signal generator (Ramp, Sine, ExpSine,
+    ...) uses a `startTime`-conditional ("if time < startTime then ...")
+    compiled by Rumoca into a synthetic, subscripted, "generated"
+    Boolean condition-cache variable this project's expr_c.py cannot
+    yet translate (a real gap: no "If" expression support at all).
+    Properly supporting Rumoca's discrete/conditional-signal encoding is
+    a substantial separate feature (closer in scope to Feature 6's
+    "build only if a real target model needs it" boundary than to this
+    one component swap), so this swap was changed to a component that
+    needs none of it, rather than build that support under this
+    feature's time budget. Recorded here, not silently substituted
+    without explanation."""
     text = Path(source_path).read_text(encoding="utf-8")
 
-    old = "  Modelica.Electrical.Analog.Sources.ConstantVoltage V(V=5)\n"
-    new = "  Modelica.Electrical.Analog.Sources.RampVoltage V(V=5, duration=2)\n"
-    assert old in text, "expected ConstantVoltage instantiation line not found"
+    old = (
+        "  Modelica.Electrical.Analog.Basic.Resistor R(R=100)\n"
+        "    annotation (Placement(transformation(extent={{-40,20},{-20,40}})));\n"
+    )
+    new = (
+        "  Modelica.Electrical.Analog.Basic.Conductor R(G=0.02)\n"
+        "    annotation (Placement(transformation(extent={{-40,20},{-20,40}})));\n"
+    )
+    assert old in text, "expected Resistor instantiation+annotation not found"
     text = text.replace(old, new)
 
     out_path = Path(out_path)
@@ -90,6 +112,6 @@ def remove_r3_from_resistor_network(
 
 
 if __name__ == "__main__":
-    print("wrote", swap_constant_to_ramp_voltage())
+    print("wrote", swap_resistor_to_conductor())
     print("wrote", add_power_sensor_equation())
     print("wrote", remove_r3_from_resistor_network())

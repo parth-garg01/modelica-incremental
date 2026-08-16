@@ -60,7 +60,7 @@ CELLS = {
         model_name="MslRcCircuit",
         base_roots=["msl_src", "models/msl_rc_circuit"],
         chg_roots=["msl_src", "models/msl_rc_circuit_swapped"],
-        seed=["V.v", "V.signalSource.y"],
+        seed=["R.G_actual", "R.i"],
     ),
     "sensor-add": dict(
         base_path="models/msl_rc_circuit/MslRcCircuit.mo",
@@ -111,18 +111,24 @@ def test_change_type_soundness_has_teeth(label):
 
 
 def test_swap_seed_needs_the_newly_introduced_variable_too():
-    """Regression-documenting test: seeding only with V.v (the visibly
-    edited equation) is NOT sufficient for the swap -- RampVoltage
-    introduces a genuinely NEW variable (V.signalSource.y, its internal
-    Ramp block's output) that must also be seeded, or soundness fails.
-    Confirmed this during development (missed=['V.signalSource.y'] with
-    seed=['V.v'] alone); kept as a permanent regression test."""
+    """Regression-documenting test: seeding only with R.i (the visibly
+    edited equation) is NOT sufficient for the Resistor->Conductor swap
+    -- Conductor introduces a genuinely NEW derived quantity
+    (R.G_actual, replacing Resistor's R.R_actual) that must also be
+    seeded, or soundness fails. Confirmed this during development
+    (missed=['R.G_actual'] with seed=['R.i'] alone); kept as a permanent
+    regression test. Same lesson as the (abandoned, see
+    src/msl_change.py's docstring) voltage-source swap attempt: swapping
+    a component for a DIFFERENT one of the same kind can introduce
+    equations with no counterpart in the baseline at all, not just edit
+    an existing one -- a real detector would need to report the new
+    equation's identity too, not just "the swapped component changed"."""
     cell = CELLS["swap"]
     baseline, changed = _compile_pair(cell)
-    incomplete_impact = resolve_impact(changed.ir, ["V.v"], graph_builder=build_matched_graph)
+    incomplete_impact = resolve_impact(changed.ir, ["R.i"], graph_builder=build_matched_graph)
     result = check_soundness(baseline.ir, changed.ir, incomplete_impact, graph_builder=build_matched_graph)
     assert result["sound"] is False
-    assert "V.signalSource.y" in result["missed_units"]
+    assert "R.G_actual" in result["missed_units"]
 
 
 def test_removal_leaves_no_dangling_reference_and_ripple_is_moderate():
