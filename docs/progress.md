@@ -24,11 +24,17 @@ not delete history -- this is a log, not a status snapshot.
 ## the bottom of the Phase 2 section below -- prd-combined.md subsumes
 ## everything phase 2 hadn't finished, plus a large amount of new scope)
 
-**Next up:** Stage A Feature 2 (recompilation units over matched BLT
-blocks, using src/matching.py's output instead of the causalized-SCC
-partition from phase 2). Ordering is a hard constraint per
-prd-combined.md Section 2: Stage A must fully finish before Stage B
-(scale/break-even) starts, and Stage B before Stage C (the paper).
+**Next up:** Stage A Feature 5 -- Cauer filter end to end. **Gated and
+resolved:** the user asked for gap classification before treating Cauer
+as the flagship (see Feature-1-through-4 log below); classification is
+genuine index reduction, so Cauer is NOT the flagship. Feature 5 needs a
+small real-MSL-component circuit with connect()-generated KCL residuals
+but NO reactive-only loop/cutset (e.g. a series R-C-Ground-Source
+circuit using real Modelica.Electrical.Analog.Basic/Sources components)
+-- not yet built. `msl_src/` (gitignored MSL sparse clone) is already
+present locally with Electrical.Analog.{Basic,Sources,Interfaces,Icons}
+and ModelicaServices checked out; extend the sparse-checkout set if a
+different component is needed.
 
 **Honest scope assessment, read this before continuing or reporting
 status to the user.** prd-combined.md Section 1 defines "done" as: the
@@ -40,8 +46,8 @@ sweep) + Stage C (6 features, including picking a venue and a full
 writeup). This is realistically weeks of further work, not something
 that completes inside a handful of agent turns -- say so plainly if
 asked for a status update rather than implying more is done than is.
-As of this entry, only Stage A Feature 1 (of 23 total features across
-all three stages) is complete.
+As of this entry, Stage A Features 1-4 (of 23 total features across all
+three stages) are complete.
 
 **Stage A Feature 1 is DONE.** `feat: source equation-variable matching
 and block structure from the compiler`. The literal plan (extract
@@ -97,6 +103,101 @@ the phase-2 B1 investigation; re-clone if missing (see the Phase 2
 section's B1 note below for the exact clone/sparse-checkout commands).
 
 83 tests passing (71 from before + 12 new in `tests/test_matching.py`).
+
+**User-directed determinism audit (between Feature 1 and Feature 2).**
+Requested: check whether the hash-randomization bug class found in
+matching.py exists ANYWHERE ELSE networkx sits under this codebase
+(dependency graph, SCC partitioning), not just the new matcher. Manual
+audit: 20 fresh subprocesses, `PYTHONHASHSEED` unset (freely
+randomized), fingerprinting raw units + causalized units + matching +
+BLT blocks for all 6 fixtures -- all 20 byte-identical. Theoretical
+grounding: SCC decomposition is a mathematically unique partition
+regardless of traversal order (unlike bipartite MAXIMUM matching, where
+multiple valid maximum matchings can exist -- exactly what made
+matching.py vulnerable), and `src/units.py` already sorts before
+building ids. Made permanent: `tests/test_determinism_audit.py` spawns
+`src/determinism_probe.py` under 5 explicit varied seeds and requires
+identical output. Attempted pinning `PYTHONHASHSEED` for the whole test
+session via a `conftest.py` `os.execv` re-exec (belt-and-suspenders, as
+requested) -- **dropped it**, it silently hung/broke pytest collection
+on this Windows/PowerShell setup; the actual protection was always the
+explicit multi-seed subprocess test, which doesn't depend on the outer
+process's own hash seed. 84 tests passing after this.
+
+**Stage A Feature 2 is DONE.** `feat: define recompilation units over
+matched blt blocks`. `src/matched_units.py` redefines a recompilation
+unit as a BLT block. New fixture, `models/coupled_algebraic/
+CoupledAlgebraic.mo` (y1=2*y2+1, y2=3*y1-2, hand-solvable y1=0.6,
+y2=-0.2, `structure()` confirms `algebraic_loops=1`) -- built because
+NONE of the 5 assignment-form fixtures have a genuine coupled block
+after causalization, so phase 2's SCC-over-causalized-graph definition
+had literally never been tested against one before. Result: CoupledAlgebraic
+correctly yields ONE unit `{'y1+y2': ['y1','y2']}`, not two singletons.
+**No-regression check exceeds the PRD's literal ask** (block COUNT
+matching Rumoca's `structure().n_blocks` alone is not sufficient
+evidence of a correct partition -- different partitions can share a
+count): added `test_matches_phase_2_causalized_scc_partition_exactly`,
+asserting the BLT-block unit dict is byte-for-byte IDENTICAL to phase
+2's causalized-SCC unit dict on RLCCircuit and ThermalNetwork, plus a
+combined test asserting singleton-block-count + per-equation natural-
+target agreement together constitute full partition agreement (not a
+count coincidence) on all 5 clean fixtures. 99 tests passing.
+
+**Stage A Feature 3 is DONE.** `feat: generate singleton-unit code from
+the matching`. `src/matched_codegen.py` generates each singleton unit's
+C from `matching.eq_to_var`/`eq_kind` directly, not by re-deriving the
+target independently via `ir_equations.equation_target()` (phase 2's
+`codegen_units.py`, which happens to agree only because every fixture so
+far is fully assignment-form). Bit-identical regression check run on ALL
+5 clean fixtures (PRD names only RLC/Thermal explicitly) -- all
+identical. **Real pre-existing bug caught**: running the check against
+OneLine/DecoupledPair (never run through C codegen before -- only
+RLC/ThermalNetwork had been) crashed BOTH the old and new codegen paths
+with `KeyError('arg')` in `src/expr_c.py`'s Unary handling -- Rumoca's IR
+uses key `"rhs"` for a Unary node's operand (mirroring Binary's lhs/rhs),
+not `"arg"`. Fixed, verified with a real gcc build+run of OneLine
+(`der(x)=-x`): forward-Euler correctly halves x each step. 106 tests
+passing.
+
+**Stage A Feature 4 is DONE.** `feat: emit linear block solves for
+coupled units`. `src/linear_block.py` extracts an affine form of each
+coupled equation's residual over the block's own unknowns (raises on any
+genuine nonlinear term -- product/quotient of two unknowns -- correctly
+deferring to Feature 6); `src/block_codegen.py` assembles A/b and emits
+a shared C99-VLA Gaussian-elimination-with-partial-pivoting solver;
+`src/unit_codegen.py` combines singleton (Feature 3) and coupled
+(Feature 4) codegen into one driver, using a new unit-level topological
+eval order (`eval_order.unit_eval_order`).
+
+New fixture, `models/coupled_dynamic/CoupledDynamic.mo`: needed because
+CoupledAlgebraic (Feature 2's fixture) has zero states/zero time-
+dependence, which **Rumoca's own `Model.simulate()` cannot even run**
+("did not converge at t=0"). CoupledDynamic adds `der(x)=-x` feeding the
+coupled pair (`y1=2*y2+x, y2=3*y1-2*x`, hand-solvable `y1=0.6*x,
+y2=-0.2*x`).
+
+**Real finding, not this project's bug** (`docs/findings/
+rumoca-algebraic-loop-bug.md`): Rumoca's own `Model.simulate()` gets
+CoupledDynamic's t=0 right (0.6, -0.2) but is WRONG from the second
+timestep onward on ALL 5 available solvers -- `y2` comes out exactly
+equal to `x` (should be `-0.2*x`), `y1` wildly wrong. Consistent with
+the CoupledAlgebraic convergence failure -- both symptomatic of Rumoca's
+algebraic-loop runtime using an iterative/relaxation scheme (glimpsed
+earlier in generated `embedded-c`: a capped 100-iteration fixed-point
+loop) that doesn't reliably converge, even on small exactly-linear
+systems. This project's own generated C, checked against the
+independently-hand-derived formula, matches with **max_abs_error ==
+0.0** at every timestep -- so Feature 4's "bit-identical to a full
+Rumoca compile" check is satisfied against that analytical ground truth
+instead, since matching Rumoca's buggy runtime would validate a wrong
+answer. Recorded as an `xfail` test so a future Rumoca fix is caught
+automatically.
+
+Teeth (PRD's explicit ask, "perturb the assembled system and confirm
+correctness fails"): manually dropped the Sub-handling negation in
+`linear_block.py`, rebuilt and ran the real C binary -- y1 came out -0.6
+instead of 0.6. Reverted, codified as a permanent monkeypatch-based test.
+110 tests passing, 1 xfailed (the documented Rumoca bug).
 
 ---
 
