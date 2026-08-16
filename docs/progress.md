@@ -7,16 +7,101 @@ not delete history -- this is a log, not a status snapshot.
 
 **How to use this file if you are picking up cold:**
 1. Read this file top to bottom.
-2. Read `prd.md` (phase 1 spec, done) and `prd-phase2.md` (phase 2 spec,
-   in progress) for the full execution rules and feature definitions.
+2. Read `prd.md` (phase 1 spec, done), `prd-phase2.md` (phase 2 spec,
+   superseded -- see below), and `prd-combined.md` (the CURRENT spec,
+   covers all remaining work as one phase with three ordered stages: A
+   generality, B scale+break-even, C publication) for the full execution
+   rules and feature definitions.
 3. Run `python -m pytest tests/ -v` from the repo root (after activating
    `.venv`) to confirm the standing regression suite still passes before
    touching anything.
-4. Check the "Next up" line at the top of the Phase 2 log for where to resume.
+4. Check the "Next up" line at the top of the Combined-PRD log (below)
+   for where to resume -- that log is now the active one.
 
 ---
 
-## Phase 2 status: IN PROGRESS
+## Combined-PRD status: IN PROGRESS (supersedes the "what's left" list at
+## the bottom of the Phase 2 section below -- prd-combined.md subsumes
+## everything phase 2 hadn't finished, plus a large amount of new scope)
+
+**Next up:** Stage A Feature 2 (recompilation units over matched BLT
+blocks, using src/matching.py's output instead of the causalized-SCC
+partition from phase 2). Ordering is a hard constraint per
+prd-combined.md Section 2: Stage A must fully finish before Stage B
+(scale/break-even) starts, and Stage B before Stage C (the paper).
+
+**Honest scope assessment, read this before continuing or reporting
+status to the user.** prd-combined.md Section 1 defines "done" as: the
+pipeline running on real implicit-equation models, measured speedup up
+to >=100,000 equations, a measured break-even change frequency, and a
+submitted full-length paper. That is Stage A (9 features) + Stage B (8
+features, including scaling to 100k+ equations and a change-frequency
+sweep) + Stage C (6 features, including picking a venue and a full
+writeup). This is realistically weeks of further work, not something
+that completes inside a handful of agent turns -- say so plainly if
+asked for a status update rather than implying more is done than is.
+As of this entry, only Stage A Feature 1 (of 23 total features across
+all three stages) is complete.
+
+**Stage A Feature 1 is DONE.** `feat: source equation-variable matching
+and block structure from the compiler`. The literal plan (extract
+matching/blocks from Rumoca's own BLT output) hit a real API wall:
+`Model.to_dict()`/`to_json()` only expose "dae"/"flat" stages; the
+"solve" (matched) stage is explicitly rejected with "use
+codegen()/render() for solve-stage targets", and that codegen text is
+one flattened function with unmarked SSA temporaries -- no per-equation
+block boundaries recoverable from it either. Documented, not forced
+through (prd-combined.md Section 7.5 itself anticipates this exact
+scenario). Built `src/matching.py` instead: our own bipartite
+equation-to-unknown maximum matching + Tarjan SCC for BLT blocks, the
+documented fallback from the ORIGINAL year-long prd.md's Feature D1.
+
+Two real bugs found and fixed along the way (both now teeth-tested):
+1. A greedy "assign obvious targets first" pre-pass can strand a later
+   equation that needed one of the "obvious" targets, even when a valid
+   perfect matching exists overall. Fixed: one single full bipartite
+   matching pass, not two passes.
+2. `networkx.bipartite.hopcroft_karp_matching` was **non-deterministic
+   across process runs** on the one real-world graph tested (the MSL
+   Cauer filter) -- different runs of the IDENTICAL input JSON produced
+   different matching sizes and different unmatched equations. Root
+   cause: Python's per-process string hash randomization
+   (`PYTHONHASHSEED`) leaking into networkx's internal traversal order,
+   even after every input list/set was sorted before being handed to it.
+   This is a serious finding for anyone else using networkx's bipartite
+   matching in a context requiring reproducibility. Fixed by replacing
+   it entirely with a ~15-line hand-rolled deterministic Kuhn's
+   algorithm (`_kuhn_max_bipartite_matching` in `src/matching.py`),
+   verified stable across 20 repeated calls on the exact scenario that
+   used to vary.
+
+Results: **100% match + 100% agreement with known-correct targets** on
+every fully-assignment-form fixture (OneLine, DecoupledPair, RLCCircuit,
+ThermalNetwork, Chain) -- block counts agree exactly with
+`Model.structure().n_blocks` on every one. On the one real MSL model
+tested (`Modelica.Electrical.Analog.Examples.CauerLowPassAnalog`, 7
+states, 69 equations, saved as `results/fixtures/CauerLowPassAnalog.json`
+for the first time): **67/69 (97%) matched**, not the full 69/69 Rumoca
+confirms is achievable (`structure().is_matched=True`). Root-caused (not
+just observed) to a genuine local structural gap in how this module
+extracts "which unknowns does an equation structurally involve" for
+`connect()`-derived potential-equality equations specifically -- verified
+NOT to be an algorithm bug (the same Kuhn's implementation finds a
+provably-complete matching on every smaller isolated subgraph pulled
+from this same model). Documented as a known limitation in the module's
+own docstring rather than chased to 100% given the scope of everything
+else in this PRD.
+
+msl_src/ (gitignored MSL sparse clone) is still present locally from
+the phase-2 B1 investigation; re-clone if missing (see the Phase 2
+section's B1 note below for the exact clone/sparse-checkout commands).
+
+83 tests passing (71 from before + 12 new in `tests/test_matching.py`).
+
+---
+
+## Phase 2 status: IN PROGRESS (superseded by the Combined-PRD section
+## above for what to work on next -- kept for history)
 
 **Next up:** Section 9 (characterization), Section 11 (figures), Section
 16 (paper upgrade) all remain undone -- see the honest status note below
