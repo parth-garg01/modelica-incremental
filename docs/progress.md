@@ -69,6 +69,50 @@ this as a deliberate, disclosed pivot, not a replacement for the earlier
 EOOLT/ACM research, which remains the concrete next step once an actual
 target venue is finalized.
 
+**Feature 19 revision pass (per explicit user feedback): DONE.**
+Requested: cut the paper to 6 pages, fix "trash" caption/citation
+formatting, add more citations, add real math where the prose already
+implied a formula, and fix the first three pages having no table or
+figure at all (text-only, "boring"). All four addressed in one pass on
+`paper/main.tex`/`paper/refs.bib`:
+- Every section's prose tightened (abstract ~300 -> ~190 words, intro
+  ~600 -> ~280, similar cuts throughout Method/Results/Limitations),
+  cutting the paper from 8 to exactly 6 pages without dropping any
+  table, figure, or reported number -- confirmed by recompiling and
+  diffing the rendered numbers against `docs/results.md` again.
+- Every table/figure caption cut to one line (e.g. Table V's caption
+  went from a 3-line restatement of the whole experiment down to
+  "Break-even sweep over batch size $B$."); the detail that used to
+  live in the caption was already covered in the referring prose, so
+  nothing was lost, only de-duplicated.
+- Added a five-box TikZ pipeline diagram (Fig. 1, Section III-A) --
+  lands on page 2, so the first three pages now carry a diagram plus
+  two tables plus a figure, not prose alone.
+- Added 6 more real citations (12 total, up from 6): Kuhn 1955 and
+  Hopcroft-Karp 1973 (the two matching algorithms actually discussed in
+  Section III-B), Tarjan 1972 and Duff-Reid 1978 (SCC decomposition and
+  BLT block-triangular form, Section III-C), Pantelides 1988 (index
+  reduction, cited in both Background and the Cauer-filter limitation),
+  and Blochwitz et al. 2012 on the Functional Mock-up Interface (a
+  natural "why didn't you just use FMI" preemption in Background) --
+  every one verified via WebSearch/WebFetch before adding, same
+  discipline as the original six.
+- Added real formulas where the prose already described one informally:
+  the bipartite-matching problem statement, the SCC/cycle condition for
+  a recompilation unit, the affine-extraction and linear-system form
+  used by codegen, $S=T_\text{full}/T_\text{incr}$ and
+  $\rho=U_\text{aff}/U_\text{tot}$ at the top of Results, the measured
+  complexity exponents ($\log 28.4/\log 5$, $\log 4.85/\log 5$), and the
+  break-even condition $\lceil K/B\rceil\,T_\text{full} < T_\text{stream}$.
+- Restored the ripple figure (cut in the first draft as redundant with
+  Table II) once the page-count cut freed real space on page 6 that
+  would otherwise have sat blank -- used it to add one substantive new
+  observation (ripple and speedup don't correlate simply across the
+  three MSL cells) rather than padding.
+Recompiled and re-verified the same way as the first draft: three
+`pdflatex` passes plus `bibtex`, zero warnings, every one of the 6 pages
+rendered to PNG and visually inspected, not a clean log trusted blind.
+
 **Results-gathering session (commit `d2a6ee6` and the `docs/results.md`
 commit that follows it) -- NOT a Stage C feature, a dedicated pass
 requested to assemble everything already measured into one citable
