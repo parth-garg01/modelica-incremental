@@ -19,9 +19,12 @@ SAVE_KWARGS = {"metadata": {"Date": None}}
 
 
 def _savefig(fig, stem: str) -> Path:
+    """PDF metadata uses "CreationDate", not SVG's "Date", for the same
+    embedded timestamp -- both must be stripped for byte-identical
+    regeneration, not just the SVG path."""
     svg_path = FIGURES / f"{stem}.svg"
     fig.savefig(svg_path, **SAVE_KWARGS)
-    fig.savefig(FIGURES / f"{stem}.pdf")
+    fig.savefig(FIGURES / f"{stem}.pdf", metadata={"CreationDate": None})
     return svg_path
 
 
@@ -39,11 +42,14 @@ def fig_measured_speedup(df: pd.DataFrame) -> Path:
     labels = _labels(df)
     ax.bar(labels, df["measured_speedup"], color="#55A868")
     ax.axhline(1.0, color="gray", linestyle="--", linewidth=1)
-    ax.set_ylabel("Measured speedup (full rebuild time / incremental time)")
+    ax.set_ylabel("Measured speedup (full / incremental)")
     ax.set_xlabel("Model (seed equations)")
-    ax.set_title("Measured incremental-vs-full-rebuild speedup\n(real gcc builds, real models, not a projection)")
+    # Headroom above the tallest bar so its value label never collides
+    # with the plot's own top edge or a multi-line title (a real, visible
+    # clumsy-layout bug caught on the rendered PDF, not a projection).
+    ax.set_ylim(0, float(df["measured_speedup"].max()) * 1.3)
     for i, v in enumerate(df["measured_speedup"]):
-        ax.text(i, v + 0.1, f"{v:.2f}x", ha="center")
+        ax.text(i, v + 0.05, f"{v:.2f}x", ha="center")
     fig.tight_layout()
     out = _savefig(fig, "measured_speedup")
     plt.close(fig)

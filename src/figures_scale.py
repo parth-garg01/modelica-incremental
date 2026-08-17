@@ -21,9 +21,12 @@ SAVE_KWARGS = {"metadata": {"Date": None}}
 
 
 def _savefig(fig, stem: str) -> Path:
+    """PDF metadata uses "CreationDate", not SVG's "Date", for the same
+    embedded timestamp -- both must be stripped for byte-identical
+    regeneration, not just the SVG path."""
     svg_path = FIGURES / f"{stem}.svg"
     fig.savefig(svg_path, **SAVE_KWARGS)
-    fig.savefig(FIGURES / f"{stem}.pdf")
+    fig.savefig(FIGURES / f"{stem}.pdf", metadata={"CreationDate": None})
     return svg_path
 
 

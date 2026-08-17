@@ -24,10 +24,14 @@ SAVE_KWARGS = {"metadata": {"Date": None}}
 
 def _savefig(fig, stem: str) -> Path:
     """Writes both the deterministic SVG (web/HTML use) and a PDF
-    (LaTeX \\includegraphics -- pdflatex has no native SVG support)."""
+    (LaTeX \\includegraphics -- pdflatex has no native SVG support).
+    The PDF backend uses a different metadata key ("CreationDate", not
+    SVG's "Date") for the same embedded timestamp -- missed on the first
+    pass, which made the PDF re-differ on every regeneration even with
+    byte-identical visual content, unlike the SVG path."""
     svg_path = FIGURES / f"{stem}.svg"
     fig.savefig(svg_path, **SAVE_KWARGS)
-    fig.savefig(FIGURES / f"{stem}.pdf")
+    fig.savefig(FIGURES / f"{stem}.pdf", metadata={"CreationDate": None})
     return svg_path
 
 

@@ -113,6 +113,79 @@ Recompiled and re-verified the same way as the first draft: three
 `pdflatex` passes plus `bibtex`, zero warnings, every one of the 6 pages
 rendered to PNG and visually inspected, not a clean log trusted blind.
 
+**Second Feature 19 revision pass (per further explicit user feedback,
+same session): DONE.** A dense round of fixes, all applied and
+recompiled together, still 6 pages:
+- Author block: was `\thanks{}`-style, rendering as an IEEEtran
+  footnote at the bottom of column 1 -- correctly standard IEEEtran
+  behavior, but the user found it looked like a stray footer. Switched
+  to `\IEEEauthorblockN`/`\IEEEauthorblockA`, showing name and
+  affiliation directly under the title instead.
+- Title shortened (dropped the "Recompiling Only What Changed:" catchy
+  prefix) so it wraps to 2 lines instead of 3.
+- Removed the Introduction's closing "roadmap" paragraph entirely (the
+  one that named every section by number) per explicit instruction, and
+  replaced it with a 4-bullet itemized contributions list -- serves the
+  same "what this paper covers" purpose without pointing at other
+  sections by number.
+- Removed every `Section~\ref{...}`/`Sec.~\ref{...}` cross-reference in
+  the entire document (about a dozen), rephrasing each sentence to
+  stand on its own -- "there should be no mention of any other section
+  in any section." Figure/table/equation cross-references were kept
+  (those were separately requested, not covered by this instruction).
+- Renamed "Method" to "Methodology" (section header only, label/content
+  unchanged).
+- Fixed `src/figures_msl.py`'s `fig_measured_speedup()`: the 1.56x bar's
+  value label collided with the chart's own 2-line internal title, a
+  real layout bug visible on the rendered PDF. Removed the internal
+  title (redundant with the LaTeX caption anyway) and added 30%
+  headroom above the tallest bar so a label can never collide with the
+  plot's top edge again, not just for this dataset.
+- Converted every display formula to a numbered `equation` environment
+  (previously a mix of inline math and one unnumbered `\[...\]` block):
+  affine-form solve, the coupled-block linear system, speedup/ripple
+  together, and the break-even inequality -- 4 numbered equations,
+  cross-referenced by number where natural (e.g. "per~(4)").
+- Expanded Future Work and Conclusion, both cut hardest in the first
+  revision pass -- Future Work now explains what implementing
+  differential-index reduction would concretely require (a
+  Pantelides-style differentiation pass plus dummy-derivative
+  selection) instead of just naming it; Conclusion adds a second
+  paragraph reflecting on why a narrow, precisely-bounded result was
+  preferred over a broader unmeasurable claim.
+- Converted the Limitations section from 8 `\emph{Label.}` paragraphs
+  into a proper numbered `enumerate` list.
+- Removed Table I (Models used) as the least essential of the 5 tables
+  -- pure setup metadata, not a measured result -- folding its content
+  into one sentence in Experimental Setup instead.
+- Removed every `\texttt{}`/`\emph{}` font-style deviation for inline
+  code-like terms (`#include`, `connect()`, `networkx`), per an attached
+  screenshot flagging the monospace styling as visually distracting;
+  all now render in plain body text.
+- Every table converted to `tabular*` with `@{\extracolsep{\fill}}` so
+  table width matches the column width exactly, instead of shrink-
+  wrapping to content width and leaving visible margins on both sides
+  (per an attached screenshot of Table IV).
+- Added an explicit "Fig.~X depicts .../Table~X shows ..." introducing
+  sentence for every one of the 4 tables and 6 figures individually
+  (previously some were introduced two-at-a-time in one combined
+  sentence).
+- Found and fixed a real reproducibility gap while regenerating figures
+  for this pass: the PDF export added in the first revision pass
+  stripped SVG's embedded timestamp (`metadata={"Date": None}`) but
+  never did the equivalent for the PDF backend, which uses a different
+  metadata key (`"CreationDate"`, not `"Date"`) for the same field --
+  so every regeneration produced a byte-different PDF even with
+  identical visual content, silently undermining the "figures
+  regenerate deterministically" guarantee the rest of this project
+  holds itself to. Fixed in all three figure-generation modules
+  (`src/figures.py`, `src/figures_msl.py`, `src/figures_scale.py`);
+  verified by regenerating all 9 PDFs twice in a row and confirming
+  byte-identical SHA-256 hashes across the full set, not just visual
+  inspection.
+Full pytest suite re-run clean after the figure-script changes: 152
+passed, 1 xfailed, unchanged.
+
 **Results-gathering session (commit `d2a6ee6` and the `docs/results.md`
 commit that follows it) -- NOT a Stage C feature, a dedicated pass
 requested to assemble everything already measured into one citable
