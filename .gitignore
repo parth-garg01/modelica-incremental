@@ -12,3 +12,9 @@ build_cache_freq/
 *.obj
 msl_src/
 models/scaled/
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.log
+paper/*.out
+paper/*.synctex.gz

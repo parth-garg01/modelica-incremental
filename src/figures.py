@@ -22,6 +22,15 @@ FIGURES = Path("figures")
 SAVE_KWARGS = {"metadata": {"Date": None}}
 
 
+def _savefig(fig, stem: str) -> Path:
+    """Writes both the deterministic SVG (web/HTML use) and a PDF
+    (LaTeX \\includegraphics -- pdflatex has no native SVG support)."""
+    svg_path = FIGURES / f"{stem}.svg"
+    fig.savefig(svg_path, **SAVE_KWARGS)
+    fig.savefig(FIGURES / f"{stem}.pdf")
+    return svg_path
+
+
 def load() -> pd.DataFrame:
     df = pd.read_parquet(RESULTS / "measurements.parquet")
     return df.sort_values("model_name").reset_index(drop=True)
@@ -38,8 +47,7 @@ def fig_ripple_distribution(df: pd.DataFrame) -> Path:
     for i, v in enumerate(df["affected_fraction"] * 100):
         ax.text(i, v + 2, f"{v:.0f}%", ha="center")
     fig.tight_layout()
-    out = FIGURES / "ripple_distribution.svg"
-    fig.savefig(out, **SAVE_KWARGS)
+    out = _savefig(fig, "ripple_distribution")
     plt.close(fig)
     return out
 
@@ -55,8 +63,7 @@ def fig_speedup_ceiling(df: pd.DataFrame) -> Path:
     for i, v in enumerate(df["projected_speedup_ceiling"]):
         ax.text(i, v + 0.03, f"{v:.2f}x", ha="center")
     fig.tight_layout()
-    out = FIGURES / "speedup_ceiling.svg"
-    fig.savefig(out, **SAVE_KWARGS)
+    out = _savefig(fig, "speedup_ceiling")
     plt.close(fig)
     return out
 
@@ -91,8 +98,7 @@ def fig_unit_size_distribution(df: pd.DataFrame) -> Path:
     ax.set_title("Recompilation-unit-size distribution\n(across both changed-model fixtures)")
     ax.set_xticks(range(1, max_size + 1))
     fig.tight_layout()
-    out = FIGURES / "unit_size_distribution.svg"
-    fig.savefig(out, **SAVE_KWARGS)
+    out = _savefig(fig, "unit_size_distribution")
     plt.close(fig)
     return out
 

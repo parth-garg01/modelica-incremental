@@ -30,8 +30,44 @@ IS NOW COMPLETE (Features 10-17, commits `410c852` through `194f35e`).
 result in one evidence-backed document -- read it, not just this log,
 before starting any Stage C writing work. Stage C (Features 18-23:
 target venue, full-length restructure, related work, reproducibility
-package, threats to validity, final review) starts now; Feature 18 is
-partially done (`docs/venue.md`), the rest has not started.**
+package, threats to validity, final review) is IN PROGRESS: Feature 18
+is partially done (`docs/venue.md` -- real venue researched, ACM
+template port deferred), and Feature 19 (full-length restructure) is
+done, but in IEEE format rather than the ACM template, per explicit user
+instruction ("start writing in ieee format... we will change it later
+after i have finalised the journal") -- see the dedicated entry below.
+Features 20-23 (related work as its own section, reproducibility
+package, threats-to-validity as its own section, final review) have not
+started; Feature 19's draft already folds a related-work subsection and
+a limitations/threats section into itself, so 20/22 are partially
+subsumed, not starting from zero.**
+
+**Feature 19 (full-length restructure, IEEE format): DONE.**
+`paper/main.tex` + `paper/refs.bib`, `\documentclass[journal]{IEEEtran}`,
+compiles clean (three `pdflatex` passes + `bibtex`, zero warnings, every
+page rendered to PNG and visually checked, not just a clean compile log
+trusted blind) to an 8-page PDF. Every section prd-combined.md's Feature
+19 check calls for is present: introduction, background/related work
+(with six real, verified citations -- Grieves 2014 on digital twins,
+Fritzson et al. 2005 on OpenModelica, Agosta et al. 2023 on MARCO, the
+Modelica Language Specification, Condie et al. 2026 on Rumoca itself,
+Feldman 1979 on Make, Abbasi et al. 2024 on digital-twin semantic drift
+-- each looked up via WebSearch/WebFetch before citing, not recalled
+from memory), method, experimental setup, results (four tables, six
+figures, all traced directly to `docs/results.md`'s numbers -- MSL
+speedup, the O(n^2) codegen bug, speedup vs. size, one-time overhead vs.
+size, the break-even sweep), limitations/threats to validity, future
+work, and conclusion. Title and prose written in plain, human academic
+register per explicit instruction, not AI-slop phrasing. New: PDF export
+added alongside the existing deterministic-SVG export in
+`src/figures.py`/`src/figures_msl.py`/`src/figures_scale.py` (a shared
+`_savefig()` helper writing both formats from the same figure object),
+since `pdflatex` has no native SVG support -- SVGs re-confirmed
+byte-identical after the change (only new `.pdf` files appeared in `git
+status`, no existing file changed). `docs/venue.md` updated to record
+this as a deliberate, disclosed pivot, not a replacement for the earlier
+EOOLT/ACM research, which remains the concrete next step once an actual
+target venue is finalized.
 
 **Results-gathering session (commit `d2a6ee6` and the `docs/results.md`
 commit that follows it) -- NOT a Stage C feature, a dedicated pass

@@ -20,6 +20,13 @@ FIGURES = Path("figures")
 SAVE_KWARGS = {"metadata": {"Date": None}}
 
 
+def _savefig(fig, stem: str) -> Path:
+    svg_path = FIGURES / f"{stem}.svg"
+    fig.savefig(svg_path, **SAVE_KWARGS)
+    fig.savefig(FIGURES / f"{stem}.pdf")
+    return svg_path
+
+
 def fig_speedup_vs_size() -> Path:
     df = pd.read_parquet(RESULTS / "measurements_scale.parquet").sort_values("n_equations")
     fig, ax = plt.subplots(figsize=(6, 4))
@@ -32,8 +39,7 @@ def fig_speedup_vs_size() -> Path:
     ax.set_ylabel("Measured speedup (full rebuild / incremental)")
     ax.set_title(f"Incremental speedup vs. model size\n({int(df['repeats'].iloc[0])} repeats per point, real gcc/ld builds)")
     fig.tight_layout()
-    out = FIGURES / "speedup_vs_size.svg"
-    fig.savefig(out, **SAVE_KWARGS)
+    out = _savefig(fig, "speedup_vs_size")
     plt.close(fig)
     return out
 
@@ -49,8 +55,7 @@ def fig_overhead_vs_size() -> Path:
     ax.set_title("One-time setup overhead vs. model size")
     ax.legend()
     fig.tight_layout()
-    out = FIGURES / "overhead_vs_size.svg"
-    fig.savefig(out, **SAVE_KWARGS)
+    out = _savefig(fig, "overhead_vs_size")
     plt.close(fig)
     return out
 
@@ -69,8 +74,7 @@ def fig_break_even_crossing() -> Path:
     ax.set_title(f"Streaming incremental vs. batched full rebuild\n(N={int(df['n_rooms'].iloc[0])} rooms, {int(df['n_changes'].iloc[0])} changes)")
     ax.legend()
     fig.tight_layout()
-    out = FIGURES / "break_even_crossing.svg"
-    fig.savefig(out, **SAVE_KWARGS)
+    out = _savefig(fig, "break_even_crossing")
     plt.close(fig)
     return out
 

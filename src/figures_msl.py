@@ -18,6 +18,13 @@ FIGURES = Path("figures")
 SAVE_KWARGS = {"metadata": {"Date": None}}
 
 
+def _savefig(fig, stem: str) -> Path:
+    svg_path = FIGURES / f"{stem}.svg"
+    fig.savefig(svg_path, **SAVE_KWARGS)
+    fig.savefig(FIGURES / f"{stem}.pdf")
+    return svg_path
+
+
 def load() -> pd.DataFrame:
     df = pd.read_parquet(RESULTS / "measurements_msl.parquet")
     return df.reset_index(drop=True)
@@ -38,8 +45,7 @@ def fig_measured_speedup(df: pd.DataFrame) -> Path:
     for i, v in enumerate(df["measured_speedup"]):
         ax.text(i, v + 0.1, f"{v:.2f}x", ha="center")
     fig.tight_layout()
-    out = FIGURES / "measured_speedup.svg"
-    fig.savefig(out, **SAVE_KWARGS)
+    out = _savefig(fig, "measured_speedup")
     plt.close(fig)
     return out
 
@@ -55,8 +61,7 @@ def fig_real_model_ripple(df: pd.DataFrame) -> Path:
     for i, v in enumerate(df["affected_fraction"] * 100):
         ax.text(i, v + 2, f"{v:.1f}%", ha="center")
     fig.tight_layout()
-    out = FIGURES / "real_model_ripple.svg"
-    fig.savefig(out, **SAVE_KWARGS)
+    out = _savefig(fig, "real_model_ripple")
     plt.close(fig)
     return out
 
@@ -76,8 +81,7 @@ def fig_time_breakdown(df: pd.DataFrame) -> Path:
     ax.set_title("Full vs. incremental compile+link time\n(real MSL-component models, 5 repeats, error bars = stdev)")
     ax.legend()
     fig.tight_layout()
-    out = FIGURES / "time_breakdown_real.svg"
-    fig.savefig(out, **SAVE_KWARGS)
+    out = _savefig(fig, "time_breakdown_real")
     plt.close(fig)
     return out
 

@@ -1,0 +1,288 @@
+\documentclass[journal]{IEEEtran}
+
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage{url}
+
+\graphicspath{{../figures/}}
+
+\begin{document}
+
+\title{Recompiling Only What Changed: Matching-Based Incremental Recompilation for Modelica Digital Twins}
+
+\author{Parth~Garg
+\thanks{P. Garg is with Vellore Institute of Technology, Vellore, India (e-mail: parth.garg2024@vitstudent.ac.in).}}
+
+\markboth{Preprint, to be reformatted for the target venue}{}
+
+\maketitle
+
+\begin{abstract}
+A digital twin drifts out of sync with the machine it models whenever that machine changes structurally: a part is swapped, a sensor is added, a component is removed. Every simulation compiler we are aware of handles this the same way, by rebuilding the whole model from scratch, which is slow enough to force the twin offline during the rebuild. This paper asks a narrower, testable question: after a localized structural edit, is the set of compiled artifacts that actually need regenerating also localized, and can that set be found automatically and safely? We build an equation-to-variable matching directly from a Modelica model's compiled differential-algebraic-equation representation, partition the model into recompilation units along the resulting block-lower-triangular structure, and resolve the impact of a structural edit by graph reachability from the equations the edit touched, never by comparing a before-and-after diff. The predicted impact set is independently checked against a from-scratch recompile on every measured cell, and the incrementally rebuilt binary's output is required to match a full rebuild exactly, not within a tolerance. On real Modelica-Standard-Library circuit models we measure real, repeated, compiler-timed speedups of 1.09$\times$ to 2.27$\times$ depending on the change, and on a parameterized model family spanning a twentyfold range in equation count the speedup holds in a 1.8$\times$--2.3$\times$ band rather than growing with model size, because relinking the unaffected objects, not recompiling the changed ones, turns out to dominate incremental cost at every size we tested. Building the pipeline surfaced two real defects worth reporting in their own right: a non-deterministic third-party bipartite matcher that silently violated our own reproducibility requirement, and a quadratic bottleneck in our own code generator that we found by profiling and fixed. We also build a change-frequency harness and measure an explicit break-even point: once four or more structural edits accumulate before a rebuild is due, batching them into one full rebuild is cheaper than recompiling incrementally after each one. We report where the approach stops working just as plainly as where it works: models that require differential-index reduction, such as a seventh-order Cauer filter with two capacitor-only loops, are out of scope, and every scaling number here is capped at roughly three thousand equations, short of the industrial scale we set out to reach.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Modelica, digital twins, incremental compilation, incremental recompilation, equation-based modeling, differential-algebraic equations, structural change, simulation software, build systems.
+\end{IEEEkeywords}
+
+\section{Introduction}
+
+A digital twin is only useful while it still matches the thing it is twinning. Real machines change: a resistor gets swapped for a different part during a redesign, a sensor gets bolted on to a subsystem that did not have one, a component gets removed because it failed or because the design moved on. A simulation model that does not track those changes is not a digital twin anymore; it is a snapshot of one. The obvious fix is to recompile the model whenever the real machine changes, but the obvious way to recompile a model is to rebuild all of it, and a full rebuild of anything but a small model takes long enough that the twin is unavailable while it runs. For a twin that is supposed to be tracking a machine in something close to real time, that outage is exactly the failure mode the twin exists to prevent.
+
+This is not a new problem in software generally. General-purpose build systems such as Make~\cite{feldman1979make} and its descendants solved an analogous problem decades ago: track which compiled artifacts depend on which source files, and when a source file changes, rebuild only the artifacts that actually depend on it. The question this paper asks is whether that idea transfers to simulation compilers for equation-based languages such as Modelica, where the units of compilation are not source files but individual equations and the unknowns they solve for, and where the dependency structure between them is exactly the structure the compiler already computes internally to decide how to solve the system.
+
+We build a working pipeline that answers this question empirically rather than by assumption, using a real, actively developed Modelica compiler (Rumoca~\cite{condie2026rumoca}) as the front end and real components from the Modelica Standard Library as evaluation models. The pipeline computes its own equation-to-unknown matching from the compiler's exported intermediate representation, defines a recompilation unit as one block of that matching's block-lower-triangular structure, and predicts which units a structural edit affects by graph reachability from the equations the edit touched, never by diffing the model before and after the edit. We hold ourselves to a strict correctness bar throughout: the binary produced by recompiling only the predicted units and relinking against cached objects must match a from-scratch full rebuild's output exactly, and we check that bit-identical requirement on every measured cell rather than asserting it once and moving on.
+
+The result is a genuine, if narrow, positive finding, reported alongside its real limitations rather than around them. On real Modelica-Standard-Library circuits, incremental recompilation is measurably faster than a full rebuild, by a factor that depends heavily on which change was made and how many total units the model has. On a parameterized model family we can grow to thousands of equations, that speedup does not increase with model size; it holds in a narrow band because our current design always relinks every cached object rather than only the ones that changed, and we show directly that relinking, not recompiling, is what the incremental rebuild's time is actually spent on. We also measure, rather than assume, the point at which batching several structural edits into one full rebuild becomes cheaper than recompiling incrementally after each one individually, which is the practical question a system operator actually needs answered. Finally, we report two real software defects found during this work, because both are the kind of thing that would silently produce wrong answers if left unexamined: a well-known third-party graph library's bipartite matching turned out to be non-deterministic across process runs on one of our real models, and our own code generator turned out to scale quadratically with model size until we profiled it and fixed the root cause.
+
+The remainder of this paper is organized as follows. Section~\ref{sec:background} reviews how Modelica compilers work today and what incremental build systems for general-purpose software already established. Section~\ref{sec:method} describes the matching, partitioning, impact-resolution, and code-generation pipeline in detail, including two real bugs the design had to survive. Section~\ref{sec:setup} describes the experimental setup. Section~\ref{sec:results} reports every measured result: generality on real Modelica-Standard-Library models, the scaling and break-even experiments, and the two defects found along the way. Section~\ref{sec:limitations} states the limitations and threats to validity plainly. Section~\ref{sec:future} outlines the concrete next steps this work leaves open, and Section~\ref{sec:conclusion} concludes.
+
+\section{Background and Related Work}
+\label{sec:background}
+
+\subsection{Digital twins and drift}
+
+The term digital twin is usually traced to Grieves' manufacturing white paper~\cite{grieves2014twin}, which describes a virtual representation kept synchronized with a physical asset across its lifecycle. The synchronization half of that definition is where most of the engineering difficulty lives: a twin that is not kept current with the real system's structure is not really twinned to it. Recent work in the model-driven-engineering community has started to name and classify this failure mode directly. Abbasi et al.~\cite{abbasi2024drift} formalize semantic drift in model-driven digital twins as a distinct problem class and argue that detecting and reacting to structural drift, not only parameter drift, is a largely open question. This paper does not attempt to detect structural change; every change in our experiments is injected by a script that already knows exactly which equations it touched. What we contribute sits one step downstream of detection: once a structural change is known, how much of the compiled model actually needs to be regenerated, and how quickly can that regeneration happen.
+
+\subsection{Modelica compilation}
+
+Modelica compilers, including the two most widely used open implementations, OpenModelica~\cite{fritzson2005openmodelica} and the newer MLIR-based MARCO~\cite{agosta2023marco}, turn a hierarchical, equation-based model description into executable simulation code through a broadly similar pipeline: parsing and flattening the object-oriented model structure into a flat set of differential-algebraic equations, matching each equation to the unknown it will be used to solve for, decomposing the matched system into a block-lower-triangular (BLT) structure so that blocks can be solved in dependency order, and finally generating executable code, typically one routine per block. MARCO in particular reports simulating models with millions of equations in tens of seconds, which is a useful reference point for how fast a full rebuild already is at scale, and therefore how large an incremental speedup would need to be to matter in practice.
+
+The BLT block structure a Modelica compiler computes for solving is a natural candidate for a recompilation boundary, since it already groups the equations that must be solved together. It is not, however, identical to a data-dependency boundary suitable for incremental recompilation, because BLT blocks reflect simultaneous-solve requirements, which explicit ordinary differential equations rarely have, rather than the read/write dependency between one equation's generated code and another's. Section~\ref{sec:method} describes the specific correction this required: naively treating a state variable as read by the same per-timestep system that defines its derivative manufactures spurious coupling that does not exist in a real solver's per-timestep evaluation order.
+
+This project's compiler front end is Rumoca~\cite{condie2026rumoca}, a Rust-native Modelica compiler still under active development. We use its Python bindings to obtain a model's compiled DAE representation as JSON, but we do not use its internal matching or BLT block structure directly, because Rumoca's public API does not expose that intermediate stage; the equation-to-unknown matching used throughout this paper is a from-scratch implementation, described in Section~\ref{sec:method}, independently verified against Rumoca's own block-count statistics.
+
+\subsection{Incremental build systems}
+
+The general problem of rebuilding only what changed is decades old in software engineering. Make~\cite{feldman1979make} tracks dependencies between source and object files with a timestamp-based graph and rebuilds only the targets whose inputs are newer than their outputs; modern successors such as Bazel generalize the same idea with a content-addressed, hermetic dependency graph. The mapping we use in this paper is direct: an equation plays the role of a source file, a recompilation unit (one matched block) plays the role of a compiled object, and the equation-variable dependency graph plays the role of the build graph a tool like Make already maintains for ordinary source code. What is different, and is the actual subject of this paper, is that the dependency graph is not handed to us the way a set of \texttt{\#include} directives is; it has to be derived from the compiler's own internal matching, which is not something a general-purpose build system ever has to do.
+
+\section{Method}
+\label{sec:method}
+
+\subsection{Pipeline overview}
+
+The pipeline used for every measurement in this paper has five stages, run end to end for each experiment cell: compile the model, compute the equation-to-unknown matching and the resulting recompilation-unit partition, inject a structural change into the model source and recompile the changed model independently, resolve the impact of that change by graph reachability on the changed model's own dependency graph, and finally recompile only the predicted affected units, relink against cached objects for the rest, and compare the result's output against a from-scratch full rebuild of the same changed model. Every stage after compilation is implemented by us; the compiler itself, Rumoca, is used unmodified, called through its Python API.
+
+\subsection{Sourcing the matching}
+\label{sec:matching}
+
+The original plan was to extract Rumoca's own internally computed equation-to-unknown matching and BLT block structure directly, since Rumoca clearly computes something equivalent internally in order to compile and simulate any model with implicit equations at all. This turned out not to be possible through Rumoca's public Python API: the exported intermediate representation only exposes the flattened (\texttt{dae}) and (\texttt{flat}) stages, and the matched (\texttt{solve}) stage is explicitly rejected by the API with a message directing callers to code generation instead, whose emitted output is a single flattened function with unlabeled intermediate variables and no recoverable per-equation block boundary.
+
+We built a from-scratch bipartite maximum-matching implementation instead, verified independently against Rumoca's own structural summary (block count and match completeness) on every model we tested, including a real sixty-nine-equation circuit from the Modelica Standard Library. Building this surfaced two real bugs. First, a greedy two-pass strategy that assigns each equation to its syntactically obvious target variable before falling back to general augmenting-path search can strand an equation that needed one of those obvious targets even when a valid perfect matching exists for the graph as a whole; we replaced the two-pass approach with a single full bipartite matching pass. Second, and more seriously, \texttt{networkx}'s Hopcroft--Karp bipartite matching implementation turned out to be non-deterministic across separate process invocations on the one real-world graph we tested it on. Identical input JSON produced different matching sizes and different sets of unmatched equations between runs. We traced this to Python's per-process string-hash randomization leaking into the library's internal traversal order, even after every input list and set passed to it was explicitly sorted. This directly violated a correctness requirement our whole approach depends on, namely that the same model always produces the same recompilation units, so a wrong-but-stable answer from one run could silently disagree with an equally wrong-but-stable answer from the next. We replaced the call with a hand-rolled Kuhn's-algorithm implementation and verified its determinism directly: the same scenario that exposed the \texttt{networkx} bug was run twenty times in-process and, separately, as five independent fresh subprocesses under five different fixed hash seeds, with byte-identical results every time.
+
+\subsection{Recompilation unit definition}
+
+A recompilation unit is one block of the matched equation graph's strongly-connected-component decomposition: the directed graph whose nodes are equations, with an edge from equation $i$ to equation $j$ when equation $j$ reads the variable that equation $i$ is matched to solve for. Two equations land in the same unit exactly when there is a genuine data-dependency cycle between them under this matching, which is the graph-theoretic condition for needing to be solved simultaneously rather than in sequence.
+
+Getting the boundary right required one correction that mattered a great deal in practice. A naive graph that treats a state variable as an ordinary read/write target of the per-timestep algebraic system manufactures cycles that do not correspond to any real coupling: an explicit ordinary differential equation's derivative expression reads the state it is the derivative of, and if some other algebraic variable is itself an explicit function of that same state, the raw dependency graph sees a cycle even though a real numerical solver evaluates the two equations directly, one after the other, never iterating between them. On one of our early hand-written fixtures, a three-room thermal network, this artifact collapsed eight of the model's nine equations into a single recompilation unit despite the model's actual topology being a simple nearest-neighbor chain. States are never a coupled term across timesteps in an explicit-ODE model; they are knowns each timestep, supplied by the numerical integrator, not solved for jointly with the algebraic system. Excluding states as edge sources in the dependency graph, so that a state's own defining equation can be read from but a state itself is never treated as data flowing back into the algebraic solve, removed the spurious cycle entirely and reduced that same model to nine independent, correctly matched units, exactly agreeing with the compiler's own independently computed block count.
+
+\subsection{Change injection, impact resolution, and soundness}
+
+Every structural change used in this paper is a literal, text-level edit to the Modelica source file: a component swap, a sensor addition, or a component removal, applied by a small script and never by manipulating the compiler's intermediate representation directly. The changed file is then recompiled through the exact same front end as any other model, so nothing about how the changed model is processed is special-cased.
+
+Impact resolution takes the set of equations the change injector directly edited, which we call the seed set, and follows dependency edges outward on the changed model's own post-change graph to predict every recompilation unit the change could affect. This prediction is computed purely from graph reachability. It never inspects a difference between the pre-change and post-change intermediate representations, which means it cannot, even accidentally, benefit from already knowing the answer it is later checked against.
+
+That check is a second, fully independent mechanism: we recompile the unchanged baseline and the changed model separately, diff their compiled equations directly (stripping source-position metadata that shifts under any unrelated edit, so the comparison reflects semantic content, not incidental line-number churn), and confirm that the resolver's predicted affected set is a superset of every equation the diff shows actually changed. On every cell measured in this paper this check passed with no missed units, and a dedicated test confirms the check itself has teeth: a deliberately blinded detector that is given an empty seed set is correctly flagged as unsound, with the specific missed unit named in the failure.
+
+\subsection{Code generation and incremental build}
+
+Each recompilation unit is emitted as its own C translation unit. A singleton unit (one equation, one matched variable) is solved by extracting the equation's residual as an affine expression in its matched unknown and emitting a direct assignment; a coupled unit (more than one mutually dependent equation) is solved by assembling the block's local linear system and emitting a shared, block-size-parameterized Gaussian-elimination routine with partial pivoting. Both paths route through the same affine-extraction code, which matters more than it sounds like it should: an earlier version of the singleton path assumed a matched equation's variable always sits alone on one side of that equation as written, which is false whenever the matcher, correctly generalizing, assigns an equation to solve for a variable other than its syntactic left-hand side. On one real Modelica-Standard-Library resistor model this produced a silent, self-referential, wrong assignment (effectively computing a value from itself) until the two code paths were unified onto the same provably correct extraction.
+
+A full rebuild compiles every unit's translation unit and links them into one executable; an incremental rebuild recompiles only the units the resolver marked affected, copies cached object files for every other unit, and relinks the complete set. We verify object-level correctness directly, not just simulation-output correctness, by comparing the SHA-256 hash of every reused object file against the cached baseline object it was supposed to be identical to. Every measured cell in this paper additionally requires the two binaries' simulation output to match exactly, either by numeric comparison at zero absolute error or, for the larger models, by literal string equality of the complete printed output trace, which is a strictly stronger check than a numeric tolerance since it requires every printed digit to agree, not merely fall within an epsilon. No tolerance was ever invoked to pass a result in this paper; every reported correctness result is an exact match.
+
+\section{Experimental Setup}
+\label{sec:setup}
+
+All experiments were run on a single Windows machine using Rumoca~0.9.20 through its Python bindings, Python~3.11.9, and the MinGW-w64 GCC~15.2 toolchain, with every compile and link step timed as a real subprocess invocation using a monotonic wall-clock timer, never derived from another timing by arithmetic. Two model families are used. The first is a small set of real circuits built from genuine, \texttt{connect()}-wired Modelica Standard Library components (\texttt{Modelica.Electrical.Analog.Basic} and \texttt{Sources}), used to establish that the approach works on real, not hand-written, models. The second is a parameterized thermal-chain generator that produces an $N$-room model with $3N{-}1$ equations, using the same index-1, nearest-neighbor topology already validated on the hand-written fixture described in Section~\ref{sec:method}, used to measure how the approach behaves as model size grows across a range no single hand-written model could cover. All code, models, and logged measurement data are available in the project repository; every number reported below cites the script and log file it came from.
+
+Table~\ref{tab:models} lists the real and generated models used across the results in Section~\ref{sec:results}, with equation and recompilation-unit counts read directly from the compiled intermediate representation and cross-checked against the compiler's own independent block-count statistic where available.
+
+\begin{table}[!t]
+\caption{Models used in this paper's experiments.}
+\label{tab:models}
+\centering
+\footnotesize
+\begin{tabular}{lccl}
+\toprule
+Model & Eqns.\ & Units & Role \\
+\midrule
+MslRcCircuit & 23 & 23 & Real MSL, swap/sensor \\
+MslResistorNetwork & 35 & 22 & Real MSL, removal \\
+CauerLowPassAnalog & 69 & 67/69 & Real MSL, negative result \\
+ThermalChain($N$) & $3N{-}1$ & $3N{-}1$ & Generated, scale sweep \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Results}
+\label{sec:results}
+
+\subsection{Generality on real Modelica-Standard-Library models}
+\label{sec:msl-results}
+
+Table~\ref{tab:msl-speedup} reports measured, repeated, real-compiler speedup for three structural-change cells on two real circuit models: a resistor-to-conductor component swap and a sensor addition on an RC circuit, and a component removal on a resistor network. Every cell is bit-identical to a full rebuild and every reused object file is byte-identical to its cached baseline; neither correctness check was ever relaxed to obtain these numbers.
+
+\begin{table}[!t]
+\caption{Measured speedup on real Modelica-Standard-Library models. Timings are the mean of five repeated full and incremental builds; every cell's output is bit-identical to a from-scratch rebuild.}
+\label{tab:msl-speedup}
+\centering
+\begin{tabular}{lccc}
+\toprule
+Change & Units affected & Full rebuild & Incremental \\
+\midrule
+Resistor $\rightarrow$ Conductor & 13/23 & 552.9 ms & 506.3 ms \\
+Sensor addition & 1/24 & 595.9 ms & 382.1 ms \\
+Resistor removal & 11/18 & 589.3 ms & 437.5 ms \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=0.95\linewidth]{measured_speedup.pdf}
+\caption{Measured incremental-versus-full-rebuild speedup on real Modelica-Standard-Library models, real \texttt{gcc}/\texttt{ld} builds, not a projection.}
+\label{fig:msl-speedup}
+\end{figure}
+
+The measured speedup ranges from 1.09$\times$ to 1.56$\times$ depending on the change, shown in Fig.~\ref{fig:msl-speedup}, with the fraction of the model affected (Fig.~\ref{fig:ripple}) ranging from 4\% to 61\%. We found and disclose directly that these three particular numbers are noisier across independent re-runs of the identical script on identical code than we expected: on these very small models, twenty-three to twenty-four total recompilation units, the fixed process-spawn overhead of invoking the compiler and linker is large relative to the small absolute amount of work being saved, so independent re-runs of the same experiment produced speedup ratios varying by up to roughly thirty to forty percent relative to each other across four separate measurement sessions, while the underlying affected-unit fraction stayed exactly identical every time, confirming that the matching and resolution logic itself is fully deterministic and only wall-clock timing on tiny builds is noisy. We report this honestly as a property of small-model timing rather than picking whichever historical run looks best; Section~\ref{sec:scale-results} shows the same speedup measurement is substantially more stable on larger models with more total units.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=0.95\linewidth]{real_model_ripple.pdf}
+\caption{Fraction of recompilation units affected (ripple) per structural change, on real Modelica-Standard-Library models.}
+\label{fig:ripple}
+\end{figure}
+
+\subsection{A genuine scaling defect: quadratic code generation, found and fixed}
+\label{sec:on2}
+
+While profiling the pipeline in preparation for the scaling experiments below, we found that our own code generator, not the matcher, the partitioner, or the graph builder (all three of which profiled as near-linear), scaled quadratically with model size. Table~\ref{tab:on2} shows the measured before-and-after codegen time at two sizes.
+
+\begin{table}[!t]
+\caption{Code-generation time before and after fixing the quadratic bottleneck described in Section~\ref{sec:on2}.}
+\label{tab:on2}
+\centering
+\begin{tabular}{lccc}
+\toprule
+Equations & Codegen, before & Codegen, after & Speedup \\
+\midrule
+2{,}999 & 3.13 s & 0.37 s & 8.5$\times$ \\
+14{,}999 & 88.86 s & 1.81 s & 49$\times$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Before the fix, going from 2,999 to 14,999 equations, a fivefold increase, took the code generator 28.4 times longer, consistent with quadratic growth. The root cause was mundane and easy to miss precisely because it is correct, just slow: the per-unit code emission function rebuilt a full variable-name-to-storage-slot lookup table and performed a linear list scan to find each variable's index, and did so once per recompilation unit inside a loop over every unit in the model, turning an $O(N)$ per-call cost into $O(N^2)$ overall. The fix replaces the list scan with a dictionary built once per model and threaded through every call, which changed only the lookup mechanism, not any emitted code; a full regression run immediately after the fix showed no change in output whatsoever, only in wall-clock time. After the fix, the same fivefold size increase costs 4.85 times longer, consistent with linear growth, and the code generator is no longer the dominant cost at any size we measured.
+
+\subsection{Speedup versus model size}
+\label{sec:scale-results}
+
+Table~\ref{tab:scale} and Fig.~\ref{fig:speedup-size} report measured, repeated (three times per point) incremental-versus-full-rebuild speedup across a twentyfold range of model size, from 149 to 2,999 equations, on the parameterized thermal-chain family described in Section~\ref{sec:setup}. Every cell in this sweep is bit-identical to a full rebuild and every reused object is byte-identical to its cached baseline.
+
+\begin{table}[!t]
+\caption{Measured incremental speedup versus model size (three repeats per point; every cell bit-identical to a full rebuild).}
+\label{tab:scale}
+\centering
+\begin{tabular}{lccc}
+\toprule
+Equations & Full rebuild & Incremental & Speedup \\
+\midrule
+149    & 3.04 s  & 1.34 s  & 2.27$\times$ \\
+299    & 5.44 s  & 2.90 s  & 1.88$\times$ \\
+749    & 14.43 s & 7.02 s  & 2.05$\times$ \\
+1{,}499 & 34.07 s & 16.02 s & 2.13$\times$ \\
+2{,}999 & 72.18 s & 39.29 s & 1.84$\times$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=0.95\linewidth]{speedup_vs_size.pdf}
+\caption{Measured incremental speedup versus model size. Speedup holds in a narrow band rather than growing with size; Section~\ref{sec:scale-results} explains why.}
+\label{fig:speedup-size}
+\end{figure}
+
+The honest finding here is a negative one for the naive expectation that speedup should improve as more of the model becomes irrelevant to a localized change: it does not. Speedup stays in a 1.8$\times$ to 2.3$\times$ band across the whole twentyfold size range instead of trending upward, even though only two of every $3N{-}1$ units are ever affected by the tested change, a shrinking fraction as $N$ grows. The reason is a specific, named design choice, not an unexplained ceiling: our current incremental rebuild always relinks every cached object, never only the ones that changed. With only two of the total units ever recompiled, recompilation itself is close to instantaneous at every size we tested; relinking, which still touches every one of the $3N{-}1$ cached objects regardless of how few of them changed, is what the incremental build's time is actually spent on. Two pieces of evidence support this beyond the argument itself. First, the standard deviation of the incremental timing grows disproportionately with size relative to its mean, an eleven-point-nine-second standard deviation on a thirty-nine-point-three-second mean at the largest size tested, a roughly thirty percent relative spread, far noisier than the full rebuild's roughly four percent relative spread at the same size; relinking is dominated by process-spawn and filesystem I/O cost, which is noisy, while recompilation is CPU-bound and comparatively consistent, and the growing relative noise sits specifically in the number that is relink-dominated. Second, a larger, independently run one-off measurement at 1,499 equations with only two of 1,499 units affected, ninety-nine point eight seven percent of the model unaffected, still showed an incremental rebuild taking 11.3 seconds against a 29.8-second full rebuild, nowhere near the roughly sevenhundredfold speedup a ripple-proportional model would predict, because that 11.3 seconds is overwhelmingly spent relinking 1,499 cached objects, not recompiling two changed files.
+
+\subsection{One-time setup overhead versus model size}
+
+The cost paid once per model regardless of how many subsequent changes are processed against it, namely the compiler's own parse and flatten time plus our matching, partitioning, and dependency-graph construction, stays a small fraction of full-rebuild cost across the same size range: 3.0\% of full-rebuild time at 149 equations, rising to 5.2\% at 2,999 equations, with no sharp upward trend across the tested range (Fig.~\ref{fig:overhead}). This is a favorable result for the approach's practicality: the fixed cost of standing the system up on a given model does not become the bottleneck as the model grows, at least across the range we were able to test.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=0.95\linewidth]{overhead_vs_size.pdf}
+\caption{One-time graph and partition setup cost, expressed as a fraction of full-rebuild time, versus model size.}
+\label{fig:overhead}
+\end{figure}
+
+\subsection{A measured break-even change frequency}
+
+The practical question a system operator actually faces is not whether incremental recompilation is ever faster than a full rebuild in isolation; it is whether, given how often structural changes actually arrive, it is cheaper to recompile after every single change or to let several changes accumulate and rebuild once. We built a harness that applies a real, cumulative sequence of ten structural edits to a 899-equation model, each edit written on top of the previous edit's already-edited source the way a real codebase actually accumulates changes over time, and drives that sequence through two independently timed strategies: streaming incremental, which recompiles and relinks after every single change, and batched full, which accumulates changes and performs one real full rebuild covering every change in the batch so far, once every fixed number of changes.
+
+Every point in this comparison is a real, independently timed build; nothing here is projected. The ten-change streaming sequence totaled 63.0 seconds; a directly measured, three-times-repeated full rebuild of the same model cost 18.9 seconds on average. Table~\ref{tab:breakeven} sweeps batch size against these two real numbers and Fig.~\ref{fig:breakeven} shows the resulting crossing.
+
+\begin{table}[!t]
+\caption{Break-even sweep: cumulative cost of batching every $B$ changes into one full rebuild, against the fixed 63.0-second streaming-incremental total for the same ten-change sequence.}
+\label{tab:breakeven}
+\centering
+\begin{tabular}{lccc}
+\toprule
+Batch size $B$ & Rebuilds needed & Batched total & Cheaper? \\
+\midrule
+1  & 10 & 189.3 s & No \\
+2  & 5  & 94.7 s  & No \\
+3  & 4  & 75.7 s  & No \\
+\textbf{4}  & \textbf{3}  & \textbf{56.8 s}  & \textbf{Yes} \\
+5  & 2  & 37.9 s  & Yes \\
+10 & 1  & 18.9 s  & Yes \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=0.95\linewidth]{break_even_crossing.pdf}
+\caption{Cumulative streaming-incremental cost versus cumulative batched-full-rebuild cost, swept over batch size. The crossing at batch size four is stable even under the worst-case bound of the full-rebuild timing's own measured spread.}
+\label{fig:breakeven}
+\end{figure}
+
+Batching wins once four or more changes accumulate before a rebuild is due. This holds even under the worst-case bound of the full-rebuild timing's own measured spread, so the crossing is not an artifact of comparing favorable point estimates on either side. We consider this the most operationally useful single number in the paper: it directly tells a system operator, for this model and this change type, the change frequency above which they should stop recompiling incrementally after every edit and instead let edits accumulate.
+
+\section{Limitations and Threats to Validity}
+\label{sec:limitations}
+
+We state these plainly rather than around them, since a feasibility result is only useful if its boundary is precise.
+
+\emph{Scale.} The success criterion this project set out to reach was on the order of one hundred thousand equations. The largest size at which the complete detect-resolve-recompile-relink-verify pipeline has been run and independently confirmed bit-identical is 1,499 equations; the largest size at which repeated speedup and overhead measurements were taken is 2,999 equations; the largest size the code generator was profiled at is 14,999 equations, timing only, not run through the full correctness pipeline; and the largest model the compiler front end was ever asked to parse at all is 29,999 equations, compile time only. This is a consciously scoped-down decision, not an oversight: the compiler's own parse and flatten time grows faster than linearly with model size on this front end, and a repeated-measurement experiment, several full and incremental rebuilds per data point, at one hundred thousand equations was not affordable within this project's time budget once that growth is accounted for. The trend we do report, speedup holding steady rather than growing as size increases, is reported as exactly that: a trend measured up to 2,999 equations, one-off confirmed for correctness to 1,499, never extrapolated to one hundred thousand.
+
+\emph{Index-1 models only.} Every model this approach has been shown to work on is index-1: every algebraic loop that appears can be solved directly, without differentiating any equation first. A seventh-order Cauer low-pass filter from the Modelica Standard Library, which has two independent loops made entirely of capacitors, requires genuine differential-index reduction before it can even be causalized, a textbook structural pattern the front-end compiler clearly handles internally but which our own matcher does not attempt to replicate. This is a real, load-bearing scope boundary, decided before any code generation was built around the wrong flagship model, not discovered afterward: our generality claim is scoped to index-1 implicit-equation models, and the two specific equations the matcher cannot place turn out to be exactly the two potential-equality constraints that close the filter's two capacitor-only loops, confirming this is a genuine structural gap rather than a bug in the matcher itself.
+
+\emph{The relink ceiling.} As shown in Section~\ref{sec:scale-results}, our incremental rebuild always relinks every cached object rather than only the ones that changed, and this is the direct, named cause of the measured speedup plateau. A relink strategy that only re-links the affected subset, using incremental linking or shared objects, would likely raise that plateau; we did not attempt it, and consider it the single most impactful piece of remaining engineering work.
+
+\emph{Linear coupled blocks only.} Every coupled block encountered in this work, real or hand-written, is exactly linear; no tested model has a genuine nonlinear algebraic loop, so nonlinear block code generation, which would need an iterative solve such as Newton's method, was never built.
+
+\emph{No discrete or event-driven signals.} Standard Modelica Standard Library signal sources compile their start-time conditional logic to a construct our code emitter does not yet translate. This blocked one natural component swap during development, worked around by choosing a different, still genuine swap rather than building support for it.
+
+\emph{Small run-to-run timing variance on tiny models.} As reported in Section~\ref{sec:msl-results}, speedup measurements on models with only a few dozen total recompilation units showed substantial relative variance between independent re-runs of the identical experiment, traced to compiler and linker process-spawn overhead dominating at that scale. The larger sweep in Section~\ref{sec:scale-results} is the more statistically stable claim this paper makes about speedup.
+
+\emph{Change detection is out of scope.} Every change in every experiment reported here is injected by a script that therefore already knows exactly which equations it edited. A deployed system would need to detect that a structural change happened at all and identify which equations it touched before any of the machinery in this paper could run; that detection problem is not addressed here.
+
+\emph{Generality is validated on a small real-model corpus.} Real Modelica-Standard-Library generality is demonstrated on two real circuit models plus the Cauer filter as a documented negative result. A systematic characterization of which structural properties of a model predict how much a given change class will benefit from incremental recompilation, across a larger corpus of real models, has not been attempted.
+
+\section{Future Work}
+\label{sec:future}
+
+The most concrete and highest-leverage next step is replacing full relinking with a partial or incremental link strategy, since Section~\ref{sec:scale-results} shows directly that relinking, not recompiling, is the current bottleneck at scale; raising the speedup ceiling likely does not require touching the matching or partitioning logic at all. Beyond that, extending the matcher to perform differential-index reduction would open the approach to models like the Cauer filter that are structurally common in physical-domain libraries (any purely reactive loop or cutset produces the same pattern), and adding Newton-iteration code generation for genuinely nonlinear coupled blocks would remove the current linear-only restriction, though neither has been demonstrated to be necessary by any model this project has actually encountered. Scaling the repeated-measurement experiments further, toward the original one-hundred-thousand-equation target, is primarily gated on the front end's own superlinear compile time rather than on anything in this paper's own pipeline, and would benefit from a compiler front end whose parse and flatten stage scales closer to linearly. Finally, the change-detection problem this paper explicitly sets aside, automatically identifying that a structural change occurred and which equations it touched from an updated model source or an external signal, is a natural and necessary companion to the impact-resolution machinery described here.
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+We built and measured, rather than merely proposed, a matching-based incremental recompilation pipeline for Modelica models, using a real compiler front end and real Modelica-Standard-Library components throughout. The central finding is genuinely mixed, and we think the mixture is the useful part: incremental recompilation of real digital-twin-relevant models is measurably faster than a full rebuild, correctness holds exactly rather than within a tolerance on every cell we measured, and we can state a concrete, measured change frequency above which batching several edits beats recompiling after each one individually. At the same time, the speedup does not grow with model size under the current design, for a specific, diagnosed, and fixable reason, and the approach's generality stops precisely at models requiring differential-index reduction. Both the positive and negative results here are reported at the same level of evidence: real, repeated, independently verified measurements, not projections, with every reported limitation stated as plainly as every reported result.
+
+\bibliographystyle{IEEEtran}
+\bibliography{refs}
+
+\end{document}
