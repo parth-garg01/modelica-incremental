@@ -1,0 +1,14 @@
+RLCCircuit:
+  units: 1/3 recompiled (['RLCCircuit_unit_i.c'])
+  full_rebuild: mean=313.521ms stdev=41.946ms
+  incremental:  mean=311.711ms stdev=20.031ms
+  measured_speedup=1.01x
+  reused_byte_identical=True affected_object_diff_from_cache={'RLCCircuit_unit_i.c': True} incremental_matches_full=True
+  outputs_identical=True
+ThermalNetwork:
+  units: 2/9 recompiled (['ThermalNetwork_unit_Q1.c', 'ThermalNetwork_unit_T1.c'])
+  full_rebuild: mean=371.641ms stdev=11.768ms
+  incremental:  mean=319.788ms stdev=29.002ms
+  measured_speedup=1.16x
+  reused_byte_identical=True affected_object_diff_from_cache={'ThermalNetwork_unit_Q1.c': True, 'ThermalNetwork_unit_T1.c': False} incremental_matches_full=True
+  outputs_identical=True

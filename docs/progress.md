@@ -26,9 +26,40 @@ not delete history -- this is a log, not a status snapshot.
 
 **Next up: STAGE A IS COMPLETE (Features 1-9, commit `fb977fa`). STAGE B
 IS NOW COMPLETE (Features 10-17, commits `410c852` through `194f35e`).
-Stage C (Features 18-23: target venue, full-length restructure,
-related work, reproducibility package, threats to validity, final
-review) starts now.**
+`docs/results.md` (see the entry below) now gathers every Stage A/B
+result in one evidence-backed document -- read it, not just this log,
+before starting any Stage C writing work. Stage C (Features 18-23:
+target venue, full-length restructure, related work, reproducibility
+package, threats to validity, final review) starts now; Feature 18 is
+partially done (`docs/venue.md`), the rest has not started.**
+
+**Results-gathering session (commit `d2a6ee6` and the `docs/results.md`
+commit that follows it) -- NOT a Stage C feature, a dedicated pass
+requested to assemble everything already measured into one citable
+document before any paper writing begins.** Re-ran the full test suite
+clean (152 passed, 1 xfailed, unchanged from Stage B's close). Found and
+fixed a real reproducibility gap while cross-checking old evidence: the
+committed `results/measurements_msl.csv` (from commit `410c852`) did not
+match either that commit's own message or `docs/paper.md`'s table --
+re-ran `src/measure_msl.py` fresh and got a **fourth** distinct value
+for the same experiment, all with identical ripple but timing swinging
+up to ~30-40% relative between runs (commit `d2a6ee6` has the full
+diagnosis). Traced this to `gcc`/`ld` process-spawn noise dominating on
+very small (23-24 total unit) builds -- also independently re-confirmed
+on the even-smaller Stage-0 `measure_c.py` cells (RLCCircuit/
+ThermalNetwork, 3/9 units: historical 1.54x/2.23x, this session's fresh
+rerun 1.01x/1.16x, still bit-identical both times). This is now recorded
+as an explicit, documented finding (`docs/results.md` Sections 3.3-3.4,
+7.8) rather than a silently "corrected" number. All 6 figures NOT
+affected by that rerun were regenerated and confirmed byte-identical to
+their previously-committed versions (direct file diff, not visual
+inspection). `docs/results.md` also states plainly, for the first time
+in one place, that the original ">=100,000 equations" success criterion
+was never reached -- largest full-pipeline-verified size is N=500 rooms
+/ 1,499 equations; largest Rumoca has ever compiled in this project is
+N=10,000 rooms / 29,999 equations (compile-only). See `docs/results.md`
+Section 7 for the complete, itemized limitations list (12 items) and
+Section 11 for the standing-rules self-check.
 
 **Stage B summary (full detail in the dated entries below).** All 8
 features done, real measurements throughout, no projections. Headline
