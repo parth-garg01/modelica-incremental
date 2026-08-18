@@ -151,6 +151,19 @@ CELLS = [
         changed_roots=["msl_src", "models/msl_rc_circuit_swapped"], t_end=3.0, dt=0.5,
     ),
     dict(
+        # Priority 3: broadening the real-model corpus beyond the
+        # electrical domain -- Modelica.Thermal.HeatTransfer, the same
+        # component-swap change type (ThermalConductor -> ThermalResistor
+        # is the thermal-domain dual of Resistor -> Conductor above),
+        # same connect()-wired-component generality claim, a different
+        # physical domain entirely.
+        baseline_path="models/msl_thermal_chain/MslThermalChain.mo",
+        changed_path="models/msl_thermal_chain_swapped/MslThermalChain.mo",
+        model_name="MslThermalChain", seed=["G1.Q_flow", "G1.dT"],
+        baseline_roots=["msl_src", "models/msl_thermal_chain"],
+        changed_roots=["msl_src", "models/msl_thermal_chain_swapped"], t_end=3.0, dt=0.5,
+    ),
+    dict(
         baseline_path="models/msl_rc_circuit/MslRcCircuit.mo",
         changed_path="models/msl_rc_circuit_sensor/MslRcCircuit.mo",
         model_name="MslRcCircuit", seed=["P_R"],

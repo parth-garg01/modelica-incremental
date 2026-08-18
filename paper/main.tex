@@ -143,7 +143,7 @@ Each unit's C file compiles straight to its own shared library, loaded by the dr
 \section{Experimental Setup}
 \label{sec:setup}
 
-All experiments ran on one Windows machine using Rumoca 0.9.20 through its Python bindings, Python 3.11.9, and MinGW-w64 GCC 15.2, with every compile and link step timed as a real subprocess call, never derived from another timing by arithmetic. Two model families are used: real circuits built from genuine connect-wired Modelica Standard Library components (MslRcCircuit, 23 equations; MslResistorNetwork, 35 equations; and the 69-equation CauerLowPassAnalog filter, a documented negative result), and a parameterized thermal-chain generator producing an $N$-room model with $3N{-}1$ equations on the same index-1 topology already validated above, used to test how the approach behaves as size grows beyond what any single hand-written model covers. All code, models, and logs are in the project repository; every number below cites the script and log it came from.
+All experiments ran on one Windows machine using Rumoca 0.9.20 through its Python bindings, Python 3.11.9, and MinGW-w64 GCC 15.2, with every compile and link step timed as a real subprocess call, never derived from another timing by arithmetic. Two model families are used: real circuits and thermal networks built from genuine connect-wired Modelica Standard Library components across two physical domains (MslRcCircuit and MslResistorNetwork, electrical, 23 and 35 equations; MslThermalChain, thermal, 20 equations; and the 69-equation CauerLowPassAnalog filter, a documented negative result), and a separate parameterized generator producing an $N$-room thermal-chain model with $3N{-}1$ equations on the same index-1 topology already validated above, used to test how the approach behaves as size grows beyond what any single hand-written or real-component model covers. All code, models, and logs are in the project repository; every number below cites the script and log it came from.
 
 \section{Results}
 \label{sec:results}
@@ -158,7 +158,7 @@ the ratio of mean full to mean incremental rebuild time, and the affected fracti
 \subsection{Generality on real Modelica-Standard-Library models}
 \label{sec:msl-results}
 
-Table~\ref{tab:msl-speedup} shows the measured full and incremental rebuild time for three real, five-times-repeated change cells; every cell is bit-identical to a full rebuild and every reused object byte-identical to its cache. Fig.~\ref{fig:msl-speedup} depicts the resulting speedup ratio $S$ for each cell, and Fig.~\ref{fig:ripple} depicts the corresponding ripple $\rho$.
+Table~\ref{tab:msl-speedup} shows the measured full and incremental rebuild time for four real, five-times-repeated change cells across two physical domains; every cell is bit-identical to a full rebuild and every reused object byte-identical to its cache. Fig.~\ref{fig:msl-speedup} depicts the resulting speedup ratio $S$ for each cell, and Fig.~\ref{fig:ripple} depicts the corresponding ripple $\rho$.
 
 \begin{table}[!t]
 \caption{Measured speedup on real MSL models.}
@@ -169,9 +169,10 @@ Table~\ref{tab:msl-speedup} shows the measured full and incremental rebuild time
 \toprule
 Change & Units affected & Full & Incr. \\
 \midrule
-Resistor $\rightarrow$ Conductor & 13/23 & 1447.7 ms & 1187.6 ms \\
-Sensor addition & 1/24 & 1454.2 ms & 822.7 ms \\
-Resistor removal & 11/18 & 1289.7 ms & 1042.4 ms \\
+Resistor $\rightarrow$ Conductor & 13/23 & 1453.4 ms & 1217.5 ms \\
+Sensor addition & 1/24 & 1529.8 ms & 844.2 ms \\
+Resistor removal & 11/18 & 1301.9 ms & 1075.9 ms \\
+Conductor $\rightarrow$ Resistor (thermal) & 7/20 & 1435.8 ms & 952.8 ms \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -190,7 +191,7 @@ Resistor removal & 11/18 & 1289.7 ms & 1042.4 ms \\
 \label{fig:ripple}
 \end{figure}
 
-Speedup ranges 1.22$\times$--1.77$\times$ (dynamic-link build, Section~\ref{sec:scale-results}), with $\rho$ ranging 4\%--61\% and showing no simple relationship to speedup: the sensor-addition cell has both the smallest $\rho$ and the largest speedup, as expected, but resistor removal has the largest $\rho$ of the three (61\%, higher than the resistor swap's 57\%) while still narrowly beating the resistor swap's speedup, because at this model size wall-clock speedup depends on more than $\rho$ alone. We disclose directly that these particular numbers are noisier across independent re-runs than expected: on models with only 23--24 total units, fixed compiler/linker process-spawn overhead is large relative to the work saved, so four separate re-runs of the identical script and code varied by up to roughly 30--40\% relative to each other, while $\rho$ stayed exactly identical every time, confirming the matching and resolution logic is deterministic and only wall-clock timing on tiny builds is noisy. A larger, less noisy sweep on generated models at bigger sizes is reported next.
+The fourth cell is a real thermal-domain model, MslThermalChain, built from genuine Modelica Thermal HeatTransfer components (a fixed-temperature source, two thermal conductors, two heat capacitors), with the thermal dual of the electrical resistor-to-conductor swap (a thermal conductor replaced by a thermal resistor, same two-port interface, different governing equation) as its tested change, added specifically to show the approach generalizes past the electrical domain it was originally built and validated against, not only past hand-written fixtures. Speedup ranges 1.19$\times$--1.81$\times$ across all four cells (dynamic-link build, Section~\ref{sec:scale-results}), with $\rho$ ranging 4\%--61\% and showing no simple relationship to speedup: the sensor-addition cell has both the smallest $\rho$ and the largest speedup, as expected, but resistor removal has the second-largest $\rho$ of the four (61\%) while still beating the resistor swap's speedup, because at this model size wall-clock speedup depends on more than $\rho$ alone. We disclose directly that these particular numbers are noisier across independent re-runs than expected: on models with only 18--24 total units, fixed compiler/linker process-spawn overhead is large relative to the work saved, so independent re-runs of the identical script and code vary by up to roughly 30--40\% relative to each other, while $\rho$ stays exactly identical every time, confirming the matching and resolution logic is deterministic and only wall-clock timing on tiny builds is noisy. A larger, less noisy sweep on generated models at bigger sizes is reported next.
 
 \subsection{A genuine scaling defect: quadratic code generation}
 \label{sec:on2}
@@ -300,7 +301,7 @@ Batching now wins once two or more changes accumulate before a rebuild is due, p
 \label{sec:limitations}
 
 \begin{enumerate}
-\item \textbf{Scale.} The target was on the order of $10^5$ equations. The full pipeline has been verified bit-identical only to 1,499 equations; repeated speedup/overhead measurements reach 2,999; codegen was profiled, timing only, to 14,999; the compiler was asked to parse, compile only, at most 29,999. This is scoped deliberately: the front end's own parse time grows faster than linearly, and a repeated-measurement cell at $10^5$ equations was not affordable here. The reported growing-speedup trend is a trend measured up to 2,999 equations, never extrapolated further; whether it continues to grow, levels off, or turns over at larger sizes is explicitly not established by this range.
+\item \textbf{Scale.} The target was on the order of $10^5$ equations. The full pipeline has been verified bit-identical up to 14,999 equations (one-off, single-repeat cells, not the properly repeated speedup measurement below); repeated, warm-up-corrected speedup/overhead measurements reach 2,999; codegen was profiled, timing only, to 14,999; the compiler was asked to parse, compile only, at most 29,999. This is scoped deliberately: the front end's own parse time grows faster than linearly, and a repeated-measurement cell at $10^5$ equations was not affordable here. The growing-speedup trend is properly established, with tight repeated measurement, only up to 2,999 equations; single, unrepeated correctness cells at 5,999 and 14,999 equations continued the trend cleanly at the smaller size (30.5$\times$) but showed a far noisier, unexplained-in-full number at the larger one (3.3$\times$), consistent with, not contradicting, the remaining $O(N)$ copy cost noted above becoming more expensive at very large file counts; reported honestly as an open question rather than smoothed into the main trend or hidden.
 
 \item \textbf{Index-1 models only.} Every validated model is index-1. A 69-equation Cauer filter with two independent capacitor-only loops needs genuine differential-index reduction~\cite{pantelides1988consistent} before causalization, which our matcher does not attempt; the two equations it cannot place are exactly the two potential-equality constraints closing those loops, confirming a genuine structural gap, not a matcher bug.
 

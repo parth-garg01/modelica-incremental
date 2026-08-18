@@ -111,7 +111,38 @@ def remove_r3_from_resistor_network(
     return out_path
 
 
+def swap_thermal_conductor_to_resistor(
+    source_path: str | Path = "models/msl_thermal_chain/MslThermalChain.mo",
+    out_path: str | Path = "models/msl_thermal_chain_swapped/MslThermalChain.mo",
+) -> Path:
+    """Priority 3 (broadening the real-model corpus): the thermal-domain
+    analog of swap_resistor_to_conductor() above -- ThermalConductor
+    (Q_flow = G*dT) and ThermalResistor (dT = R*Q_flow) are genuine MSL
+    duals sharing the same Interfaces.Element1D two-port interface, same
+    role, different governing equation, exactly the change-type
+    definition, on a different physical domain than every other real-MSL
+    change type tested so far."""
+    text = Path(source_path).read_text(encoding="utf-8")
+
+    old = (
+        "  Modelica.Thermal.HeatTransfer.Components.ThermalConductor G1(G=0.5)\n"
+        "    annotation (Placement(transformation(extent={{-40,-10},{-20,10}})));\n"
+    )
+    new = (
+        "  Modelica.Thermal.HeatTransfer.Components.ThermalResistor G1(R=2)\n"
+        "    annotation (Placement(transformation(extent={{-40,-10},{-20,10}})));\n"
+    )
+    assert old in text, "expected ThermalConductor G1 instantiation+annotation not found"
+    text = text.replace(old, new)
+
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(text, encoding="utf-8")
+    return out_path
+
+
 if __name__ == "__main__":
     print("wrote", swap_resistor_to_conductor())
     print("wrote", add_power_sensor_equation())
     print("wrote", remove_r3_from_resistor_network())
+    print("wrote", swap_thermal_conductor_to_resistor())

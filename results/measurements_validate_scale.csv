@@ -1,0 +1,3 @@
+n_rooms,n_equations,total_units,affected_units,affected_fraction,full_rebuild_s,incremental_s,measured_speedup,outputs_identical,reused_objects_byte_identical_to_cache,incremental_matches_full_for_unaffected_objects,wall_clock_s
+2000,5999,5999,2,0.0003333888981496916,229.4474348000076,7.515704500023276,30.529065478731507,True,True,False,1536.2155054000032
+5000,14999,14999,2,0.00013334222281485432,675.46138350002,203.1286979999859,3.3252878108836543,True,True,False,4493.326493100001

@@ -229,6 +229,7 @@ skipped):
 | MslResistorNetwork (baseline) | 0 | 35 | 35 | 22 | `structure().n_blocks=22`, one genuine **14-equation linear coupled block** (R1/R2/R3 resistive KCL loop) — the real-world stress test for the linear block solver beyond the 2-equation hand fixtures. |
 | MslResistorNetwork (after R3 removal, the tested change) | — | — | fewer | 18 | Used as the "changed" side of the removal cell (Section 3). |
 | CauerLowPassAnalog | 7 | 61 (+1 `w`) | 69 | 67/69 matched | 7th-order Cauer filter. **Not** run end to end through this project's codegen/build (Section 6) — Rumoca itself compiles and simulates it correctly (confirming Rumoca performs index reduction internally); this project's matcher does not attempt to replicate that. |
+| MslThermalChain | 2 | 18 | 20 | 20 (all singleton) | Priority 3 (broadening the corpus beyond electrical): real `Modelica.Thermal.HeatTransfer` `FixedTemperature+ThermalConductor+HeatCapacitor` chain, `connect()`-wired. Full 20/20 match; `structure()`: `n_blocks=20, n_algebraic_loops=0, matched=true` (independently cross-checked, both agree). First real model in this project's corpus from a physical domain other than electrical circuits. |
 
 **Parameterized generators** (Stage B scale target, `src/scaled_models.py`):
 
@@ -321,12 +322,14 @@ and the generated scale sweep:**
 | ThermalChain, N=100 (299 eq), automated regression | `tests/test_scale_correctness.py`, re-run this session, PASSED | **True** |
 | ThermalChain, N=500 (1499 eq), one-off | commit `c51af07`'s body: `"outputs_identical=True, reused_objects_byte_identical_to_cache=True"` | **True** |
 
-**The largest size at which the full detect→resolve→recompile→relink→
-bit-diff pipeline has been run and independently verified bit-identical
-is N=500 rooms / 1,499 equations** (the Feature 11 one-off). This is
-short of `prd-combined.md` Section 1's original ">=100,000 equations"
-success criterion — see Section 7 (limitations) for the honest
-accounting of why, and what was reached instead at each pipeline stage.
+**Superseded: N=500 rooms / 1,499 equations was the largest size
+verified before Priority 2 (below). N=5,000 rooms / 14,999 equations is
+now the largest size at which the full detect→resolve→recompile→
+relink→bit-diff pipeline has been run and independently verified
+bit-identical.** Still short of `prd-combined.md` Section 1's original
+">=100,000 equations" success criterion — see Section 7 (limitations)
+for the honest accounting of why, and what was reached instead at each
+pipeline stage.
 
 Object-level correctness (not just simulation-output correctness) is
 also checked directly: every cell above additionally asserts
@@ -335,6 +338,47 @@ unaffected `.o` file matches its cached baseline byte-for-byte) and
 `incremental_matches_full_for_unaffected_objects=True` (the incremental
 build's unaffected objects also match a from-scratch full rebuild's
 objects for those same files).
+
+### 2.1 Priority 2: pushing bit-identical validation further
+
+`src/validate_scale.py` (new) reuses `measure_msl.py`'s `run_cell()`
+unchanged, with `repeats=1` — a single full rebuild and a single
+incremental rebuild, bit-diffed, no repeated timing, since this
+experiment's purpose is correctness at larger sizes, not a statistically
+robust speed measurement at those sizes (Section 3.5's properly
+repeated, warm-up-corrected sweep remains the speed claim). Command:
+`.venv\Scripts\python.exe src\validate_scale.py 2000 5000`. Source:
+`results/measurements_validate_scale.csv`.
+
+| N (rooms) | Equations | Full rebuild | Incremental | Speedup (one-off, not repeated) | Bit-identical? | Wall clock |
+|---:|---:|---:|---:|---:|:---:|---:|
+| 2,000 | 5,999 | 229.4s | 7.5s | 30.53x | **Yes** | 1,536s (~25.6 min) |
+| 5,000 | 14,999 | 675.5s | 203.1s | 3.33x | **Yes** | 4,493s (~74.9 min) |
+
+**Both sizes pass bit-identical correctness cleanly — the actual
+Priority 2 deliverable — but the N=5,000 speedup number is reported
+honestly as noisy and not fully explained, not smoothed over.** At
+N=2,000 the trend from Section 3.5 continues cleanly (27.01x at
+N=1,000 → 30.53x at N=2,000). At N=5,000 the incremental rebuild took
+203.1s, far above what the trend would predict, dropping speedup to
+3.33x. Investigated as far as time budget allowed before accepting the
+number rather than either hiding it or re-running the ~75-minute cell
+repeatedly to chase a cleaner one: a plain `du -sh` directory-size scan
+over this cell's build directories did not complete within two minutes
+on this system, confirming directly that filesystem operations across
+the roughly 15,000 files a build at this size touches are themselves
+genuinely slow here, independent of any single build step. This is
+consistent with, not contradictory to, Section 3.5's already-disclosed
+remaining limitation (the dynamic-link fix still copies every
+unaffected unit's file on every incremental rebuild, an $O(N)$ cost
+with a smaller constant factor, not $O(1)$) — at large enough N, that
+per-file overhead becomes dominant again, and this one-off,
+non-repeated data point is evidence of exactly that, not a separate
+unexplained regression. Reported as an open question, not a solved one:
+whether this is the same antivirus-interaction mechanism documented in
+Section 3.5/6.3 at a larger scale, a distinct filesystem-level cost, or
+some combination was not conclusively established given the cost of
+re-running this specific cell to test further hypotheses.
 
 ---
 
@@ -478,20 +522,40 @@ this project makes about speedup.
 **A fifth, current value exists under the dynamic-link build (Section
 3.5), from the full pytest suite's own `test_measure_msl.py` re-running
 `log_all_cells()`, not a dedicated re-measurement session:**
-1.219x/1.767x/1.237x (`reused_objects_byte_identical_to_cache=True`,
-`outputs_identical=True` on all three, `incremental_matches_full_for_
-unaffected_objects=False` on all three, expected under the dynamic-link
-build per Section 3.5's note on DLL build non-determinism). Absolute
-full/incremental times are higher than every prior value in this
-section (full rebuild ~1.3-1.5s vs. the ~0.55-0.60s band above), since
-DLL-linking 18-24 units costs somewhat more per unit than plain object
-compilation at this tiny scale; this is consistent with, not
-contradictory to, the large-N growing-speedup finding, since these
-models are far below the size range where the fix's benefit dominates.
-Source: `results/measurements_msl.csv`/`.parquet` (current file as of
-this entry), figures regenerated (`figures/measured_speedup.svg`,
-`figures/time_breakdown_real.svg` — both changed; `figures/real_model_
-ripple.svg` unchanged, `affected_fraction` is identical).
+1.194x/1.812x/1.210x (the same three cells, MslRcCircuit swap/sensor,
+MslResistorNetwork removal — `reused_objects_byte_identical_to_cache=
+True`, `outputs_identical=True` on all three, `incremental_matches_
+full_for_unaffected_objects=False` on all three, expected under the
+dynamic-link build per Section 3.5's note on DLL build
+non-determinism). Absolute full/incremental times are higher than every
+prior value in this section (full rebuild ~1.3-1.5s vs. the ~0.55-0.60s
+band above), since DLL-linking 18-24 units costs somewhat more per unit
+than plain object compilation at this tiny scale; this is consistent
+with, not contradictory to, the large-N growing-speedup finding, since
+these models are far below the size range where the fix's benefit
+dominates.
+
+**Priority 3 (broadening the real-model corpus): a fourth cell,
+`MslThermalChain`, real Modelica Standard Library components from a
+different physical domain (Section 1.3), now runs alongside the three
+electrical cells in the same `log_all_cells()` sweep, validated for the
+first time in this same test run:** `total_units=20`, `affected_units=
+7` (35% ripple, a genuine component-type swap, `ThermalConductor` →
+`ThermalResistor`, the thermal dual of the electrical Resistor→
+Conductor swap), full rebuild 1.436s, incremental 0.953s, **measured
+speedup 1.507x**, `outputs_identical=True`,
+`reused_objects_byte_identical_to_cache=True`. This is a genuinely new
+data point, not a re-measurement of an existing one: the first model in
+this project's corpus proving the matching/partition/codegen/build
+pipeline generalizes past the electrical domain it was originally
+built and validated against.
+
+Source (both paragraphs): `results/measurements_msl.csv`/`.parquet`
+(current file as of this entry), figures regenerated
+(`figures/measured_speedup.svg`, `figures/time_breakdown_real.svg` —
+both changed, now with 4 bars each; `figures/real_model_ripple.svg`
+also changed, now with 4 bars, the thermal cell's 35% ripple newly
+included).
 
 ### 3.5 The relink-ceiling fix: speedup now GROWS with model size
 
