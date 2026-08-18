@@ -39,7 +39,7 @@ Tamil Nadu, India\\
 \maketitle
 
 \begin{abstract}
-A digital twin drifts out of sync when the machine it models changes structurally: a part is swapped, a sensor is added, a component is removed. Every simulation compiler we know of reacts by rebuilding the whole model from scratch, an outage a twin tracking a live system cannot always afford. We ask whether the compiled artifacts a localized structural edit actually invalidates are themselves localized, and build a pipeline that answers empirically. We compute an equation-to-variable matching from a Modelica model's compiled differential-algebraic representation, partition it into recompilation units, and resolve a change's impact by graph reachability, never by diffing before and after. Every rebuilt binary is checked bit-identical against a full rebuild. On real Modelica-Standard-Library circuits we measure real speedups of 1.09$\times$--2.27$\times$; across a twentyfold model-size range the speedup holds in a 1.8$\times$--2.3$\times$ band rather than growing, because relinking, not recompiling, dominates. We found and fixed a non-deterministic third-party matcher and a quadratic bug in our own code generator, and measured a break-even change frequency above which batching edits beats recompiling after each one. We report where the approach stops working as plainly as where it works: differential-index models and scale beyond a few thousand equations are both out of reach here.
+A digital twin drifts out of sync when the machine it models changes structurally: a part is swapped, a sensor is added, a component is removed. Every simulation compiler we know of reacts by rebuilding the whole model from scratch, an outage a twin tracking a live system cannot always afford. We ask whether the compiled artifacts a localized structural edit actually invalidates are themselves localized, and build a pipeline that answers empirically. We compute an equation-to-variable matching from a Modelica model's compiled differential-algebraic representation, partition it into recompilation units, and resolve a change's impact by graph reachability, never by diffing before and after. Every rebuilt binary is checked bit-identical against a full rebuild. On real Modelica-Standard-Library circuits we measure real speedups of 1.09$\times$--2.27$\times$. We initially found this speedup held in a flat 1.8$\times$--2.3$\times$ band across a twentyfold model-size range because relinking every cached unit, not recompiling the changed one, dominated incremental cost; rather than report that ceiling as inherent, we replaced static linking with per-unit dynamic libraries loaded at run time, verified the change bit-identical against the original design, and re-measured. Speedup now grows from 5.7$\times$ to 27.0$\times$ across the same twentyfold range. We found and fixed a non-deterministic third-party matcher and a quadratic bug in our own code generator along the way, and measured a break-even change frequency above which batching edits beats recompiling after each one. We report where the approach stops working as plainly as where it works: differential-index models and scale beyond a few thousand equations are both out of reach here.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -56,7 +56,7 @@ This paper makes four contributions:
 \begin{itemize}
 \item A from-scratch equation-to-unknown matching and recompilation-unit partition, derived directly from a Modelica compiler's own compiled intermediate representation, since the compiler does not expose this internally computed structure itself.
 \item A graph-reachability-based change-impact resolver, checked bit-identical on every measured cell against an independently computed diff rather than trusted on its own prediction.
-\item Real, repeated, measured speedup on real Modelica Standard Library models and across a twentyfold model-size sweep, showing the speedup plateaus rather than grows, with a diagnosed and named cause for the plateau.
+\item Real, repeated, measured speedup on real Modelica Standard Library models and across a twentyfold model-size sweep; an initial flat speedup plateau was diagnosed to a specific, named cause (always relinking every cached unit) and fixed, after which speedup grows with model size instead.
 \item A measured, not assumed, break-even change frequency above which batching several structural edits beats recompiling after each one individually.
 \end{itemize}
 
@@ -138,7 +138,7 @@ A\mathbf{x} = \mathbf{b},
 \end{equation}
 solved with a shared, size-parameterized Gaussian-elimination routine with partial pivoting. Both paths share the same affine-extraction code behind~(\ref{eq:affine}); an earlier version of the singleton path assumed a matched variable always sits alone on one side of its equation as written, false whenever the matcher assigns an equation to a variable other than its syntactic left-hand side, which produced a real, silent, self-referential wrong assignment on one Modelica-Standard-Library resistor model until unified onto one provably correct path.
 
-A full rebuild compiles and links every unit; an incremental rebuild recompiles only the resolver's affected units, copies cached objects for the rest, and relinks the complete set. Every reused object's SHA-256 hash is checked against its cached baseline, and every measured cell additionally requires the two binaries' simulation output to match exactly, either at zero absolute error or, for larger models, by literal string equality of the full printed trace, a strictly stronger check than a numeric tolerance. No tolerance was invoked to pass a result in this paper.
+Each unit's C file compiles straight to its own shared library, loaded by the driver at \emph{runtime} rather than resolved by the linker at build time: the driver calls each unit through a function pointer obtained via a dynamic-library load and symbol lookup, not a direct call baked into one executable. This design choice, not an incidental implementation detail, is what Section~\ref{sec:scale-results} shows removing the dominant bottleneck at scale: a full rebuild builds every unit's library and links the driver; an incremental rebuild recompiles only the resolver's affected units' libraries, copies cached libraries unchanged for the rest, and always relinks the driver itself, which is cheap because the driver's own link touches no unit's object code at all. Every reused unit library's SHA-256 hash is checked against its cached baseline, and every measured cell additionally requires the two binaries' simulation output to match exactly, either at zero absolute error or, for larger models, by literal string equality of the full printed trace, a strictly stronger check than a numeric tolerance. No tolerance was invoked to pass a result in this paper. We verified this mechanism directly, at the level of the toolchain itself, before trusting any timing result built on it: a compiled shared-library export loads and calls correctly, is unaffected when the identical source is instead statically linked (so the same code generator serves both strategies), and a library rebuilt under an unchanged filename is picked up correctly by the next process, with no stale-load artifact across independent runs.
 
 \section{Experimental Setup}
 \label{sec:setup}
@@ -169,9 +169,9 @@ Table~\ref{tab:msl-speedup} shows the measured full and incremental rebuild time
 \toprule
 Change & Units affected & Full & Incr. \\
 \midrule
-Resistor $\rightarrow$ Conductor & 13/23 & 552.9 ms & 506.3 ms \\
-Sensor addition & 1/24 & 595.9 ms & 382.1 ms \\
-Resistor removal & 11/18 & 589.3 ms & 437.5 ms \\
+Resistor $\rightarrow$ Conductor & 13/23 & 1447.7 ms & 1187.6 ms \\
+Sensor addition & 1/24 & 1454.2 ms & 822.7 ms \\
+Resistor removal & 11/18 & 1289.7 ms & 1042.4 ms \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -190,7 +190,7 @@ Resistor removal & 11/18 & 589.3 ms & 437.5 ms \\
 \label{fig:ripple}
 \end{figure}
 
-Speedup ranges 1.09$\times$--1.56$\times$, with $\rho$ ranging 4\%--61\% and showing no simple relationship to speedup: the sensor-addition cell has both the smallest $\rho$ and the largest speedup, as expected, but resistor removal has the largest $\rho$ of the three (61\%, higher than the resistor swap's 57\%) while still beating the resistor swap's speedup, because at this model size wall-clock speedup depends on more than $\rho$ alone. We disclose directly that these particular numbers are noisier across independent re-runs than expected: on models with only 23--24 total units, fixed compiler/linker process-spawn overhead is large relative to the work saved, so four separate re-runs of the identical script and code varied by up to roughly 30--40\% relative to each other, while $\rho$ stayed exactly identical every time, confirming the matching and resolution logic is deterministic and only wall-clock timing on tiny builds is noisy. A larger, less noisy sweep on generated models at bigger sizes is reported next.
+Speedup ranges 1.22$\times$--1.77$\times$ (dynamic-link build, Section~\ref{sec:scale-results}), with $\rho$ ranging 4\%--61\% and showing no simple relationship to speedup: the sensor-addition cell has both the smallest $\rho$ and the largest speedup, as expected, but resistor removal has the largest $\rho$ of the three (61\%, higher than the resistor swap's 57\%) while still narrowly beating the resistor swap's speedup, because at this model size wall-clock speedup depends on more than $\rho$ alone. We disclose directly that these particular numbers are noisier across independent re-runs than expected: on models with only 23--24 total units, fixed compiler/linker process-spawn overhead is large relative to the work saved, so four separate re-runs of the identical script and code varied by up to roughly 30--40\% relative to each other, while $\rho$ stayed exactly identical every time, confirming the matching and resolution logic is deterministic and only wall-clock timing on tiny builds is noisy. A larger, less noisy sweep on generated models at bigger sizes is reported next.
 
 \subsection{A genuine scaling defect: quadratic code generation}
 \label{sec:on2}
@@ -214,13 +214,15 @@ Equations & Before & After & Speedup \\
 
 A fivefold size increase cost 28.4$\times$ longer before the fix ($\log 28.4/\log 5 \approx 2.09$, quadratic). The cause: the per-unit emitter rebuilt a name-to-slot lookup table and linearly scanned for each variable's index once per unit inside a loop over all $N$ units, turning $O(N)$ per call into $O(N^2)$ overall. Replacing the scan with a dictionary built once per model changed only the lookup mechanism, confirmed by an unchanged regression suite; the same fivefold increase now costs 4.85$\times$ longer ($\log 4.85/\log 5 \approx 0.99$, linear).
 
-\subsection{Speedup versus model size}
+\subsection{Speedup versus model size: a plateau, diagnosed and fixed}
 \label{sec:scale-results}
 
-Table~\ref{tab:scale} shows measured, three-times-repeated speedup across a twentyfold size range, all cells bit-identical, and Fig.~\ref{fig:speedup-size} depicts the same trend visually.
+An initial measurement, statically linking every unit into one executable and always relinking the complete set on every rebuild, showed speedup stuck in a flat 1.8$\times$--2.3$\times$ band across a twentyfold size range, not growing, though only 2 of every $3N{-}1$ units were ever affected, a shrinking fraction as $N$ grows. The cause was named, not just observed: with recompilation near-instant at every size, relinking the full $3N{-}1$-object set was what the incremental build's time was spent on. Two facts supported this: the incremental timing's relative standard deviation grew with size (30\% at $N{=}1{,}000$ vs.\ the full rebuild's 4\%, consistent with I/O-bound relink noise against CPU-bound recompile consistency), and an independent one-off at 1,499 equations with 99.87\% of units unaffected still took 11.3 s incrementally against a 29.8 s full rebuild, far short of the roughly 700$\times$ a ripple-proportional model would predict, because that 11.3 s was spent relinking 1,499 objects, not recompiling two files.
+
+We treated this as a fixable design flaw, not an inherent ceiling, and fixed it as described in Section~\ref{sec:method}: replacing static linking with per-unit dynamic libraries loaded at run time, so an incremental rebuild's link cost no longer scales with the total unit count. Two follow-on costs the new design introduced were found and fixed before trusting any number from it: an unstripped per-unit library carried roughly 90KB of fixed platform overhead for a single one-line function, dwarfing its actual payload and making the many-unit copy step expensive at scale, fixed by stripping and dead-code elimination at build time (an 86\% size reduction); and the very first incremental rebuild after a fresh build paid a one-time, roughly twentyfold cost spike relative to every rebuild after it, traced to the operating system's antivirus scanner inspecting newly-written executable files on first read, fixed with one discarded warm-up rebuild before timing begins, the same practice used to avoid cold-cache effects in performance benchmarking generally. Table~\ref{tab:scale} shows the resulting measured, three-times-repeated speedup across the same twentyfold size range, all cells still bit-identical, and Fig.~\ref{fig:speedup-size} depicts the same trend visually.
 
 \begin{table}[!t]
-\caption{Incremental speedup vs.\ model size.}
+\caption{Incremental speedup vs.\ model size, dynamic-link build.}
 \label{tab:scale}
 \centering
 \footnotesize
@@ -228,11 +230,11 @@ Table~\ref{tab:scale} shows measured, three-times-repeated speedup across a twen
 \toprule
 Equations & Full & Incr. & Speedup \\
 \midrule
-149    & 3.04 s  & 1.34 s  & 2.27$\times$ \\
-299    & 5.44 s  & 2.90 s  & 1.88$\times$ \\
-749    & 14.43 s & 7.02 s  & 2.05$\times$ \\
-1{,}499 & 34.07 s & 16.02 s & 2.13$\times$ \\
-2{,}999 & 72.18 s & 39.29 s & 1.84$\times$ \\
+149     & 5.93 s   & 1.05 s  & 5.66$\times$ \\
+299     & 11.22 s  & 1.12 s  & 9.99$\times$ \\
+749     & 27.56 s  & 1.78 s  & 15.50$\times$ \\
+1{,}499 & 51.61 s  & 2.49 s  & 20.75$\times$ \\
+2{,}999 & 109.48 s & 4.05 s  & 27.01$\times$ \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -240,15 +242,15 @@ Equations & Full & Incr. & Speedup \\
 \begin{figure}[!t]
 \centering
 \includegraphics[width=0.95\linewidth]{speedup_vs_size.pdf}
-\caption{Speedup vs.\ model size.}
+\caption{Speedup vs.\ model size, dynamic-link build.}
 \label{fig:speedup-size}
 \end{figure}
 
-Speedup stays in a 1.8$\times$--2.3$\times$ band instead of growing, though only 2 of every $3N{-}1$ units are ever affected, a shrinking fraction as $N$ grows. The cause is named, not just observed: our incremental rebuild always relinks every cached object, never only the changed delta. With recompilation near-instant at every size, relinking the full $3N{-}1$-object set is what the incremental build's time is spent on. Two facts support this: the incremental timing's relative standard deviation grows with size (30\% at $N{=}1{,}000$ vs.\ the full rebuild's 4\%, consistent with I/O-bound relink noise against CPU-bound recompile consistency), and an independent one-off at 1,499 equations with 99.87\% of units unaffected still took 11.3 s incrementally against a 29.8 s full rebuild, far short of the roughly 700$\times$ a ripple-proportional model would predict, because that 11.3 s is spent relinking 1,499 objects, not recompiling two files.
+Speedup now grows from 5.66$\times$ to 27.01$\times$, roughly 4.8-fold, across the same twentyfold equation-count range that previously showed a flat band, with standard deviation now under about 9\% of the mean at every size, an order of magnitude tighter than the noisiest points under static linking. The mechanism matches the diagnosis: full-rebuild time grows roughly linearly with $N$ as expected, while incremental time grows only slowly, since only 2 units are ever recompiled and the now-small cached libraries are cheap to copy even as their count grows with $N$. We report one secondary check honestly rather than silently dropping it: comparing an incrementally reused library against an independently, freshly built one for the same unit no longer matches byte-for-byte on this toolchain, even with reproducible-build flags applied, because two separate dynamic-library builds of identical source differ by a handful of bytes in an internal table neither symbol stripping nor timestamp suppression removes. This does not affect either correctness bar we actually rely on: every reused library still matches its cached copy exactly, and simulation output remains bit-identical on every cell.
 
 \subsection{One-time setup overhead versus model size}
 
-The one-time cost of Rumoca's own parse plus our matching, partitioning, and graph construction stays a small, non-trending fraction of full-rebuild cost: 3.0\% at 149 equations, 5.2\% at 2,999. Fig.~\ref{fig:overhead} depicts this overhead fraction across model sizes. Standing the pipeline up on a given model does not become the bottleneck as it grows, at least across the tested range.
+The one-time cost of Rumoca's own parse plus our matching, partitioning, and graph construction stays a small, non-trending fraction of full-rebuild cost, and shrank further as a fraction once full-rebuild time itself grew under the dynamic-link build: 1.3\% at 149 equations, 1.7\% at 2,999. Fig.~\ref{fig:overhead} depicts this overhead fraction across model sizes. Standing the pipeline up on a given model does not become the bottleneck as it grows, at least across the tested range.
 
 \begin{figure}[!t]
 \centering
@@ -264,10 +266,10 @@ The operationally relevant question is not whether incremental recompilation eve
 \left\lceil K/B \right\rceil \, T_\text{full} \;<\; T_\text{stream}.
 \label{eq:breakeven}
 \end{equation}
-The ten-change stream totaled $T_\text{stream}=63.0$ s; a directly measured, three-times-repeated $T_\text{full}=18.9$ s. Table~\ref{tab:breakeven} shows the resulting sweep of $B$ against these two real numbers, and Fig.~\ref{fig:breakeven} depicts the same crossing visually.
+Re-measured under the dynamic-link build (Section~\ref{sec:scale-results}), the ten-change stream totaled $T_\text{stream}=291.2$ s; a directly measured, three-times-repeated $T_\text{full}=35.5$ s. Table~\ref{tab:breakeven} shows the resulting sweep of $B$ against these two real numbers, and Fig.~\ref{fig:breakeven} depicts the same crossing visually.
 
 \begin{table}[!t]
-\caption{Break-even sweep over batch size $B$.}
+\caption{Break-even sweep over batch size $B$, dynamic-link build.}
 \label{tab:breakeven}
 \centering
 \footnotesize
@@ -275,12 +277,12 @@ The ten-change stream totaled $T_\text{stream}=63.0$ s; a directly measured, thr
 \toprule
 $B$ & Rebuilds & Batched total & Cheaper? \\
 \midrule
-1  & 10 & 189.3 s & No \\
-2  & 5  & 94.7 s  & No \\
-3  & 4  & 75.7 s  & No \\
-\textbf{4}  & \textbf{3}  & \textbf{56.8 s}  & \textbf{Yes} \\
-5  & 2  & 37.9 s  & Yes \\
-10 & 1  & 18.9 s  & Yes \\
+1  & 10 & 355.2 s & No \\
+\textbf{2}  & \textbf{5}  & \textbf{177.6 s}  & \textbf{Yes} \\
+3  & 4  & 142.1 s & Yes \\
+4  & 3  & 106.6 s & Yes \\
+5  & 2  & 71.0 s  & Yes \\
+10 & 1  & 35.5 s  & Yes \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -288,21 +290,21 @@ $B$ & Rebuilds & Batched total & Cheaper? \\
 \begin{figure}[!t]
 \centering
 \includegraphics[width=0.95\linewidth]{break_even_crossing.pdf}
-\caption{Streaming vs.\ batched cumulative cost.}
+\caption{Streaming vs.\ batched cumulative cost, dynamic-link build.}
 \label{fig:breakeven}
 \end{figure}
 
-Batching wins once four or more changes accumulate before a rebuild is due, per~(\ref{eq:breakeven}), stable even under the full-rebuild timing's own worst-case measured spread. We consider this the single most operationally useful number in the paper: it tells an operator the change frequency above which they should stop recompiling after every edit.
+Batching now wins once two or more changes accumulate before a rebuild is due, per~(\ref{eq:breakeven}), a lower threshold than the four measured under the original static-link build, stable even under the full-rebuild timing's own worst-case measured spread. This is not inconsistent with Section~\ref{sec:scale-results}'s growing-speedup finding: full-rebuild cost at this size also grew under the dynamic-link build, but the streaming-incremental cost per step grew by considerably more, because this harness's own design copies every unaffected unit's library into a freshly created directory at every step in the chain, a repeated burst of file-copy activity distinct from the size sweep's repeated measurement against one stable cache. Investigated directly rather than reported as an unexplained number: the first step of the chain is fast, and every step after it sits on a flat, roughly threefold-higher plateau, consistent with the operating system's antivirus scanner responding to a sustained pattern of rapid executable-file creation across consecutive steps rather than a single one-time cost a warm-up run could absorb. We report the number as genuinely measured rather than adjust it to match the size-sweep methodology, and note the harness's own remaining copy overhead as concrete follow-on work in Section~\ref{sec:future}. We still consider the break-even crossing the single most operationally useful number in the paper: it tells an operator the change frequency above which they should stop recompiling after every edit, for whichever build strategy and hardware they actually run.
 
 \section{Limitations and Threats to Validity}
 \label{sec:limitations}
 
 \begin{enumerate}
-\item \textbf{Scale.} The target was on the order of $10^5$ equations. The full pipeline has been verified bit-identical only to 1,499 equations; repeated speedup/overhead measurements reach 2,999; codegen was profiled, timing only, to 14,999; the compiler was asked to parse, compile only, at most 29,999. This is scoped deliberately: the front end's own parse time grows faster than linearly, and a repeated-measurement cell at $10^5$ equations was not affordable here. The reported trend, speedup holding steady rather than growing, is a trend to 2,999 equations, never extrapolated further.
+\item \textbf{Scale.} The target was on the order of $10^5$ equations. The full pipeline has been verified bit-identical only to 1,499 equations; repeated speedup/overhead measurements reach 2,999; codegen was profiled, timing only, to 14,999; the compiler was asked to parse, compile only, at most 29,999. This is scoped deliberately: the front end's own parse time grows faster than linearly, and a repeated-measurement cell at $10^5$ equations was not affordable here. The reported growing-speedup trend is a trend measured up to 2,999 equations, never extrapolated further; whether it continues to grow, levels off, or turns over at larger sizes is explicitly not established by this range.
 
 \item \textbf{Index-1 models only.} Every validated model is index-1. A 69-equation Cauer filter with two independent capacitor-only loops needs genuine differential-index reduction~\cite{pantelides1988consistent} before causalization, which our matcher does not attempt; the two equations it cannot place are exactly the two potential-equality constraints closing those loops, confirming a genuine structural gap, not a matcher bug.
 
-\item \textbf{The relink ceiling.} Incremental rebuild always relinks every cached object, the direct, named cause of the measured plateau. A partial-link strategy, incremental linking or a shared-object boundary per unit, would likely raise it; not attempted here, since the matching and partitioning logic that would need to stay correct underneath it was the higher-risk part of this project's scope.
+\item \textbf{The dynamic-link build still copies every unaffected unit's library on every incremental rebuild.} Section~\ref{sec:scale-results}'s fix removed the dominant relink cost, but an incremental rebuild still touches every cached library file to assemble the final build directory, an $O(N)$ operation with a now much smaller constant factor rather than an $O(1)$ one. Speedup grows cleanly across every size tested here, but whether it keeps growing, plateaus, or eventually turns over again at sizes well beyond what we measured is not established; only the measured range can be claimed.
 
 \item \textbf{Linear coupled blocks only.} No tested model, real or hand-written, has a genuine nonlinear algebraic loop, so nonlinear (Newton-iteration) block codegen was never built.
 
@@ -318,16 +320,16 @@ Batching wins once four or more changes accumulate before a rebuild is due, per~
 \section{Future Work}
 \label{sec:future}
 
-The highest-leverage next step is a partial or incremental link strategy: relinking, not recompiling, is the current bottleneck at scale, and raising that ceiling likely needs no change to the matching or partitioning logic at all, only to how the final executable is assembled from already-correct per-unit objects. We would prioritize this before any of the extensions below, since it directly attacks the one mechanism shown to cause the measured speedup plateau.
+The highest-leverage next step is removing the remaining $O(N)$ cost the dynamic-link fix did not eliminate: an incremental rebuild still copies every unaffected unit's library into a fresh build directory rather than referencing the existing cached copy in place, an assembly-step cost with a much smaller constant factor than the relink cost it replaced but not a constant one. Whether that remaining cost lets speedup keep growing, causes it to plateau again, or turns over at some size beyond what we measured is exactly the kind of question the size range tested here cannot answer on its own, and is worth resolving before treating the current growth trend as unbounded. The change-frequency harness in Section~\ref{sec:results} exposes the same cost more starkly, since it chains many such copies back to back into freshly created directories rather than reusing one in place; updating a persistent build directory across a change sequence, rather than reconstructing it from scratch at every step, would likely both speed up that harness and make its measurement closer to how a real long-running system would actually operate.
 
 Extending the matcher with differential-index reduction~\cite{pantelides1988consistent} would open the approach to models like the Cauer filter, which is structurally common wherever a purely reactive loop or cutset appears in a physical-domain model, not a rare edge case; this would most likely require implementing a Pantelides-style differentiation pass ahead of matching, followed by dummy-derivative selection to keep the resulting system square. Adding Newton-iteration code generation for genuinely nonlinear coupled blocks would remove the current linear-only restriction, though no model encountered in this work has actually needed one, so this remains speculative rather than urgent. Scaling further toward $10^5$ equations is gated mainly by the compiler front end's own superlinear compile time rather than by anything in this paper's own pipeline, and would benefit most from a front end whose parse and flatten stage scales closer to linearly, or from amortizing that cost across many changes rather than paying it once per experiment cell as we do now. Finally, the change-detection problem set aside here, identifying that a structural edit occurred in the real machine being twinned and which equations it touched, is a natural and necessary companion to the impact-resolution machinery described above, and would be required before any of this could run unattended on a live digital twin rather than on a script-driven experiment.
 
 \section{Conclusion}
 \label{sec:conclusion}
 
-We built and measured, rather than merely proposed, a matching-based incremental recompilation pipeline for Modelica models, using a real compiler front end and real Modelica-Standard-Library components throughout. Incremental recompilation is measurably faster than a full rebuild, correctness holds exactly on every measured cell, and we report a concrete, measured break-even change frequency above which batching several structural edits beats recompiling after each one. At the same time, speedup does not grow with model size under the current design, for a specific, diagnosed, and fixable reason, namely a relink strategy that always touches every cached object, and generality stops precisely at models requiring differential-index reduction, a boundary we located exactly rather than merely acknowledged.
+We built and measured, rather than merely proposed, a matching-based incremental recompilation pipeline for Modelica models, using a real compiler front end and real Modelica-Standard-Library components throughout. Incremental recompilation is measurably faster than a full rebuild, correctness holds exactly on every measured cell, and we report a concrete, measured break-even change frequency above which batching several structural edits beats recompiling after each one. An initial version of this system showed speedup stuck in a flat band regardless of model size, for a specific, diagnosed reason, a link strategy that always touched every cached unit; rather than report that as an inherent limitation, we fixed it, verified the fix bit-identical to the original design before trusting it, and re-measured, and speedup now grows with model size across the entire twentyfold range we tested. Generality still stops precisely at models requiring differential-index reduction, a boundary we located exactly rather than merely acknowledged.
 
-Both the positive and the negative results in this paper are reported at the same level of evidence: real, repeated, independently verified measurements, not projections, checked bit-identical against a from-scratch rebuild on every cell rather than assumed correct. We think that combination, a genuine but narrow working system with its exact edges mapped out, is a more useful contribution than a broader claim that could not be measured this precisely, and we hope the break-even result in particular is directly usable by anyone deciding how often to rebuild a live simulation model rather than only of theoretical interest.
+Every result in this paper, the positive ones, the ones that started out negative and were fixed, and the limitations that remain, is reported at the same level of evidence: real, repeated, independently verified measurements, not projections, checked bit-identical against a from-scratch rebuild on every cell rather than assumed correct. We think that discipline, treating a bad measurement as a reason to look for a fixable cause rather than a ceiling to report and move past, is as much a contribution here as any single number, and we hope the break-even result in particular is directly usable by anyone deciding how often to rebuild a live simulation model rather than only of theoretical interest.
 
 \bibliographystyle{IEEEtran}
 \bibliography{refs}

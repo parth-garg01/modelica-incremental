@@ -10,6 +10,7 @@ build_cache_freq/
 *.o
 *.exe
 *.obj
+*.dll
 msl_src/
 models/scaled/
 paper/*.aux

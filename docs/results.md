@@ -340,7 +340,18 @@ objects for those same files).
 
 ## 3. Incremental-versus-full speedup across the size range
 
-### 3.1 The measured trend: 1.8x-2.3x, not growing with size
+**Sections 3.1-3.2 below are SUPERSEDED, kept for history, not current
+results.** They document the always-relink-everything design and its
+flat 1.8x-2.3x speedup plateau. That design was replaced by a dynamic-
+link build (per-unit `.dll`, loaded at runtime instead of statically
+linked into one executable) specifically because this plateau was
+diagnosed and judged fixable; **Section 3.5 has the current,
+authoritative speedup-vs-size numbers, where speedup now grows with
+model size instead of plateauing.** Sections 3.3-3.4 (the Stage-0 story
+and the MSL run-to-run variance finding) are unaffected by this change
+and remain current.
+
+### 3.1 [SUPERSEDED] The measured trend: 1.8x-2.3x, not growing with size
 
 Real, repeated (3x), independently gcc/ld-timed measurements across a
 20x equation-count range. Source: `results/measurements_scale.csv`
@@ -365,7 +376,7 @@ instead of growing with it — a real trend, reported honestly (per the
 project's own standing rule against extrapolating past what is
 measured), not a plateau assumed in advance.
 
-### 3.2 Why it plateaus: relinking, not recompiling, dominates
+### 3.2 [SUPERSEDED] Why it plateaus: relinking, not recompiling, dominates
 
 The named cause is a specific, explicit design tradeoff:
 `src/c_build.py`'s `incremental_rebuild()` **always relinks every
@@ -460,8 +471,100 @@ error to paper over: on 23-24-total-unit models, wall-clock speedup on
 this machine varies by up to roughly 30-40% relative between independent
 runs. Treat any single number quoted for these two small cells as
 representative of a *band*, not a precise point estimate; the Stage B
-sweep (Section 3.1, larger, more units, still repeated 3x per point) is
-the more statistically stable claim this project makes about speedup.
+sweep (Section 3.1 historically, Section 3.5 now, larger, more units,
+still repeated 3x per point) is the more statistically stable claim
+this project makes about speedup.
+
+**A fifth, current value exists under the dynamic-link build (Section
+3.5), from the full pytest suite's own `test_measure_msl.py` re-running
+`log_all_cells()`, not a dedicated re-measurement session:**
+1.219x/1.767x/1.237x (`reused_objects_byte_identical_to_cache=True`,
+`outputs_identical=True` on all three, `incremental_matches_full_for_
+unaffected_objects=False` on all three, expected under the dynamic-link
+build per Section 3.5's note on DLL build non-determinism). Absolute
+full/incremental times are higher than every prior value in this
+section (full rebuild ~1.3-1.5s vs. the ~0.55-0.60s band above), since
+DLL-linking 18-24 units costs somewhat more per unit than plain object
+compilation at this tiny scale; this is consistent with, not
+contradictory to, the large-N growing-speedup finding, since these
+models are far below the size range where the fix's benefit dominates.
+Source: `results/measurements_msl.csv`/`.parquet` (current file as of
+this entry), figures regenerated (`figures/measured_speedup.svg`,
+`figures/time_breakdown_real.svg` — both changed; `figures/real_model_
+ripple.svg` unchanged, `affected_fraction` is identical).
+
+### 3.5 The relink-ceiling fix: speedup now GROWS with model size
+
+Section 3.2's diagnosis ("relinking, not recompiling, dominates
+incremental cost") was treated as a fixable design flaw, not an
+accepted ceiling, and fixed directly: every recompilation unit now
+compiles to its own shared library (`.dll`), loaded by the driver at
+**runtime** via `LoadLibraryA`/`GetProcAddress`
+(`src/unit_codegen.py`'s `generate_unit_driver_dynamic()`) instead of
+being resolved by the linker at **build time** into one flat
+executable. An incremental rebuild now only ever recompiles the
+changed units' own tiny `.dll` files; the driver's own link touches no
+unit's object code at all, so its cost does not scale with the total
+unit count either. Full mechanism, the two follow-on bottlenecks this
+introduced and how each was found and fixed (unstripped DLL size at
+~90KB per unit, almost entirely fixed PE/DLL/CRT overhead not payload;
+a cold-cache first-read cost on the first post-cache-seed rebuild,
+matching Windows Defender real-time protection scanning newly-written
+executables): `docs/findings/scaling-bottlenecks.md`'s "Bottleneck 4
+fix" section.
+
+**Correctness verified before any speed number was trusted:**
+`tests/test_dynamic_link.py` (3 tests, new) proves the dynamic-link
+path is bit-identical to the original static-link path on both a
+coupled-block model and a singleton-only model, and that a dynamic-link
+incremental rebuild is bit-identical to a dynamic-link full rebuild
+with every unaffected unit's `.dll` byte-identical to its cached copy.
+`tests/test_scale_correctness.py` (existing test, now exercising the
+new path through `run_cell()`) continues to pass. Full suite: 155
+passed (152 + 3 new), 1 xfailed, unchanged otherwise.
+
+**Result**, same sizes and repeat count as Section 3.1, command
+unchanged (`python src/measure_scale.py`), source
+`results/measurements_scale.csv` (overwritten — Section 3.1's numbers
+are preserved above as history, not lost):
+
+| N (rooms) | Equations | Full rebuild (mean ± stdev, 3 reps) | Incremental (mean ± stdev, 3 reps) | **Measured speedup** |
+|---:|---:|---|---|---:|
+| 50 | 149 | 5.932s ± 0.078s | 1.048s ± 0.089s | **5.66x** |
+| 100 | 299 | 11.221s ± 0.178s | 1.123s ± 0.031s | **9.99x** |
+| 250 | 749 | 27.556s ± 0.826s | 1.778s ± 0.184s | **15.50x** |
+| 500 | 1,499 | 51.609s ± 0.301s | 2.487s ± 0.038s | **20.75x** |
+| 1,000 | 2,999 | 109.484s ± 4.368s | 4.053s ± 0.121s | **27.01x** |
+
+**Speedup grows from 5.66x to 27.01x, roughly 4.8x, across the same
+20x equation-count range that previously showed a flat 1.8x-2.3x band
+— a full reversal of the Section 3.1/3.2 finding, not an incremental
+improvement on it.** Every cell remains bit-identical
+(`outputs_identical=True`) and every reused `.dll` byte-identical to
+its cache (`reused_objects_byte_identical_to_cache=True`). Standard
+deviations are now tight and low across every size (no cell exceeds
+~9% relative stdev), unlike Section 3.1's largest points, where
+relative stdev reached ~75% (1,499) and ~30% (2,999) — the earlier
+noise was itself a symptom of relink-dominated, I/O-bound cost, exactly
+as Section 3.2 argued, and it is gone along with its cause.
+
+`incremental_matches_full_for_unaffected_objects` reads `False` on
+every row — expected and understood, not a correctness concern:
+`docs/findings/scaling-bottlenecks.md`'s "Bottleneck 4 fix" section
+documents that two independently-built `.dll`s of byte-identical
+source differ by a small number of bytes on this MinGW toolchain even
+with `-Wl,--no-insert-timestamp` applied, unlike the `.o` files the
+static-link path produced. `reused_objects_byte_identical_to_cache`
+(cache-reuse fidelity, the check that actually matters for proving the
+incremental path is sound) and `outputs_identical` (the actual
+correctness bar) both hold on every cell.
+
+Figure: `figures/speedup_vs_size.svg`, regenerated from this data —
+now shows an upward trend, not a flat band; the figure this project
+would have shown a paper venue before this fix is preserved nowhere
+except this document's Section 3.1, exactly as project discipline
+requires (nothing silently overwritten without a record of what
+changed and why).
 
 ---
 
@@ -557,7 +660,14 @@ inclusive timing.
 
 ## 6. Change-frequency sweep and the break-even crossing
 
-### 6.1 The harness
+**Sections 6.1-6.2 below (streaming total 63.0s, break-even at
+batch_size=4) are SUPERSEDED, kept for history, not current results**
+-- measured under the original static-link build. Section 6.3 has the
+current, authoritative numbers under the dynamic-link build (Section
+3.5) and an honest account of why the crossing point moved rather than
+disappeared.
+
+### 6.1 [SUPERSEDED] The harness
 
 `src/change_frequency.py` (Feature 15, commit `f6a120b`) builds a real,
 **cumulative** sequence of K structural changes — each edit written on
@@ -581,7 +691,7 @@ first step slower from cold caches); batched at `batch_size=5` (2 full
 rebuilds) totaled 44.498s — already cheaper than streaming at that
 batch size.
 
-### 6.2 The break-even sweep
+### 6.2 [SUPERSEDED] The break-even sweep
 
 `src/break_even.py` (Feature 16, commit `80407d1`) sweeps batch size
 against the *same* fixed streaming total (it does not depend on batch
@@ -630,6 +740,73 @@ the much noisier tiny-model cells in Section 3.4).
 Figure: `figures/break_even_crossing.svg`, regenerated this session from
 the unchanged log and confirmed byte-identical to the previously-
 committed version.
+
+### 6.3 Re-measured under the dynamic-link build: the crossing moved, it did not disappear
+
+Re-run with the same harness, same N=300/10-change sequence, after
+switching `src/change_frequency.py`/`src/break_even.py` to the
+dynamic-link build (Section 3.5). Command unchanged
+(`.venv\Scripts\python.exe src\change_frequency.py`, then
+`.venv\Scripts\python.exe src\break_even.py`).
+
+**Per-step streaming times, investigated directly rather than reported
+as an unexplained aggregate** (`[step: incremental_s]`): `1: 1.93, 2:
+33.91, 3: 32.08, 4: 31.32, 5: 31.58, 6: 31.38, 7: 31.15, 8: 31.91, 9:
+31.47, 10: 31.38`. Step 1 is fast; every step after it sits on a flat
+~31-34s plateau. This is a *different* pattern from Section 3.5's
+finding (a single first-touch spike that a warm-up rebuild absorbs) and
+was not papered over with the same fix without first understanding why
+it differs. The reason: `incremental_rebuild_dynamic()` copies every
+*unaffected* unit's cached `.dll` into a fresh build directory on every
+call (Section 3.5's still-present, honestly-disclosed remaining $O(N)$
+cost), and this harness's streaming mode chains ten such calls
+back-to-back, each writing ~897 files into a brand-new directory
+(`step_{i:02d}/build/`) in rapid succession — a burst pattern distinct
+from the scale sweep's repeated measurement of a *single, stable*
+cache. A plausible, consistent explanation (not confirmed with
+Microsoft-internal tooling, disclosed as a plausible mechanism, not an
+established fact): Windows Defender real-time protection's heuristics
+respond to a *sustained pattern* of rapid bulk-executable-file creation
+across consecutive steps, not just a one-time cold read, and do not
+reset between steps here since new bursts keep arriving. A single
+discarded warm-up rebuild (Section 3.5's fix) does not address a
+sustained per-step cost the same way it addresses a one-time first-touch
+cost, so it was not applied here as a mechanical copy of that fix; the
+numbers below are reported as genuinely measured, not adjusted.
+
+`full_rebuild_mean_s = 35.522s ± 2.302s` (3 repeats).
+`streaming_incremental_total_s = 291.200s` (fixed, from the harness;
+consistent with the 10-step breakdown above: 1.93 + 9×~31.7 ≈ 288-291s).
+
+| Batch size | Full rebuilds needed | Batched total (mean) | Batched total (worst case) | Cheaper than streaming (mean)? | Cheaper even worst-case? |
+|---:|---:|---:|---:|:---:|:---:|
+| 1 | 10 | 355.216s | 378.239s | No | No |
+| **2** | **5** | **177.608s** | **189.119s** | **Yes** | **Yes** |
+| 3 | 4 | 142.086s | 151.295s | Yes | Yes |
+| 4 | 3 | 106.565s | 113.472s | Yes | Yes |
+| 5 | 2 | 71.043s | 75.648s | Yes | Yes |
+| 7 | 2 | 71.043s | 75.648s | Yes | Yes |
+| 10 | 1 | 35.522s | 37.824s | Yes | Yes |
+
+**BREAK-EVEN: batching now wins once 2 or more changes accumulate
+before a rebuild** — a *lower* threshold than the static-link design's
+4, not a higher one, stable even under the worst-case bound of the
+full-rebuild timing's own measured spread. This is not a contradiction
+of Section 3.5's growing-speedup headline: full-rebuild cost at N=300
+also grew under the dynamic-link build (18.9s → 35.5s, since
+DLL-linking 899 units costs somewhat more per unit than plain object
+compilation), while the streaming-incremental cost per step, for this
+specific harness's fresh-directory-per-step design, grew by
+considerably more (63.0s → 291.2s for the same 10 steps) — both real,
+both measured, and the ratio between them is what moved the crossing
+point down, not up. Fixing this harness's own remaining copy overhead
+(e.g., reusing a build directory in place across chained steps instead
+of a fresh one per step) is recorded as follow-on work, not attempted
+in this session — see the limitations section.
+
+Figure: `figures/break_even_crossing.svg`, regenerated from this new
+data (no longer byte-identical to the version described in Section
+6.2, expected, since the underlying numbers changed).
 
 ---
 

@@ -23,7 +23,7 @@ import statistics
 import time
 from pathlib import Path
 
-from c_build import full_rebuild
+from c_build import full_rebuild_dynamic
 from change_frequency import run_change_sequence
 
 FULL_REBUILD_REPEATS = 3
@@ -35,7 +35,7 @@ def _repeated_full_rebuild_at_end(seq: dict, repeats: int = FULL_REBUILD_REPEATS
     times = []
     for i in range(repeats):
         t0 = time.perf_counter()
-        full_rebuild(sources, src_dir, seq["base_dir"] / f"full_repeat_{i}")
+        full_rebuild_dynamic(sources, src_dir, seq["base_dir"] / f"full_repeat_{i}")
         times.append(time.perf_counter() - t0)
     return times
 

@@ -81,7 +81,12 @@ def generate_block_unit_c(
     n = len(unknown_names)
 
     lines = [f'#include "{model_name}.h"', "#include <math.h>", "", _SOLVER_C, ""]
-    lines.append(f"void {model_name}_compute_{unit_function_name}({model_name}_t *v) {{")
+    # dllexport: required for the dynamic-link incremental build path
+    # (src/c_build.py's *_dynamic() functions); harmless no-op when this
+    # unit is instead compiled to a plain .o and statically linked --
+    # see codegen_units.py's generate_unit_c() for the same note and the
+    # direct verification that this is safe.
+    lines.append(f"__declspec(dllexport) void {model_name}_compute_{unit_function_name}({model_name}_t *v) {{")
     lines.append(f"    real_t A[{n}][{n}];")
     lines.append(f"    real_t b[{n}];")
     lines.append(f"    real_t x[{n}];")

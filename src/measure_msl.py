@@ -10,6 +10,17 @@ past Feature 4.
 
 Real gcc calls throughout, repeated with the spread reported -- no
 timing derived from another timing by arithmetic.
+
+Relink-ceiling fix: run_cell() builds via the DYNAMIC-LINK path
+(src/c_build.py's full_rebuild_dynamic()/incremental_rebuild_dynamic(),
+src/unit_codegen.py's generate_unit_driver_dynamic()) -- every unit is
+its own .dll, loaded at runtime, so an incremental rebuild's link cost
+no longer scales with the total unit count. The old static-link path
+(full_rebuild()/incremental_rebuild(), one flat .exe, always relinked)
+is kept in src/c_build.py unchanged, still used by src/measure_c.py's
+Stage-0 regression path -- see that module and docs/findings/
+scaling-bottlenecks.md Bottleneck 4 for the "before" measurements this
+fix responds to.
 """
 from __future__ import annotations
 
@@ -17,8 +28,8 @@ import statistics
 from pathlib import Path
 
 from c_build import (
-    BuildSources, compile_c, fingerprint_objects, full_rebuild, incremental_rebuild,
-    link, repeated_full_rebuild_time, repeated_incremental_rebuild_time, run_sim, write_sources,
+    BuildSources, fingerprint_objects, full_rebuild_dynamic, incremental_rebuild_dynamic,
+    repeated_full_rebuild_time_dynamic, repeated_incremental_rebuild_time_dynamic, run_sim, write_sources,
 )
 from compile import compile_model
 from matched_graph import build_matched_graph
@@ -26,7 +37,7 @@ from matched_units import compute_matched_units
 from matching import compute_matching
 from model_layout import build_layout
 from resolver import resolve_impact
-from unit_codegen import generate_all_unit_sources, generate_unit_driver, unit_function_suffix
+from unit_codegen import generate_all_unit_sources, generate_unit_driver_dynamic, unit_function_suffix
 
 BUILD_ROOT = Path("build_cache_msl")
 REPEATS = 5
@@ -39,7 +50,7 @@ def _as_build_sources(model_name: str, ir: dict, layout) -> BuildSources:
         model_name=model_name,
         layout=layout,
         unit_files=generate_all_unit_sources(model_name, ir, layout),
-        driver_file=(f"{model_name}_driver.c", generate_unit_driver(model_name, ir, layout)),
+        driver_file=(f"{model_name}_driver.c", generate_unit_driver_dynamic(model_name, ir, layout)),
         header_file=(f"{model_name}.h", generate_header(model_name, layout)),
     )
 
@@ -76,20 +87,20 @@ def run_cell(
     write_sources(baseline_sources, baseline_src_dir)
     write_sources(changed_sources, changed_src_dir)
 
-    cache_build = full_rebuild(baseline_sources, baseline_src_dir, cell_dir / "cache")
+    cache_build = full_rebuild_dynamic(baseline_sources, baseline_src_dir, cell_dir / "cache")
 
     impact = resolve_impact(changed.ir, seed, graph_builder=build_matched_graph)
     affected_c_filenames = _affected_c_filenames(model_name, changed.ir, impact)
 
-    full_times = repeated_full_rebuild_time(changed_sources, changed_src_dir, cell_dir / "full_repeats", repeats)
-    full_result = full_rebuild(changed_sources, changed_src_dir, cell_dir / "full_reference")
+    full_times = repeated_full_rebuild_time_dynamic(changed_sources, changed_src_dir, cell_dir / "full_repeats", repeats)
+    full_result = full_rebuild_dynamic(changed_sources, changed_src_dir, cell_dir / "full_reference")
 
     cached_objects = cache_build.object_paths
-    incr_times = repeated_incremental_rebuild_time(
+    incr_times = repeated_incremental_rebuild_time_dynamic(
         changed_sources, changed_src_dir, cell_dir / "incr_repeats",
         affected_c_filenames, cached_objects, repeats,
     )
-    incr_result = incremental_rebuild(
+    incr_result = incremental_rebuild_dynamic(
         changed_sources, changed_src_dir, cell_dir / "incr_reference",
         affected_c_filenames, cached_objects,
     )

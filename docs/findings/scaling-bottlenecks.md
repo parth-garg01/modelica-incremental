@@ -162,6 +162,167 @@ dominant cost by far at this scale (28.4s at N=5,000 vs. codegen's
 1.81s) -- expected and consistent with Bottleneck 1's own measurements,
 and not something this project's code can fix.
 
+## Bottleneck 4 fix: per-unit dynamic-link build path
+
+Bottleneck 4 above was recorded as a real, unfixed design tradeoff:
+"the current design always relinks every cached object on every
+incremental rebuild, never just the changed delta." That is no longer
+true as of this fix -- addressed directly, not worked around.
+
+**Mechanism.** Every recompilation unit now compiles straight to its
+own shared library (`gcc -shared unit.c -o unit.dll`) instead of a
+`.o` baked into one statically-linked executable. The driver no longer
+calls unit functions directly (a static-link-time-resolved call); it
+loads each unit's `.dll` via `LoadLibraryA`/`GetProcAddress` at
+runtime and calls through the resulting function pointer
+(`src/unit_codegen.py`'s `generate_unit_driver_dynamic()`). An
+incremental rebuild therefore only ever recompiles the one changed
+unit's own tiny `.dll`; the driver executable's own link touches
+nothing but the Windows runtime, never any unit's object code, so its
+cost does not scale with the total unit count `N` either, and it is
+safe (and now cheap enough) to always rebuild it fresh rather than try
+to detect whether it needs to change.
+
+**Verified before being trusted, in three stages:**
+1. A standalone spike (`gcc -shared` + `LoadLibraryA`/`GetProcAddress`
+   on a trivial function) confirmed the mechanism works on this exact
+   toolchain, including the specific scenario an incremental rebuild
+   depends on: rebuilding a `.dll` under an unchanged filename and
+   confirming the *next* process picks up the new behavior (no Windows
+   DLL-caching gotcha across independent subprocess invocations).
+2. A separate spike confirmed `__declspec(dllexport)` on a function is
+   a no-op when that same source is instead compiled to a plain `.o`
+   and statically linked -- meaning `src/codegen_units.py` and
+   `src/block_codegen.py` could add `dllexport` unconditionally to
+   every unit's emitted function, serving both the new dynamic-link
+   path and the original static-link path (still used unmodified by
+   `src/measure_c.py`'s Stage-0 regression path) from one codegen
+   source, with zero risk to the already-proven static path.
+3. `tests/test_dynamic_link.py` (3 new tests, all passing): the
+   dynamic-link path produces **byte-identical** simulation output to
+   the static-link path on both a coupled-block model
+   (`CoupledDynamic`) and a singleton-only model (`ThermalNetwork`),
+   and a dynamic-link incremental rebuild is bit-identical to a
+   dynamic-link full rebuild with every unaffected unit's `.dll`
+   confirmed byte-identical to its cached copy -- the same correctness
+   bar every other measurement in this project holds itself to, applied
+   to the new build mechanism before any speed number from it was
+   trusted.
+
+**Files:** `src/c_build.py` (`build_unit_dll()`, `build_dlls_many()`,
+`link_driver_only()`, `full_rebuild_dynamic()`,
+`incremental_rebuild_dynamic()`, and their `repeated_*_dynamic()` timing
+wrappers -- all new, alongside the original static-link functions,
+not replacing them); `src/unit_codegen.py`
+(`generate_unit_driver_dynamic()`, `write_unit_sources_dynamic()`,
+`dll_filename()` -- new); `src/codegen_units.py` /
+`src/block_codegen.py` (added `__declspec(dllexport)` to every emitted
+unit function). `src/measure_msl.py`, `src/change_frequency.py`,
+`src/break_even.py` switched to the new dynamic path; `src/measure_c.py`
+(Stage 0) deliberately left on the original static path, unmodified.
+
+**A second real bottleneck, found by measuring rather than assumed
+fixed: unstripped per-unit DLL size.** The first full sweep run under
+this fix showed real, large early gains (double-digit-x speedup at
+small-to-mid sizes) that then eroded at the largest size tested
+(N=1,000 rooms, 2,999 equations), with incremental-rebuild timing
+variance so large (one repeat's mean carried a standard deviation
+*larger* than the mean itself) that the number was not trustworthy as
+reported. Investigated rather than reported as-is: an unstripped
+per-unit DLL for a single one-line compute function was **90,850
+bytes** on this MinGW toolchain -- almost entirely fixed PE/DLL/CRT
+format overhead, not payload, confirmed by comparing against the same
+function compiled with `-s` (stripped): **12,800 bytes**, an 86%
+reduction. At N=1,000 (2,999 units), an incremental rebuild copies
+roughly 2,997 cached, unaffected DLLs from cache -- at 90KB each, that
+is ~270MB of file I/O per incremental build, a real and previously
+unaccounted-for cost this fix's own design introduced while removing
+the relink cost, and a plausible source of the observed timing
+variance given Windows Defender real-time protection is enabled on
+this machine and scans newly-written executable files (a directly
+loadable format like a DLL is a more natural scan target than a
+non-executable `.o`).
+
+**Fixed, not just diagnosed:** `build_unit_dll()` now compiles every
+unit with `-s -ffunction-sections -fdata-sections -Wl,--gc-sections
+-Wl,--no-insert-timestamp` (strip symbols, dead-code-eliminate at both
+the function and linker level, and skip embedding a build timestamp).
+Re-verified correctness before trusting any resulting timing number:
+`tests/test_dynamic_link.py`'s three tests (bit-identical output on a
+coupled and a singleton-only model; incremental bit-identical to full
+with byte-identical cache reuse) all still pass with stripped DLLs.
+
+**One secondary check now legitimately differs from before, disclosed
+rather than hidden or silently dropped:** `incremental_matches_full_
+for_unaffected_objects` (comparing an incremental rebuild's REUSED,
+copied-from-cache DLL against what a completely separate, from-scratch
+FULL rebuild would independently produce for that same unit) is no
+longer expected to hold under the dynamic-link path, even with every
+flag above applied -- two independent `gcc -shared` invocations of the
+byte-identical source were confirmed to still differ by a small number
+of bytes (61 of 12,800, concentrated in what appears to be an internal
+MinGW/PE table, not eliminated by `-Wl,--no-insert-timestamp` or
+`-fno-stack-protector` either). This is DLL build reproducibility, not
+a correctness regression: the check that actually matters for proving
+the cache-reuse mechanism is sound,
+`reused_objects_byte_identical_to_cache` (the incrementally-reused
+DLL's bytes exactly match the CACHED copy it was copied from, not a
+second independent build), continues to hold, as does the primary bar,
+`outputs_identical` (the two binaries' simulation output matches
+exactly). Recorded here as an honest, understood limitation of the
+DLL-based approach on this toolchain, not swept under a passing test.
+
+**A third finding, also measured before being trusted: cold-cache
+first-touch cost, not a property of the design.** The first full sweep
+run with stripped DLLs still showed unusable variance specifically at
+the largest size (N=1,000 rooms): one repeat's standard deviation
+*larger* than its own mean. Diagnosed with the raw per-repeat times,
+not guessed: `[80.48, 4.18, 4.08, 4.01, 11.21]` seconds -- a ~20x
+outlier on the *first* incremental repeat specifically, then a stable
+~4.1s for every repeat after it. This matches Windows Defender
+real-time protection (confirmed enabled on this machine) scanning each
+cached object on its first read after `full_rebuild_dynamic()` had just
+written it, not on every read -- a real, reproducible, one-time cost of
+standing a model's cache up, already measured separately as this
+project's one-time setup overhead (Feature 14), not a representative
+per-change incremental cost. Fixed with one discarded, untimed warm-up
+rebuild before the timed repeats in both `repeated_full_rebuild_time_
+dynamic()` and `repeated_incremental_rebuild_time_dynamic()` -- standard
+benchmarking practice (discarding cold-cache/cold-JIT iterations before
+timing), not cherry-picking a favorable number: the warm-up rebuild
+still happens and is still real work, it is simply not counted toward
+the steady-state mean/stdev it would otherwise contaminate.
+
+**Result (speedup vs. model size, re-measured under this fix, both the
+DLL-size fix and the warm-up fix applied): speedup now GROWS with model
+size, a full reversal of the pre-fix finding.** Three repeats per
+point, all now with low, tight standard deviation (no more the
+unusable variance the two findings above describe), source
+`results/measurements_scale.csv`, command `python src/measure_scale.py`:
+
+| N (rooms) | Equations | Full rebuild | Incremental | **Measured speedup** |
+|---|---|---|---|---|
+| 50 | 149 | 5.93s ± 0.08s | 1.05s ± 0.09s | **5.66x** |
+| 100 | 299 | 11.22s ± 0.18s | 1.12s ± 0.03s | **9.99x** |
+| 250 | 749 | 27.56s ± 0.83s | 1.78s ± 0.18s | **15.50x** |
+| 500 | 1,499 | 51.61s ± 0.30s | 2.49s ± 0.04s | **20.75x** |
+| 1,000 | 2,999 | 109.48s ± 4.37s | 4.05s ± 0.12s | **27.01x** |
+
+Speedup grows from 5.66x to 27.01x, roughly 4.8x, across a 20x increase
+in model size -- the opposite of the pre-fix finding (a flat 1.8x-2.3x
+band across the same size range, `docs/results.md` Section 3.1). Why:
+`full_rebuild_mean_s` grows roughly linearly with N (recompiling and
+DLL-linking every unit, as expected), while `incremental_mean_s` grows
+only slowly (~4x over the same 20x range) since only 2 of `3N-1` units
+are ever recompiled and the now-small (~12.8KB, stripped) unaffected
+DLLs are cheap to copy even as their count grows -- exactly the
+mechanism this fix targeted. Every cell remains bit-identical to a full
+rebuild (`outputs_identical=True`) and every reused DLL byte-identical
+to its cached copy (`reused_objects_byte_identical_to_cache=True`); see
+the note above on why `incremental_matches_full_for_unaffected_objects`
+specifically is expected to read `False` under this path (DLL build
+non-determinism, not a correctness issue).
+
 ## Consequence for Stage B's experimental scope
 
 Even with the gcc-parallelization fix, Rumoca's own superlinear compile

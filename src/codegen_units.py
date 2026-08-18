@@ -107,7 +107,15 @@ def generate_unit_c(
         const_c = row.get(CONST, "0.0")
         idx = y_index_map[name]
         lines += [
-            f"void {model_name}_compute_{ident}({model_name}_t *v) {{",
+            # dllexport: harmless when this .c is compiled to a plain .o
+            # and statically linked (verified directly: a dllexport'd
+            # function links and runs identically in a normal .exe), and
+            # required when compiled straight to its own per-unit .dll
+            # for the dynamic-link incremental build path
+            # (src/c_build.py's *_dynamic() functions, src/unit_codegen.py's
+            # generate_unit_driver_dynamic()) -- one codegen path serves
+            # both build strategies.
+            f"__declspec(dllexport) void {model_name}_compute_{ident}({model_name}_t *v) {{",
             f"    v->y[{idx}] = (-({const_c})) / ({coef_c});",
             "}",
         ]
@@ -117,7 +125,7 @@ def generate_unit_c(
         idx = x_index_map[name]
         body = f"({rhs_c})" if coef is None else f"({rhs_c}) / ({expr_to_c(coef, name_to_c)})"
         lines += [
-            f"void {model_name}_compute_der_{ident}({model_name}_t *v) {{",
+            f"__declspec(dllexport) void {model_name}_compute_der_{ident}({model_name}_t *v) {{",
             f"    v->dx[{idx}] = {body};",
             "}",
         ]
