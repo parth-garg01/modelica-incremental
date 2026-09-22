@@ -1,0 +1,12 @@
+cell,total_units,n_paper,n_baseline,n_oracle,oracle_subset_of_paper,paper_subset_of_baseline,n_paper_only_vs_oracle,n_oracle_only_vs_paper,n_baseline_only_vs_paper,n_paper_only_vs_baseline,n_new_unit_files,n_removed_unit_files,header_identical,driver_identical
+MslRcCircuit/swap,23,13,23,2,True,True,11,0,10,0,1,1,True,False
+MslThermalChain/swap,20,7,20,1,True,True,6,0,13,0,0,0,True,False
+MslRcCircuit/sensor-add,24,1,24,1,True,True,0,0,23,0,1,0,True,False
+MslResistorNetwork/removal,18,11,18,3,True,True,8,0,7,0,1,5,True,False
+ThermalNetwork/swap,9,2,2,1,True,True,1,0,0,0,0,0,True,False
+RLCCircuit/swap,3,1,1,1,True,True,0,0,0,0,0,0,True,False
+ThermalNetwork/sensor-add,10,1,7,1,True,True,0,0,6,0,1,0,True,False
+ThermalNetwork/removal,6,1,1,1,True,True,0,0,0,0,0,3,True,False
+ThermalChain50/swap,149,2,2,1,True,True,1,0,0,0,0,0,True,True
+ThermalChain250/swap,749,2,2,1,True,True,1,0,0,0,0,0,True,True
+ThermalChain1000/swap,2999,2,2,1,True,True,1,0,0,0,0,0,True,True

@@ -79,6 +79,12 @@ def run_cell_strategies(
     cache_build = full_rebuild_dynamic(baseline_sources, baseline_src_dir, cell_dir / "cache")
 
     affected = {s: affected_c_filenames(s, model_name, baseline.ir, changed.ir, seed) for s in strategies}
+    if "oracle" in affected:
+        # guard: the oracle recompiled here must equal the independently computed source diff
+        # (src/journal_phase2_verify_oracle.py logic: changed-or-new unit files, compared directly)
+        independent = {f for f, t in changed_sources.unit_files.items() if baseline_sources.unit_files.get(f) != t}
+        if affected["oracle"] != independent:
+            raise RuntimeError(f"oracle set disagrees with independent source diff: {affected['oracle'] ^ independent}")
 
     full_times = repeated_full_rebuild_time_dynamic(changed_sources, changed_src_dir, cell_dir / "full_repeats", repeats)
     full_result = full_rebuild_dynamic(changed_sources, changed_src_dir, cell_dir / "full_reference")
@@ -153,12 +159,14 @@ def main(argv: list[str] | None = None) -> None:
         cells = [c for c in cells if any(s in c["label"] for s in args.only)]
 
     rows: list[dict] = []
-    for c in cells:
-        print(f"[{c['label']}] building ...", flush=True)
+    for k, c in enumerate(cells):
+        # rotate strategy order per cell so slow drift does not always land on the same strategy
+        strategies = args.strategies[k % len(args.strategies):] + args.strategies[:k % len(args.strategies)]
+        print(f"[{c['label']}] building (order {strategies}) ...", flush=True)
         rows += run_cell_strategies(
             c["label"], c["baseline_path"], c["changed_path"], c["model_name"], c["seed"], c["t_end"], c["dt"],
             baseline_roots=c.get("baseline_roots"), changed_roots=c.get("changed_roots"),
-            repeats=repeats, strategies=args.strategies,
+            repeats=repeats, strategies=strategies,
         )
         _write(rows, out)
         for r in rows[-len(args.strategies):]:

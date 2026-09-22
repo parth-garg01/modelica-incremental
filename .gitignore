@@ -23,3 +23,6 @@ paper/*.out
 paper/*.synctex.gz
 logs/
 models/journal_*/
+build_cache_journal_baseline/
+BCSE307P_Complete_Project_Report_Template.docx
+build_cache_*/
