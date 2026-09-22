@@ -7,6 +7,8 @@ build_test/
 build_cache/
 build_cache_msl/
 build_cache_freq/
+build_cache_profile/
+models/scaled_profile/
 *.o
 *.exe
 *.obj

@@ -74,10 +74,15 @@ def time_copy_only(unit_files: dict, cached_objects: dict, affected: set, build_
 
 
 def profile_one_size(n_rooms: int, repeats_copy: int = 3) -> dict:
-    model_name = f"ThermalChainProfile{n_rooms}"
+    # generate_thermal_chain() always names the Modelica class
+    # "ThermalChain{n_rooms}" regardless of the output filename -- the
+    # model_name used for compile_model()/codegen must match that class
+    # name exactly, so it is derived here rather than invented separately.
+    model_name = f"ThermalChain{n_rooms}"
+    profile_tag = f"ThermalChainProfile{n_rooms}"
     mid = n_rooms // 2
-    base_path = generate_thermal_chain(n_rooms, MODELS_ROOT / f"{model_name}_base" / f"{model_name}.mo")
-    chg_path = swap_room_conductance(base_path, mid, MODELS_ROOT / f"{model_name}_chg" / f"{model_name}.mo")
+    base_path = generate_thermal_chain(n_rooms, MODELS_ROOT / f"{profile_tag}_base" / f"{model_name}.mo")
+    chg_path = swap_room_conductance(base_path, mid, MODELS_ROOT / f"{profile_tag}_chg" / f"{model_name}.mo")
 
     print(f"[{model_name}] compiling baseline+changed via Rumoca...", flush=True)
     t0 = time.perf_counter()
