@@ -1,13 +1,13 @@
 # Journal paper upgrade plan (based only on results obtained)
 
-Status: sections marked PENDING depend on timing runs still in progress (link ablation,
-signal-chain / BridgedStar / RC timing) and contain no numbers yet. Everything else
-cites a committed result. `paper/main.tex` has not been modified.
+Status: complete. Every statement cites a committed result. `paper/main.tex` has not
+been modified.
 
 Evidence base: `phase1_scaling_diagnosis.md`, `phase2_oracle_verification.md`,
-`phase4_locality.md`, `phase5_state_ablation.md`, `statistical_audit_existing.md`,
-RC ladder / BridgedStar validation (`results/journal_upgrade/rc_ladder_parallel/`,
-`bridged_star_sets.csv`), link ablation (PENDING), extra timing (PENDING).
+`phase4_locality.md`, `phase5_state_ablation.md`, `phase6_link_ablation.md`,
+`statistical_audit_existing.md`, RC ladder / BridgedStar validation
+(`results/journal_upgrade/rc_ladder_parallel/`, `bridged_star_sets.csv`), extra timing
+(`results/journal_upgrade/extra_timing/`), `parallel_analysis/tables.md`.
 
 ## 1. Revised research question
 
@@ -45,7 +45,11 @@ parts, each with its own evidence:
 4. Measured characterization of what limits incremental builds at scale: the per-unit
    file materialization of the build (linear copy cost, plus a first-touch filesystem/I/O
    overhead of about 25-30 ms per file on this host that dominated the one anomalous
-   N=5,000 measurement), and the link strategy's contribution (PENDING, link ablation).
+   N=5,000 measurement), and the link strategy's contribution: in a same-session
+   ablation, static relinking grows linearly (0.99 s, 9.76 s, 22.73 s) and caps speedup
+   (3.10x, 2.30x, 1.98x at N=100/500/1000), while dynamic linking keeps the link step at
+   about 0.09 s (9.79x, 18.15x, 22.23x) at the cost of a full rebuild about 2x slower
+   (3.9x, 9.4x, 11.0x against the static full rebuild).
 5. A break-even change frequency (existing result; keep, with the harness caveat).
 
 Removed or demoted: "resolve impact by reachability, then recompile the predicted units"
@@ -59,15 +63,17 @@ contribution (Phase 5).
 | Real MSL speedup and ripple (existing Table III), refreshed by Phase 2 paper-method numbers | Results | done |
 | Three-strategy comparison (paper / matching-free baseline / source diff), 11 cells, bit-identical, timing with CIs | Results, new section | done |
 | Speedup vs size (existing Table IV) plus the N=5,000 steady-state point and first-touch cost | Results | done |
-| Locality: scope vs edit position, four model families, with predictions | Results, new section | done (graph); timing PENDING |
+| Locality: scope vs edit position, four model families, with predictions; signal-chain timing, three strategies | Results, new section | done |
 | States-as-knowns ablation | Methodology, short | done |
-| Link-strategy ablation (static vs dynamic, stripped vs not, both baselines) | Results | PENDING |
-| Topology generality: BridgedStar (coupled blocks, star) | Results, short | graph done; timing PENDING |
+| Link-strategy ablation (static vs dynamic, stripped vs not, both baselines) | Results | done |
+| Topology generality: BridgedStar (coupled blocks, star), three-way tie at about 13x | Results, short | done |
 | Break-even (existing) | Results | existing, keep with caveat |
 
 Supplementary or internal only: RC ladder (structurally redundant with the thermal chain;
-one confirmation build PENDING), stage-by-stage profiles below N=5,000, the stats audit's
-full mismatch list, the Phase 1 setup-hashing observation, determinism audits.
+its one confirmation build is bit-identical, 24.25x), stage-by-stage profiles below
+N=5,000, the stats audit's full mismatch list, the Phase 1 setup-hashing observation,
+determinism audits, the unstripped-DLL configuration (a reconstruction; use only to
+explain why stripping matters).
 
 ## 4. Claims that must be weakened or corrected
 
@@ -80,9 +86,14 @@ full mismatch list, the Phase 1 setup-hashing observation, determinism audits.
 - "Changes are local": replace with the structural statement (scope = forward algebraic
   cone bounded by states), including the counterexample (signal-chain head edit = full
   rebuild under reachability).
-- Speedup ratios: report absolute incremental times and both baselines; the dynamic-link
-  full rebuild used as the denominator is slower than the static one (stats audit: about
-  17.8x vs 27.0x at N=1,000 against the static baseline). Final wording PENDING link ablation.
+- Speedup ratios: report absolute incremental times and both baselines. Same-session
+  ablation: the dynamic full rebuild costs about 2x the static one, so at N=1000 the
+  dynamic design gives 22.23x against its own full rebuild but 11.01x [9.23, 13.42]
+  against the static full rebuild. Also report the paper's Table IV as one session's
+  sample: this session reproduced the trend with values 10-20% lower.
+- Reachability-driven recompilation is not local on long algebraic chains: at the head of
+  a 500-stage signal chain it recompiles 500 of 501 units and gains only 1.15x; state the
+  structural condition under which locality holds.
 - "Under about 9%" spread (actual 10.4% at N=250), "roughly threefold" per-step plateau
   (actually about 16x), overhead "non-trending" (rises 1.32%-1.66%), "two real circuits"
   (three real models): fix each (stats audit list).
@@ -108,8 +119,11 @@ full mismatch list, the Phase 1 setup-hashing observation, determinism audits.
 - Figure: affected units vs relative edit position (`figures/journal_locality_ripple`),
   plus source-diff line (constant 1) for the signal chain.
 - Table: N=5,000 first-touch experiment (W / F / FW conditions).
-- Figure or table: link ablation, absolute full and incremental times for three configs
-  across sizes (PENDING).
+- Figure or table: link ablation, absolute full and incremental times and link-step
+  times for three configs at N=100/500/1000 (`phase6_link_ablation.md`), with both
+  speedup baselines.
+- Table: signal-chain timing, three strategies at stages 1/250/500 (units recompiled,
+  incremental time, speedup), showing build cost following the selected units.
 - Small table: states-as-knowns ablation (units, largest unit, ripple, codegen outcome).
 
 ## 7. Sections to expand, condense, remove
@@ -146,7 +160,7 @@ connect-generated; conclusions about matching's value depend on that structural 
 
 Per condition: n, mean, median, sd, CV, 95% t-CI, min/max, and raw values in the
 repository; Fieller 95% intervals for speedups; pre-registered win/tie rule for strategy
-comparisons with the calibration result (1/12 identical-work pairs flagged); both
+comparisons with the calibration result (2 of 16 identical-work pairs flagged across Phase 2 and the extra cells, above the nominal 5%, so differences below about 0.5 s at these sizes are reported as uncertain); both
 "first repeat discarded" and "all repeats" statistics; no outlier removal; deterministic
 metrics (unit counts, ripple, flags) reported without intervals.
 
