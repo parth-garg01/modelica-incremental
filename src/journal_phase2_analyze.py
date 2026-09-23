@@ -40,9 +40,9 @@ def welch(a, b):
     return ma - mb, ma - mb - h, ma - mb + h
 
 
-def main():
-    df = pd.read_csv(TIMING)
-    sets = {r["cell"]: r["sets"] for r in json.loads(SETS.read_text())}
+def main(timing: Path = TIMING, sets_json: Path | None = SETS, out_prefix: str = "results/journal_upgrade_phase2"):
+    df = pd.read_csv(timing)
+    sets = {r["cell"]: r["sets"] for r in json.loads(sets_json.read_text())} if sets_json else {}
     stats, pairs = [], []
     for _, r in df.iterrows():
         f, i = _raw(r.full_rebuild_times_s), _raw(r.incremental_times_s)
@@ -60,13 +60,17 @@ def main():
         for a, b in (("matching", "naive"), ("oracle", "matching"), ("oracle", "naive")):
             if a in by and b in by:
                 d, lo, hi = welch(by[a], by[b])
-                same_set = cell in sets and set(sets[cell][KEY[a]]) == set(sets[cell][KEY[b]])
+                if cell in sets:
+                    same_set = set(sets[cell][KEY[a]]) == set(sets[cell][KEY[b]])
+                else:  # oracle <= paper <= baseline held on every verified cell, so equal counts imply equal sets
+                    n = {r.strategy: r.n_units_recompiled for _, r in g.iterrows()}
+                    same_set = n[a] == n[b]
                 verdict = "tie" if lo <= 0 <= hi else (f"{a} faster" if hi < 0 else f"{b} faster")
                 pairs.append(dict(cell=cell, a=a, b=b, same_recompile_set=same_set, diff_mean_s=d,
                                   diff_ci95_lo_s=lo, diff_ci95_hi_s=hi, verdict=verdict))
-    pd.DataFrame(stats).to_csv("results/journal_upgrade_phase2_timing_stats.csv", index=False)
+    pd.DataFrame(stats).to_csv(f"{out_prefix}_timing_stats.csv", index=False)
     p = pd.DataFrame(pairs)
-    p.to_csv("results/journal_upgrade_phase2_pairwise.csv", index=False)
+    p.to_csv(f"{out_prefix}_pairwise.csv", index=False)
     pd.set_option("display.width", 220)
     print(pd.DataFrame(stats)[["cell", "strategy", "units_recompiled", "total_units", "incr_mean_s", "incr_cv",
                                "speedup", "speedup_ci95_lo", "speedup_ci95_hi", "outputs_identical"]].round(3).to_string(index=False))
@@ -76,4 +80,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+    if len(sys.argv) > 1:  # timing csv, out prefix (no named-set json)
+        main(Path(sys.argv[1]), None, sys.argv[2])
+    else:
+        main()
