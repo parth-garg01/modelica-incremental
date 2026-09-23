@@ -1,0 +1,10 @@
+n,branch,total_units,paper,baseline,oracle,oracle_subset_paper,paper_subset_baseline
+10,1,21,3,3,1,True,True
+10,5,21,3,3,1,True,True
+10,10,21,3,3,1,True,True
+50,1,101,3,3,1,True,True
+50,25,101,3,3,1,True,True
+50,50,101,3,3,1,True,True
+250,1,501,3,3,1,True,True
+250,125,501,3,3,1,True,True
+250,250,501,3,3,1,True,True
