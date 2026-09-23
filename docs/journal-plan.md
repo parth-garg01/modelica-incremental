@@ -36,20 +36,20 @@ on a small number of models (2 real MSL circuits + 1 real thermal circuit +
 5 hand-written fixtures + 1 parameterized generator family).
 
 The single largest gap between "conference-ready" and "journal-ready" is
-not more figures — it is **breadth of evidence for generality** (more real
+not more figures, it is **breadth of evidence for generality** (more real
 models, more topologies, more change types) and **a second baseline**
 (currently the only comparison is incremental-vs-full-rebuild; there is no
 comparison against a naive/weaker incremental strategy, so the paper cannot
-show its specific design choices — SCC-based units, reachability-based
-impact, dynamic linking — are better than the obvious alternatives, only
+show its specific design choices, SCC-based units, reachability-based
+impact, dynamic linking, are better than the obvious alternatives, only
 that they beat doing nothing). Both are addressable substantially from
 infrastructure that already exists in the repo (Section 7, Section 8).
 
 The second-largest gap is **the unresolved N=5,000 anomaly** (Section
 2.1 of `docs/results.md`: speedup collapses from a clean trend to 3.33x at
 14,999 equations, tentatively but not conclusively attributed to filesystem
-overhead). A journal reviewer will find this data point immediately — it is
-already in the repo — and an unexplained 10x-off outlier sitting next to an
+overhead). A journal reviewer will find this data point immediately, it is
+already in the repo, and an unexplained 10x-off outlier sitting next to an
 otherwise-clean scaling claim is a credibility risk if left as is. Resolving
 or at least properly characterizing it is higher-value than most new
 experiments this plan proposes.
@@ -71,7 +71,7 @@ novel versus what is solid engineering:
    partition, computed external to the compiler because Rumoca's own
    matched-stage IR is not exposed via its public API (`docs/results.md`
    §1.1 step 2). This is a real, disclosed engineering workaround, not a
-   claimed algorithmic novelty — Kuhn's algorithm and Tarjan's SCC are both
+   claimed algorithmic novelty, Kuhn's algorithm and Tarjan's SCC are both
    textbook (cited: Kuhn 1955, Hopcroft-Karp 1973, Tarjan 1972, Duff-Reid
    1978). The novelty is in *applying* this decomposition as a
    recompilation-unit boundary for an equation-based compiler, which is a
@@ -79,7 +79,7 @@ novel versus what is solid engineering:
    for file-based systems; the paper's related-work section correctly
    identifies this gap).
 2. The "states are not edge sources" correction to the dependency graph
-   (`docs/results.md` §1.4) — this is a real, non-obvious, and load-bearing
+   (`docs/results.md` §1.4), this is a real, non-obvious, and load-bearing
    finding: naively including states as read/write graph nodes manufactures
    false cycles (ThermalNetwork's true ripple is 22%, not the phase-1
    measured 100%). This is presented as a bug fix in the paper, but it is
@@ -94,7 +94,7 @@ novel versus what is solid engineering:
    discipline is above what most systems papers do.
 4. The diagnose-and-fix arc on the relink ceiling (static link → dynamic
    link, `docs/findings/scaling-bottlenecks.md` "Bottleneck 4 fix"): this is
-   a legitimate systems contribution — identifying that the *build strategy*
+   a legitimate systems contribution, identifying that the *build strategy*
    (not the impact-analysis logic) was the actual bottleneck, and that
    fixing it changes the asymptotic behavior of the whole system (flat
    1.8x-2.3x → growing 5.66x-27.01x). This is arguably the strongest single
@@ -107,7 +107,7 @@ novel versus what is solid engineering:
 (`src/codegen_units.py`, `src/block_codegen.py`, `src/expr_c.py`, the
 per-unit dynamic-library driver in `src/unit_codegen.py`) is necessary
 infrastructure to make the timing claims real rather than projected, but it
-is not itself a research contribution — it is a means of producing evidence.
+is not itself a research contribution, it is a means of producing evidence.
 The paper is correctly positioned as being about the matching/partition/
 impact-analysis/link-strategy pipeline, not about the code generator, but a
 journal reviewer in compilers could reasonably ask for more discussion of
@@ -116,12 +116,12 @@ real Modelica backend's code generation (see Gap 2, Section 6).
 
 **Claims currently made** (from the abstract and conclusion) and their
 support level, expanded fully in Section 4's claim-evidence matrix:
-generality across the MSL corpus (weakly supported — n=3 real models plus 1
+generality across the MSL corpus (weakly supported, n=3 real models plus 1
 negative result); the growing-speedup finding (well supported within
 149-2,999 equations, degrading badly by 14,999); the break-even number
 (well supported for the one measured configuration, not shown to
 generalize); "we report where the approach stops working as plainly as
-where it works" (true and a real strength — Section 300 of the tex, the
+where it works" (true and a real strength, Section 300 of the tex, the
 Limitations section, is unusually honest for a paper at this stage).
 
 **Assumptions embedded in the implementation** that bound applicability:
@@ -164,7 +164,7 @@ machine (`docs/results.md` header: "ran on one Windows machine").
 - The dynamic-link and static-link build paths **both still exist** in
   `c_build.py`/`unit_codegen.py` side by side (dynamic-link was added, not
   substituted). This means an ablation comparing them directly (a natural
-  "link-strategy ablation") is close to free — the paper already reports
+  "link-strategy ablation") is close to free, the paper already reports
   both numbers at small scale (§3.4 of `docs/results.md`) but never plots
   them side by side as a controlled ablation across the size sweep.
 - `src/msl_change.py` and `src/change.py` support three change types (swap,
@@ -174,21 +174,21 @@ machine (`docs/results.md` header: "ran on one Windows machine").
 - `src/validate_scale.py` (a correctness-only, `repeats=1` harness distinct
   from the speed-measurement harness) is already the right tool for pushing
   bit-identical validation further without paying for repeated-timing cost
-  — it produced the N=2,000/5,000 data points and could be pushed further
+ , it produced the N=2,000/5,000 data points and could be pushed further
   cheaply for correctness-only evidence even where speed measurement is too
   expensive.
 
 **Experiments partially implemented but not reported in the paper:**
 - N=2,000 and N=5,000 correctness+one-off-speed data (`docs/results.md`
   §2.1) exist in `results/measurements_validate_scale.csv` but are **not**
-  in `paper/main.tex` at all — the paper's scale table stops at 2,999
+  in `paper/main.tex` at all, the paper's scale table stops at 2,999
   equations (Table IV). This is a significant omission: the paper's own
   Limitations section (item 1) references "5,999 and 14,999" one-off
   numbers narratively but the actual table showing the trend breaking down
   is not shown to the reader.
 - `docs/results.md` §3.1-3.2 (the superseded static-link plateau) is
   richly documented in the results ledger but compressed to a few
-  sentences in the paper — the full before/after contrast (with the
+  sentences in the paper, the full before/after contrast (with the
   disproportionate-stdev evidence) is a stronger scientific story than
   the paper currently tells it.
 
@@ -201,10 +201,10 @@ machine (`docs/results.md` header: "ran on one Windows machine").
 | Incremental rebuild is bit-identical to full rebuild | `results/measurements_*.csv`, SHA-256 fingerprinting, 2 independent diff mechanisms, `tests/test_dynamic_link.py`, `tests/test_scale_correctness.py` | Table II caption + prose throughout | **SUPPORTED** | none significant | none |
 | Speedup grows with model size (5.66x→27.01x) | `results/measurements_scale.csv`, 3 repeats, tight stdev (<9%) | Table IV, Fig. speedup_vs_size | **SUPPORTED**, but only for 149-2,999 eq | The trend is not shown to continue past 2,999 in a repeated-measurement sense; the one-off N=5,999/14,999 points are narrated, not tabulated, and the N=5,000 point directly contradicts the trend (3.33x) | Either explain/fix the N=5,000 anomaly or explicitly bound the claim's validity range in the abstract, not just the limitations section |
 | Real-model generality (MSL) | 3 real models, 4 change cells | Table III (MSL speedup) | **PARTIALLY SUPPORTED** | n=3 real models is thin for a "generalizes to real MSL components" claim; all 3 are simple series/parallel topologies, none has a genuine coupled block exercised at the real-model scale except MslResistorNetwork's 14-eq block (not separately highlighted as a coupled-block validation) | Broaden real-model corpus (Section 9) |
-| Compiler-independent / general applicability to "Modelica models" | none beyond the above | Abstract implies broad applicability via "Modelica digital twins" title | **UNSUPPORTED as stated broadly** — single front end (Rumoca), single index class (index-1), single toolchain (MinGW/gcc), single OS (Windows) | A reviewer versed in Modelica tooling will ask whether this transfers to OpenModelica/Dymola-compiled models or is Rumoca-IR-specific | Either narrow the title/abstract's scope explicitly or add a second front-end data point (high cost, see Section 8) |
-| Break-even change frequency is a real, usable number | `results/measurements_break_even.csv`, 3 repeats of full rebuild, independent rerun-stability check | Table V, Fig. break_even_crossing | **SUPPORTED for the one measured configuration** (N=300 rooms, this harness's specific streaming implementation) | The break-even threshold itself moved from 4 to 2 purely because of an artifact of the *harness's own* fresh-directory-per-step design (`docs/results.md` §6.3) — this makes the number closer to "a property of this test harness" than "a property of the system," which is exactly the kind of thing a journal reviewer flags | Fix the harness's own O(N) copy cost (already named as future work) before treating the break-even number as portable, or explicitly caveat it as harness-bound |
+| Compiler-independent / general applicability to "Modelica models" | none beyond the above | Abstract implies broad applicability via "Modelica digital twins" title | **UNSUPPORTED as stated broadly**, single front end (Rumoca), single index class (index-1), single toolchain (MinGW/gcc), single OS (Windows) | A reviewer versed in Modelica tooling will ask whether this transfers to OpenModelica/Dymola-compiled models or is Rumoca-IR-specific | Either narrow the title/abstract's scope explicitly or add a second front-end data point (high cost, see Section 8) |
+| Break-even change frequency is a real, usable number | `results/measurements_break_even.csv`, 3 repeats of full rebuild, independent rerun-stability check | Table V, Fig. break_even_crossing | **SUPPORTED for the one measured configuration** (N=300 rooms, this harness's specific streaming implementation) | The break-even threshold itself moved from 4 to 2 purely because of an artifact of the *harness's own* fresh-directory-per-step design (`docs/results.md` §6.3), this makes the number closer to "a property of this test harness" than "a property of the system," which is exactly the kind of thing a journal reviewer flags | Fix the harness's own O(N) copy cost (already named as future work) before treating the break-even number as portable, or explicitly caveat it as harness-bound |
 | Codegen O(n²) bug found and fixed, ~49x | `docs/findings/scaling-bottlenecks.md` Bottleneck 5, before/after table, unchanged regression suite | Table II (codegen), §on2 | **SUPPORTED** | none significant | none |
-| Scale reaches "industrial" range | N=500 (full pipeline verified), N=1,000 (repeated speedup), N=5,000 (codegen profiling only), N=10,000 (Rumoca compile-only) | Limitations item 1 states this honestly | **NEEDS MORE VALIDATION** — self-disclosed | A reviewer will ask why 10^5 equations (the originally stated target per `prd-combined.md`) was not reached; the paper's own honesty here is a strength, but "index reduction and scale beyond a few thousand equations are both out of reach" (abstract) undersells that codegen/matching/graph stages ARE confirmed near-linear to 14,999 — only the *link/copy* step and the *front-end compile* step are the actual scale blockers | Clarify in the paper which stage is the actual scale bottleneck (front-end parse + per-file copy, not the paper's own algorithmic contributions) |
+| Scale reaches "industrial" range | N=500 (full pipeline verified), N=1,000 (repeated speedup), N=5,000 (codegen profiling only), N=10,000 (Rumoca compile-only) | Limitations item 1 states this honestly | **NEEDS MORE VALIDATION**, self-disclosed | A reviewer will ask why 10^5 equations (the originally stated target per `prd-combined.md`) was not reached; the paper's own honesty here is a strength, but "index reduction and scale beyond a few thousand equations are both out of reach" (abstract) undersells that codegen/matching/graph stages ARE confirmed near-linear to 14,999, only the *link/copy* step and the *front-end compile* step are the actual scale blockers | Clarify in the paper which stage is the actual scale bottleneck (front-end parse + per-file copy, not the paper's own algorithmic contributions) |
 | "Every claim... checked at the same level of evidence" (Conclusion) | Broadly true per the ledger | Conclusion prose | **SUPPORTED as a project-discipline claim**, not itself a scientific result | A reviewer may read this as slightly self-congratulatory rhetoric rather than a falsifiable claim | Consider softening or grounding it with one concrete forward pointer (e.g., "every number in this paper cites a script and a log, in a public repository") |
 | Linear-coupled-block scope is sufficient | No tested model (real or hand-written) needs nonlinear codegen | Limitations item 4 | **SUPPORTED as a negative/scoping claim**, not demonstrated as a general sufficiency result | A reviewer may ask: is this because nonlinear loops are rare in practice, or because the corpus never had a chance to contain one? These are different claims | Either find/construct one real nonlinear-loop model to test the boundary, or reframe the claim more narrowly ("no nonlinear loop appeared in this corpus," not "nonlinear loops don't matter") |
 
@@ -218,7 +218,7 @@ machine (`docs/results.md` header: "ran on one Windows machine").
 - **Two real, independently verified third-party bugs found**
   (networkx Hopcroft-Karp non-determinism; Rumoca's algebraic-loop solver).
   These are citable findings in their own right and could be pulled into a
-  short "artifacts of building on real infrastructure" subsection — this is
+  short "artifacts of building on real infrastructure" subsection, this is
   exactly the kind of grounded, unglamorous detail that distinguishes a
   system that was actually built from one that is only simulated in a
   paper.
@@ -244,11 +244,11 @@ what experiment would show the improvement.
 versus Make/Bazel-style incremental builds beyond "the units are equations
 not files." Reviewer cares because "we applied a well-known idea (matching,
 SCC, reachability, incremental build) to a new domain" needs to show the
-domain transfer was non-trivial — and it clearly was (the states-as-knowns
+domain transfer was non-trivial, and it clearly was (the states-as-knowns
 graph correction, the singleton/coupled codegen unification bug, the
 relink-vs-recompile cost inversion at scale) but the paper doesn't
 foreground these as the actual novel contributions distinct from "we built
-a thing." **Necessary: yes. Addressable from existing repo: yes** — this is
+a thing." **Necessary: yes. Addressable from existing repo: yes**, this is
 a writing/framing fix, not new experiments (Category E, presentation).
 
 **2. Technical depth.** Missing: discussion of why a from-scratch,
@@ -262,12 +262,12 @@ paragraph, drawing on the already-written Future Work section, would help).
 
 **3. Experimental depth.** Missing: no experiment varies *change size*
 (e.g., how many equations a single edit touches) as an independent
-variable — every measured change is a single component swap/add/remove.
+variable, every measured change is a single component swap/add/remove.
 Missing: no experiment on *change locality* (central vs. peripheral node in
 the topology) despite the paper's central claim being about locality.
 Reviewer cares because "ripple is local" is asserted from 4-5 data points,
 not systematically varied. **Necessary: yes, this is probably the single
-highest-value addition. Addressable from existing repo: substantially** —
+highest-value addition. Addressable from existing repo: substantially** , 
 `scaled_models.py`'s parameterized generator already supports editing any
 room index; a systematic sweep over edit position × chain length needs
 only a new driver script reusing `measure_scale.py`'s existing
@@ -276,19 +276,19 @@ only a new driver script reusing `measure_scale.py`'s existing
 **4. Validation.** Missing: cross-checking against a second Modelica
 front end (OpenModelica) or against Rumoca's own runtime for the models
 where Rumoca's runtime is trustworthy (it wasn't, for the coupled-block
-models — see the Rumoca bug finding — but it was for the real MSL models).
+models, see the Rumoca bug finding, but it was for the real MSL models).
 Reviewer cares because "validated against an independent analytical
 solution" only covers the 2-3 hand-derived cases; the real MSL models are
 validated only by "matches a full rebuild," not against an independent
 ground truth for absolute correctness (only relative correctness).
-**Necessary: partially** — relative correctness (incremental == full) is
+**Necessary: partially**, relative correctness (incremental == full) is
 actually the paper's real claim and is well covered; absolute correctness
 against a second compiler is a nice-to-have, high cost (new toolchain
 install), **UNVERIFIED whether OpenModelica is installed on this
 machine**.
 
 **5. Comparison with existing methods.** Missing entirely: there is no
-baseline other than full rebuild. Reviewer cares a great deal — a journal
+baseline other than full rebuild. Reviewer cares a great deal, a journal
 reviewer will ask "compared to what?" The paper implicitly compares against
 "rebuild everything," which is the weakest possible baseline. A stronger
 paper would also compare against at least one naive incremental strategy
@@ -296,7 +296,7 @@ paper would also compare against at least one naive incremental strategy
 in the source-level connect graph," without the matching-based
 partitioning) to show the matching/partitioning step itself adds value
 over a cruder dependency notion. **Necessary: yes, high value. Addressable:
-moderate implementation** — a naive baseline (source-level connect-graph
+moderate implementation**, a naive baseline (source-level connect-graph
 reachability, skipping the matching/BLT step entirely) could be built from
 existing pieces (the MSL models' connect() structure is already parsed by
 Rumoca; a coarser resolver is a new, smaller `resolver_naive.py`).
@@ -306,12 +306,12 @@ Rumoca; a coarser resolver is a new, smaller `resolver_naive.py`).
 unused) plus 2-3 more real MSL corpus models (Category B).
 
 **7. Scalability.** The N=5,000 anomaly is the concrete, immediate issue.
-**Necessary: yes, high priority** — an unexplained regression sitting next
+**Necessary: yes, high priority**, an unexplained regression sitting next
 to a "speedup grows with size" headline claim is exactly the kind of thing
 a careful reviewer finds and uses to discount the whole scaling claim.
 **Addressable: yes**, with moderate implementation (profiling the N=5,000
 cell's incremental-rebuild step-by-step, the way Bottleneck 4/5 were
-originally diagnosed) — this is squarely in the repository's own existing
+originally diagnosed), this is squarely in the repository's own existing
 methodology, just not yet applied to this specific data point.
 
 **8. Ablation studies.** None currently exist in the sense of isolating
@@ -319,7 +319,7 @@ component contributions. The paper has natural ablation opportunities
 already sitting in its own git history (static-link vs. dynamic-link is
 literally an A/B measured pair) that are narrated as a before/after fix
 rather than presented as a controlled ablation figure. **Necessary: yes.
-Addressable: yes, near-zero new implementation** — both code paths already
+Addressable: yes, near-zero new implementation**, both code paths already
 exist and are both tested; a dedicated ablation figure could be built
 almost entirely from data that already exists in
 `results/measurements_scale.csv` (dynamic) plus a fresh, short re-run of
@@ -328,9 +328,9 @@ the static-link path at the same sizes (Category B, cheap).
 **9. Correctness/soundness.** Already strong (Section 5). One real gap:
 soundness (`check_soundness`, the independent-diff superset check) is
 explicitly **not** re-run at Stage B's generated scale beyond N=299
-(`docs/results.md` §10, last paragraph) — it is inferred from
+(`docs/results.md` §10, last paragraph), it is inferred from
 `outputs_identical` rather than independently reproven. **Necessary:
-moderate** — worth closing for the largest sizes tested, cheap to do since
+moderate**, worth closing for the largest sizes tested, cheap to do since
 the machinery exists.
 
 **10. Reproducibility.** Strong within-machine (provenance file, pinned
@@ -345,8 +345,8 @@ Category D work, cheap relative to new science.
 confidence intervals, no effect sizes reported, no randomized execution
 order (each size is measured as its own block, not interleaved), warm-up
 handling inconsistent (applied to the dynamic-link scale sweep, not
-applied — and explicitly reasoned about why not — to the change-frequency
-harness). **Necessary: yes, moderate value** — reviewers in a
+applied, and explicitly reasoned about why not, to the change-frequency
+harness). **Necessary: yes, moderate value**, reviewers in a
 systems/measurement-conscious venue will want CIs at minimum; the raw data
 already exists to compute them retroactively (no new experiments needed,
 Category D).
@@ -355,8 +355,8 @@ Category D).
 practical-significance evidence and should be foregrounded more. Missing:
 any discussion of memory/storage overhead of keeping N cached DLLs around
 (a real operational cost of this design, currently unmeasured anywhere).
-**Necessary: yes, moderate — a natural reviewer question** ("what does this
-cost in disk/memory to maintain?"). **Addressable: cheap** — disk usage of
+**Necessary: yes, moderate, a natural reviewer question** ("what does this
+cost in disk/memory to maintain?"). **Addressable: cheap**, disk usage of
 `build_cache`/build directories is already implicitly present in existing
 run artifacts; a `du`-equivalent measurement is a few lines.
 
@@ -366,12 +366,12 @@ any citation to incremental-compilation literature specifically for
 equation-based/DAE systems outside Modelica (e.g., incremental structural
 analysis in other simulation domains), and no discussion of
 incremental-linking literature (relevant given Gap 5/8 above touch exactly
-that problem). **UNVERIFIED whether such prior work exists to cite** —
+that problem). **UNVERIFIED whether such prior work exists to cite** , 
 worth a literature search before claiming a gap, not assumed.
 
 **14. Limitations.** Already unusually thorough (8 enumerated items in the
 paper, 12 in `docs/results.md`). No action needed beyond keeping them in
-sync (the paper's list is a subset of the results ledger's list — verify
+sync (the paper's list is a subset of the results ledger's list, verify
 nothing load-bearing was dropped in the paper's compression pass).
 
 **15. Threats to validity.** Implicitly covered inside Limitations but not
@@ -380,13 +380,13 @@ templates expect explicitly (internal validity: single-machine noise;
 external validity: single front end, single toolchain, single OS;
 construct validity: does "bit-identical" fully capture "correct" for a
 model this project's own emitter could theoretically miscompile in a
-way that happens to match a wrong full rebuild — unlikely but worth one
+way that happens to match a wrong full rebuild, unlikely but worth one
 sentence). **Necessary: yes, low implementation cost, Category E.**
 
 **16. Journal-level presentation.** Current paper is 6 pages, IEEE
 conference-shaped (compressed prose, single-column figures, dense limitation
 lists). A journal submission typically wants more depth per section, not
-just more content — expanding Methodology with the actual matching/BLT
+just more content, expanding Methodology with the actual matching/BLT
 algorithm pseudocode (currently only prose-described) would help technical
 depth without requiring new experiments. **Necessary: yes. Addressable:
 Category E, writing-only.**
@@ -398,11 +398,11 @@ Category E, writing-only.**
 | Item | Location | Demonstrates | Reproducible? | Publication-quality? | Verification still needed |
 |---|---|---|---|---|---|
 | N=2,000/5,000 correctness+one-off speed | `results/measurements_validate_scale.csv` | Bit-identical correctness continues to 14,999 eq; speed trend breaks down at 14,999 | Yes, `src/validate_scale.py` | Correctness data: yes. Speed data: no (single-rep, already flagged noisy) | Re-run repeated (3x) at N=2,000 and N=5,000 specifically to know if 3.33x is a real effect or single-run noise before either publishing or omitting it |
-| Static-link vs. dynamic-link at identical sizes | `results/measurements_scale.csv` (superseded static numbers preserved in `docs/results.md` §3.1) plus current dynamic numbers | A clean, already-measured ablation of the link-strategy design choice | Static-link path still exists in code (`c_build.py`), so yes | Data exists; needs to be re-plotted as one paired figure rather than two separate tables | None — this is nearly free, just needs a new figure script |
-| MSL real-model 4th cell (MslThermalChain) | `results/measurements_msl.csv`, "Priority 3" entry | Cross-domain generalization (thermal, not just electrical) | Yes, in the standing test sweep | Yes — already in the paper (Table III has 4 rows) | None, already used |
-| `generate_rc_ladder(N)` | `src/scaled_models.py`, tested, never measured | A second topology/coupling-flavor family for a generality claim beyond thermal chains | Yes, generator exists and is unit-tested | Not yet — no measurement run | Needs a measurement pass through `measure_scale.py`-equivalent logic |
+| Static-link vs. dynamic-link at identical sizes | `results/measurements_scale.csv` (superseded static numbers preserved in `docs/results.md` §3.1) plus current dynamic numbers | A clean, already-measured ablation of the link-strategy design choice | Static-link path still exists in code (`c_build.py`), so yes | Data exists; needs to be re-plotted as one paired figure rather than two separate tables | None, this is nearly free, just needs a new figure script |
+| MSL real-model 4th cell (MslThermalChain) | `results/measurements_msl.csv`, "Priority 3" entry | Cross-domain generalization (thermal, not just electrical) | Yes, in the standing test sweep | Yes, already in the paper (Table III has 4 rows) | None, already used |
+| `generate_rc_ladder(N)` | `src/scaled_models.py`, tested, never measured | A second topology/coupling-flavor family for a generality claim beyond thermal chains | Yes, generator exists and is unit-tested | Not yet, no measurement run | Needs a measurement pass through `measure_scale.py`-equivalent logic |
 | Break-even harness's per-step timing breakdown | `docs/results.md` §6.3 ("`[step: incremental_s]`" list) | The harness's own O(N) copy-per-step cost, isolated numerically | Yes | As a diagnostic, yes; not currently a paper figure | Could become a supporting figure explaining *why* the break-even point moved, strengthening rather than undermining the result |
-| Superseded static-link stdev evidence | `docs/results.md` §3.1-3.2 | The "relink dominates" diagnosis, evidenced by disproportionate stdev growth | Yes, numbers already recorded | Yes, this is good evidence, currently only narrated in ~2 paper sentences | None — a compression/expansion decision for the paper draft |
+| Superseded static-link stdev evidence | `docs/results.md` §3.1-3.2 | The "relink dominates" diagnosis, evidenced by disproportionate stdev growth | Yes, numbers already recorded | Yes, this is good evidence, currently only narrated in ~2 paper sentences | None, a compression/expansion decision for the paper draft |
 | Full pytest suite counts across time | `docs/progress.md` (83→99→106→110→113→134→144→152 tests) | Regression-suite growth alongside feature growth, evidence of engineering discipline | Yes | Supplementary/appendix material at best, not a headline result | None |
 
 ---
@@ -425,10 +425,10 @@ classified by contribution type.
   answers "compared to what" and is the single most reviewer-obvious
   missing piece.
 - Link-strategy ablation as a first-class figure (static vs. dynamic at
-  matched sizes) — nearly free, high narrative value, directly supports the
+  matched sizes), nearly free, high narrative value, directly supports the
   paper's own "we diagnosed and fixed this" story with a controlled
   comparison instead of a before/after narrative.
-- `generate_rc_ladder` measurement pass — a second topology family at very
+- `generate_rc_ladder` measurement pass, a second topology family at very
   low cost, strengthens generality claims beyond thermal chains.
 
 **MEDIUM VALUE**
@@ -448,7 +448,7 @@ classified by contribution type.
 - Cross-platform (Linux/macOS) replication. Real external-validity value,
   but high cost (new environment setup, likely different toolchain
   behavior around the exact antivirus/filesystem effects the paper
-  currently attributes speed anomalies to — which is itself informative but
+  currently attributes speed anomalies to, which is itself informative but
   expensive) relative to what it buys for this paper's specific claims.
 - Second Modelica front end (OpenModelica) comparison. High value in
   principle, very high cost (a second compiler toolchain, a second IR
@@ -468,7 +468,7 @@ work in general)
   it speculatively for "completeness" would be untested code with no
   experiment to validate it, actively worse than the current honest
   "not needed by anything tested" scoping.
-- Discrete/event-driven signal support. Same reasoning — a real, large
+- Discrete/event-driven signal support. Same reasoning, a real, large
   feature (If-expression / event-condition codegen) with no experiment plan
   currently justifying its cost for this paper's specific contribution.
 
@@ -478,11 +478,11 @@ work in general)
 
 | Proposed change | Classification | Why |
 |---|---|---|
-| Naive-baseline comparison (Gap 5) | **A. New scientific contribution** | Currently the paper cannot claim its design choices (matching-based partitioning specifically, versus a cruder dependency notion) are *necessary* — only that doing *something* incremental beats nothing. A baseline turns this into an actual comparative claim. |
-| Change-size/locality sweep (Gap 3) | **A/B mixed — mostly A** | Turns "ripple is local" from an anecdote (4-5 hand-picked changes) into a characterized relationship (ripple as a function of edit position and topology), which is closer to a real finding about the *mechanism* than more repetitions of the same experiment. |
-| Resolving the N=5,000 anomaly | **B. Stronger empirical validation** | Doesn't add a new mechanism or claim — it either confirms the existing growing-speedup claim more rigorously or narrows its validity range honestly. Necessary regardless of framing. |
+| Naive-baseline comparison (Gap 5) | **A. New scientific contribution** | Currently the paper cannot claim its design choices (matching-based partitioning specifically, versus a cruder dependency notion) are *necessary*, only that doing *something* incremental beats nothing. A baseline turns this into an actual comparative claim. |
+| Change-size/locality sweep (Gap 3) | **A/B mixed, mostly A** | Turns "ripple is local" from an anecdote (4-5 hand-picked changes) into a characterized relationship (ripple as a function of edit position and topology), which is closer to a real finding about the *mechanism* than more repetitions of the same experiment. |
+| Resolving the N=5,000 anomaly | **B. Stronger empirical validation** | Doesn't add a new mechanism or claim, it either confirms the existing growing-speedup claim more rigorously or narrows its validity range honestly. Necessary regardless of framing. |
 | Link-strategy ablation figure | **B, verging on A** | The comparison already exists as raw numbers; presenting it as a controlled ablation makes an implicit claim (dynamic linking specifically, not just "engineering effort," is what fixed scaling) explicit and testable, which is more than cosmetic. |
-| `generate_rc_ladder` measurement | **B. Stronger empirical validation** | Same mechanism, different topology — broadens the evidence base for an existing claim, does not create a new one. |
+| `generate_rc_ladder` measurement | **B. Stronger empirical validation** | Same mechanism, different topology, broadens the evidence base for an existing claim, does not create a new one. |
 | Broader real MSL corpus | **B. Stronger empirical validation** | Same reasoning; more real models is evidence depth, not new science, unless a genuinely different structural pattern (e.g., a real coupled/algebraic-loop-bearing real model) is found, which would upgrade this to A. |
 | Confidence intervals, warm-up consistency | **D. Better reproducibility / rigor presentation** | Does not change any conclusion, changes how confidently it can be stated. |
 | Disk/memory overhead measurement | **C. Better engineering characterization**, borderline B | Useful practical information, not evidence for or against the paper's central claim. |
@@ -494,7 +494,7 @@ work in general)
 
 ## 10. Possible journal-level research directions (neutral, not ranked)
 
-**Direction 1 — "Locality is characterized, not anecdotal."** Central
+**Direction 1, "Locality is characterized, not anecdotal."** Central
 question: what structural properties of a model and an edit predict ripple
 size and speedup? Current evidence: 4-5 real/hand-written change cells plus
 a fixed-position edit in the generated sweep. Missing evidence: systematic
@@ -510,11 +510,11 @@ partially retired for the *generated-model* half of the generality claim
 (real-model breadth remains a separate, honestly-scoped limitation). Major
 risk: if ripple turns out to correlate simply with edit position in an
 obvious way (e.g., purely with topology depth), this could read as a
-confirmatory rather than surprising result — still journal-worthy as
+confirmatory rather than surprising result, still journal-worthy as
 rigorous characterization, but less dramatic. Difficulty: moderate (new
 driver script, no new codegen).
 
-**Direction 2 — "Necessity, not just sufficiency, of the matching-based
+**Direction 2, "Necessity, not just sufficiency, of the matching-based
 design."** Central question: does the matching/BLT partitioning step
 actually earn its complexity over a simpler dependency notion? Current
 evidence: none (no baseline exists). Missing evidence: a naive baseline
@@ -526,7 +526,7 @@ paired bar chart, ripple and speedup, matching-based vs. naive, same
 models. Retained: all current results stand unchanged; this adds a column,
 not a rewrite. Restructuring: a new "Baselines" subsection in Methodology
 plus a new Results subsection. Major risk: if the naive baseline turns out
-to be nearly as good (plausible on these specific simple topologies — chain
+to be nearly as good (plausible on these specific simple topologies, chain
 and star-like circuits may not stress-test the difference between
 component-level and equation-level granularity), that is itself a valuable,
 honest finding, but would blunt the paper's implicit claim that fine-grained
@@ -534,21 +534,21 @@ matching-based partitioning matters. Difficulty: moderate (a new, simpler
 resolver plus a driver reusing existing infrastructure); genuinely the
 highest expected-value direction per unit of implementation cost.
 
-**Direction 3 — "The link/assembly step is the real scaling story."**
+**Direction 3, "The link/assembly step is the real scaling story."**
 Central question: reframe the paper's contribution more explicitly around
 the finding that *dependency-graph-based impact analysis was never the
-bottleneck* — the build/link/assembly strategy was, both times (relink at
+bottleneck*, the build/link/assembly strategy was, both times (relink at
 N~1,000, per-file copy at N~5,000+). Current evidence: strong (Bottleneck
 4, Bottleneck 4 fix, the N=5,000 anomaly consistent with the same class of
 cost). Missing evidence: closing the loop on the O(N) copy-per-rebuild cost
 that Future Work already names (reusing a persistent build directory
-in-place instead of copying into a fresh one every time) — this would be
+in-place instead of copying into a fresh one every time), this would be
 new engineering, potentially resolving the N=5,000 anomaly and pushing
 scale further in one motion. Implementation: moderate-to-substantial (a
 persistent-build-directory design, likely non-trivial on Windows given the
 antivirus-interaction findings already documented). Expected result: either
 confirms the hypothesis (speedup keeps growing past 2,999 once the O(N)
-copy is removed) or reveals a new, different bottleneck — both are
+copy is removed) or reveals a new, different bottleneck, both are
 publishable. Retained: the entire existing pipeline and result set; this is
 additive. Restructuring: Future Work section becomes a Results section;
 title/abstract could shift emphasis toward "identifying and eliminating
@@ -558,10 +558,10 @@ not measurement work) and the antivirus-interaction confound already
 documented makes clean before/after comparison harder to reason about.
 Difficulty: substantial.
 
-**Direction 4 — "Scope the claim narrowly and go deep on rigor instead of
+**Direction 4, "Scope the claim narrowly and go deep on rigor instead of
 breadth."** Central question: rather than broadening the model corpus or
-adding baselines, treat the paper as a rigorously bounded case study — index-1
-linear-coupled Modelica models on one toolchain — and maximize statistical
+adding baselines, treat the paper as a rigorously bounded case study, index-1
+linear-coupled Modelica models on one toolchain, and maximize statistical
 and methodological rigor within that scope (confidence intervals, ablations
 of matching/partitioning/impact-resolution/caching in isolation, formal
 threats-to-validity treatment, the naive baseline from Direction 2 as an
@@ -572,15 +572,15 @@ low-to-moderate (mostly analysis of existing data plus 1-2 new ablation runs).
 Expected figures: an ablation table (component removed → effect on
 speedup/ripple), CI bands on all existing timing figures. Retained: the
 entire current evidence base, reorganized rather than extended. Restructuring:
-moderate — Results section reorganized around ablations rather than purely
+moderate, Results section reorganized around ablations rather than purely
 chronological narrative; Limitations section's scope boundaries become more
 central to the paper's framing rather than an apology at the end.
 Major risk: this direction produces a narrower, more modest paper that may
-read as less ambitious even though it is more rigorous — a real editorial
+read as less ambitious even though it is more rigorous, a real editorial
 tradeoff, not a technical one. Difficulty: low-moderate, the fastest path
 to a defensible journal submission.
 
-These four are not mutually exclusive — Direction 2 (naive baseline) and
+These four are not mutually exclusive, Direction 2 (naive baseline) and
 Direction 4 (rigor/ablations) compose naturally, and Direction 1 (locality
 sweep) strengthens either. Direction 3 is the highest-risk, highest-reward,
 and the most different in character from the others (systems engineering
@@ -597,7 +597,7 @@ Only experiments judged HIGH or MEDIUM value in Section 8 are detailed here.
 - **RQ:** Does equation-level, matching-based recompilation-unit
   partitioning identify a materially smaller affected set than a coarser,
   component/file-level dependency notion, on the same models and changes?
-- **Hypothesis:** Yes — the matching-based partition should show lower
+- **Hypothesis:** Yes, the matching-based partition should show lower
   ripple (smaller affected fraction) and comparable-or-better speedup than
   a naive resolver, because it operates at equation granularity rather than
   component granularity.
@@ -623,13 +623,13 @@ Only experiments judged HIGH or MEDIUM value in Section 8 are detailed here.
 - **Expected figure:** paired bar chart (matching-based vs. naive), ripple
   and speedup, per model.
 - **Supports the claim if:** matching-based ripple is meaningfully lower
-  (not just numerically lower — report effect size, not just point
+  (not just numerically lower, report effect size, not just point
   estimates) on at least the models with genuine coupled blocks
   (MslResistorNetwork's 14-eq block is the best test case, since a
   component-level resolver would likely treat the whole coupled component
   group as one unit regardless).
 - **Would weaken/falsify the claim if:** naive and matching-based ripple
-  are statistically indistinguishable across the whole corpus — this would
+  are statistically indistinguishable across the whole corpus, this would
   be an honest, still-valuable finding (the corpus's topologies may simply
   not need equation-level granularity), and should be reported as such
   rather than suppressed.
@@ -656,9 +656,9 @@ Only experiments judged HIGH or MEDIUM value in Section 8 are detailed here.
 - **Repetitions:** 3 per position (matches existing scale-sweep practice);
   consider fewer repeats per position with more positions sampled, given
   the existing evidence that ripple itself (unlike timing) is perfectly
-  deterministic run to run — position-sweep breadth likely matters more
+  deterministic run to run, position-sweep breadth likely matters more
   than repeat depth here.
-- **Baseline:** none needed — this experiment characterizes the existing
+- **Baseline:** none needed, this experiment characterizes the existing
   method's own behavior, not a comparison.
 - **Metrics:** ripple as a function of position, absolute affected count.
 - **Expected figure:** ripple (or affected-unit count) vs. edit position,
@@ -667,7 +667,7 @@ Only experiments judged HIGH or MEDIUM value in Section 8 are detailed here.
   N regardless of position, i.e., the "changes are local" claim holds
   uniformly, not just at the one position tested so far.
 - **Would weaken/falsify the claim if:** ripple grows sharply near
-  particular topology positions (e.g., a shared bus/ground node) — this
+  particular topology positions (e.g., a shared bus/ground node), this
   would be a genuinely important finding bounding the claim's real
   applicability, not a failure to hide.
 
@@ -679,7 +679,7 @@ Only experiments judged HIGH or MEDIUM value in Section 8 are detailed here.
 - **Hypothesis:** it is the O(N) copy cost, per the paper's own existing
   diagnosis pattern (Bottleneck 4/4-fix), now dominating again at a larger
   N than the original fix was validated against.
-- **Independent variables:** none new — this is a targeted re-measurement
+- **Independent variables:** none new, this is a targeted re-measurement
   plus profiling, not a sweep.
 - **Dependent variables:** speedup, and (new) a stage-by-stage timing
   breakdown of the incremental-rebuild step specifically (matching how
@@ -690,7 +690,7 @@ Only experiments judged HIGH or MEDIUM value in Section 8 are detailed here.
   purpose).
 - **Repetitions:** this specific cell was previously run only once (75
   minutes); given the cost, **at minimum 2 more repeats** are needed before
-  treating any number as more than anecdotal — budget and machine-time
+  treating any number as more than anecdotal, budget and machine-time
   permitting, given the ~75-minute-per-run cost documented in
   `docs/results.md` §2.1.
 - **Statistical treatment:** given the extreme per-run cost, report the
@@ -698,7 +698,7 @@ Only experiments judged HIGH or MEDIUM value in Section 8 are detailed here.
   n=2-3 gives a tight CI; consider a cheaper proxy (measure just the
   per-file copy step directly, in isolation, at N=5,000, without a full
   incremental-rebuild timing) as an alternative to full expensive re-runs.
-- **Baseline:** none — this is root-cause diagnosis, not a comparison.
+- **Baseline:** none, this is root-cause diagnosis, not a comparison.
 - **Metrics:** wall-clock breakdown: recompile time, copy/assembly time,
   driver relink time.
 - **Expected output:** either a table showing copy time dominates at
@@ -707,10 +707,10 @@ Only experiments judged HIGH or MEDIUM value in Section 8 are detailed here.
   different, newly-identified cost.
 - **Supports the claim if:** the breakdown confirms copy/assembly
   dominates, which converts an "unexplained anomaly" into a "known,
-  named, consistent-with-theory limitation" — this is a real improvement
+  named, consistent-with-theory limitation", this is a real improvement
   in the paper's credibility even without fixing the underlying cost.
 - **Would weaken the claim if:** the breakdown reveals something new and
-  inconsistent with the existing bottleneck theory — still worth reporting,
+  inconsistent with the existing bottleneck theory, still worth reporting,
   but would require re-examining whether the growing-speedup trend is as
   well-understood as currently claimed.
 
@@ -722,7 +722,7 @@ Only experiments judged HIGH or MEDIUM value in Section 8 are detailed here.
   warm-up handling)?
 - **Hypothesis:** dynamic linking is the dominant factor, per the existing
   causal diagnosis, but the DLL-stripping and warm-up fixes (Section 8 of
-  `docs/findings/scaling-bottlenecks.md`) each contribute measurably too —
+  `docs/findings/scaling-bottlenecks.md`) each contribute measurably too , 
   currently conflated into one "the fix" narrative.
 - **Independent/dependent/controlled variables, models, repetitions:**
   reuse exactly the existing `measure_scale.py` harness and sizes; sweep
@@ -732,7 +732,7 @@ Only experiments judged HIGH or MEDIUM value in Section 8 are detailed here.
 - **Metrics:** speedup, stdev (the stdev-reduction evidence is itself part
   of the finding).
 - **Expected figure:** 3-line or 3-bar-group comparison across sizes.
-- **Cost:** low — two of three configurations already have full data;
+- **Cost:** low, two of three configurations already have full data;
   only the "unstripped, no warm-up" middle configuration needs fresh
   measurement, and only at 1-2 sizes to confirm the attribution, not the
   full 5-point sweep.
@@ -740,7 +740,7 @@ Only experiments judged HIGH or MEDIUM value in Section 8 are detailed here.
   warm-up) recovers most of the growth; stripping/warm-up refine variance,
   not the core trend.
 - **Would weaken/refine the claim if:** stripping turns out to be load-
-  bearing for the *trend*, not just the *variance* — still a fine result,
+  bearing for the *trend*, not just the *variance*, still a fine result,
   just a more nuanced one than currently told.
 
 ---
@@ -749,53 +749,53 @@ Only experiments judged HIGH or MEDIUM value in Section 8 are detailed here.
 
 **Baselines** (only where implementable/justifiable, per the task's own
 constraint):
-- **Full rebuild** — already the paper's baseline throughout. Keep.
-- **Naive component/file-level reachability resolver** (E1 above) — the
+- **Full rebuild**, already the paper's baseline throughout. Keep.
+- **Naive component/file-level reachability resolver** (E1 above), the
   single most valuable addition; directly implementable by reusing the
   existing `resolver.py` interface with a coarser graph construction.
 - Alternative matching strategy (e.g., a different maximum-matching
-  algorithm) is **not** a meaningful baseline here — the paper's own
+  algorithm) is **not** a meaningful baseline here, the paper's own
   finding is that matching *correctness/determinism* was the issue (the
   networkx bug), not that a different matching algorithm would find a
   materially different partition. **Not recommended** as a baseline; the
   determinism finding is already the relevant contribution on this axis.
 - Alternative partitioning (e.g., not using SCC/BLT blocks, using some
   looser clustering) is possible but its main value would be *as* the
-  naive baseline in E1, not as a separate experiment — recommend folding
+  naive baseline in E1, not as a separate experiment, recommend folding
   into E1 rather than treating as distinct.
 - Alternative caching/relinking strategy is exactly Direction 3 (Section
-  10) — implementable but substantial, treat as a possible future-work
+  10), implementable but substantial, treat as a possible future-work
   item rather than a baseline for this submission cycle unless the team
   wants to pursue Direction 3 specifically.
 
 **Ablations** (isolating contribution of each pipeline stage):
-- **Matching** — ablate by comparing against E1's naive resolver (a
+- **Matching**, ablate by comparing against E1's naive resolver (a
   resolver that doesn't need a matching at all). This is the practical way
   to isolate matching's contribution without inventing an artificial
   "matching-free but still equation-level" variant, which would not
   correspond to any real design point.
-- **Recompilation-unit partitioning (BLT/SCC)** — the "states are not edge
+- **Recompilation-unit partitioning (BLT/SCC)**, the "states are not edge
   sources" correction (Section 1.4 of `docs/results.md`) is *already* a
   natural ablation (raw graph vs. causalized graph), fully measured
   (RLCCircuit 50%→33%, ThermalNetwork 100%→22%), but presented as a bug
   fix rather than an ablation figure. **Recommend re-presenting this
-  existing data as an explicit ablation table** — near-zero additional
+  existing data as an explicit ablation table**, near-zero additional
   cost, meaningfully strengthens the paper's demonstrated understanding of
   its own design choices.
-- **Graph reachability (impact resolution)** — already validated via the
+- **Graph reachability (impact resolution)**, already validated via the
   independent soundness check (superset property); an ablation here would
   mean comparing reachability against, e.g., recompiling every unit in the
-  same connected component regardless of direction — low expected value,
+  same connected component regardless of direction, low expected value,
   **not recommended**, the soundness check already establishes reachability
   is both necessary (nothing missed) and reasonably tight (ripple stays
   small).
-- **Caching** — ablate by disabling cache reuse (always recompile
+- **Caching**, ablate by disabling cache reuse (always recompile
   everything the resolver marks, but never reuse *any* cached object even
-  for unaffected units) — this reduces to "full rebuild," already measured.
+  for unaffected units), this reduces to "full rebuild," already measured.
   **Not a new experiment, already covered.**
-- **Incremental code generation** — not separately ablatable in the
+- **Incremental code generation**, not separately ablatable in the
   current design (codegen always runs per-unit); not applicable.
-- **Incremental linking (dynamic vs. static)** — this is E4 above.
+- **Incremental linking (dynamic vs. static)**, this is E4 above.
 
 ---
 
@@ -806,18 +806,18 @@ constraint):
   are recorded in `results/measurements_provenance.json` but not
   cross-checked against a single canonical "environment.md").
 - Add explicit confidence intervals (or at minimum, min/max alongside
-  mean±stdev) to every timing table — computable from data already logged
+  mean±stdev) to every timing table, computable from data already logged
   in the CSVs, no new experiments needed.
 - Consider archiving the repository with a DOI-bearing artifact (e.g.
-  Zenodo/Software Heritage) at submission time — standard journal
+  Zenodo/Software Heritage) at submission time, standard journal
   expectation, near-zero technical cost, purely a submission-process step.
-- The `msl_src/` MSL sparse clone is gitignored and not committed —
+- The `msl_src/` MSL sparse clone is gitignored and not committed , 
   document the exact clone/sparse-checkout commands in a dedicated
   `REPRODUCE.md` (currently split across `README.md` and `docs/progress.md`
   prose) so a reviewer can reconstruct the full corpus without archaeology.
 - **UNVERIFIED:** whether the exact gcc/MinGW version installed on the
   measurement machine is captured anywhere beyond "MinGW-w64 GCC 15.2" in
-  the paper's Experimental Setup sentence — worth confirming this matches
+  the paper's Experimental Setup sentence, worth confirming this matches
   `results/measurements_provenance.json` exactly before submission.
 
 ---
@@ -826,22 +826,22 @@ constraint):
 
 | Item | Technical risk | Time cost (rough) | Dependency |
 |---|---|---|---|
-| E1 naive baseline | Low — reuses existing resolver interface | Small (new resolver + reused driver) | None |
+| E1 naive baseline | Low, reuses existing resolver interface | Small (new resolver + reused driver) | None |
 | E2 locality sweep | Low | Small-moderate (new sweep driver, reused everything else) | None |
-| E3 N=5,000 diagnosis | Moderate — expensive per-run (~75 min), Windows Defender confound already complicates causal attribution | Moderate (2-3 more ~75-min runs, or a cheaper isolated copy-step measurement) | None, but expensive in wall-clock machine time |
+| E3 N=5,000 diagnosis | Moderate, expensive per-run (~75 min), Windows Defender confound already complicates causal attribution | Moderate (2-3 more ~75-min runs, or a cheaper isolated copy-step measurement) | None, but expensive in wall-clock machine time |
 | E4 link-strategy ablation | Low | Small (1-2 new size points on an existing, already-built code path) | None |
-| Ablation table (states-as-knowns) | None — data already exists | Trivial (repackaging) | None |
-| Broader real MSL corpus | Moderate — Rumoca's actual MSL coverage beyond what's been tried is **UNVERIFIED** | Moderate-high, uncertain | Needs exploratory spikes before committing to specific new models |
+| Ablation table (states-as-knowns) | None, data already exists | Trivial (repackaging) | None |
+| Broader real MSL corpus | Moderate, Rumoca's actual MSL coverage beyond what's been tried is **UNVERIFIED** | Moderate-high, uncertain | Needs exploratory spikes before committing to specific new models |
 | Statistical CI layer | None | Small | None, retroactive on existing data |
-| Direction 3 (persistent build dir) | High — real systems engineering, antivirus-interaction confound already documented as hard to fully isolate | High | Best treated as a separate, longer-horizon effort |
-| Cross-platform replication | Moderate-high — different filesystem/AV behavior could change conclusions in confusing ways | High | Lower priority given the paper's claims don't currently depend on OS-independence |
-| Second front end (OpenModelica) | High — new IR format, unverified compatibility | Very high | Not recommended for this submission cycle |
+| Direction 3 (persistent build dir) | High, real systems engineering, antivirus-interaction confound already documented as hard to fully isolate | High | Best treated as a separate, longer-horizon effort |
+| Cross-platform replication | Moderate-high, different filesystem/AV behavior could change conclusions in confusing ways | High | Lower priority given the paper's claims don't currently depend on OS-independence |
+| Second front end (OpenModelica) | High, new IR format, unverified compatibility | Very high | Not recommended for this submission cycle |
 
 ---
 
 ## 15. Recommended phased work plan
 
-**Phase 0 — Repository cleanup / reproducibility fixes**
+**Phase 0, Repository cleanup / reproducibility fixes**
 - Objective: close the gap between what's measured and what's written up;
   fix the paper/ledger sync issue (N=2,000/5,000 data exists but isn't in
   the paper).
@@ -856,7 +856,7 @@ constraint):
 - Cost: hours, not days.
 - Dependency: none.
 
-**Phase 1 — Experiments requiring little or no new implementation**
+**Phase 1, Experiments requiring little or no new implementation**
 - E4 (link-strategy ablation, partial), the states-as-knowns ablation
   repackaging, `generate_rc_ladder` measurement pass, disk/memory overhead
   measurement.
@@ -866,8 +866,8 @@ constraint):
 - Difficulty: low.
 - Dependency: Phase 0 not required but natural to sequence after.
 
-**Phase 2 — Experiments requiring moderate implementation**
-- E1 (naive baseline — highest priority item in this phase), E2 (locality
+**Phase 2, Experiments requiring moderate implementation**
+- E1 (naive baseline, highest priority item in this phase), E2 (locality
   sweep), E3 (N=5,000 diagnosis).
 - Expected output: a new "Baselines" subsection with the naive-resolver
   comparison; a locality-characterization figure; a resolved or precisely
@@ -875,10 +875,10 @@ constraint):
 - Scientific value: high (E1 is Category A, E2 is A/B, E3 removes a
   credibility risk).
 - Difficulty: moderate.
-- Dependency: E1 should come first — it is the highest-value, lowest-risk
+- Dependency: E1 should come first, it is the highest-value, lowest-risk
   item across the entire plan.
 
-**Phase 3 — Potential major research extensions**
+**Phase 3, Potential major research extensions**
 - Direction 3 (persistent build directory / closing the remaining O(N)
   cost) if pursued; broader real MSL corpus if Rumoca coverage permits;
   cross-platform replication if targeting a venue that expects it.
@@ -890,7 +890,7 @@ constraint):
   attempting at all (if the N=5,000 breakdown reveals something other than
   the expected copy-cost story, the fix target changes).
 
-**Phase 4 — Paper restructuring and journal presentation**
+**Phase 4, Paper restructuring and journal presentation**
 - Expand Methodology with algorithm-level detail (pseudocode for the
   matching/BLT/reachability pipeline); add an explicit Threats to Validity
   subsection; reframe the contributions list per Section 6's novelty
@@ -907,12 +907,12 @@ constraint):
 ## 16. Expected final paper structure (if Phases 0-2 and Direction 2/4 are pursued)
 
 1. Introduction (contributions list reframed per Section 6's novelty
-   discussion — foreground the states-as-knowns correction and the
+   discussion, foreground the states-as-knowns correction and the
    relink-vs-recompile diagnosis as findings, not just "we built X")
 2. Background and Related Work (unchanged, possibly +1-2 citations per
    Gap 13's literature check)
 3. Methodology (expanded with matching/BLT/reachability pseudocode)
-4. Baselines (**new** — the naive resolver from E1)
+4. Baselines (**new**, the naive resolver from E1)
 5. Experimental Setup (unchanged)
 6. Results
    - 6.1 Generality on real MSL models (unchanged)
