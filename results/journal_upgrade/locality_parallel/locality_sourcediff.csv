@@ -1,0 +1,12 @@
+cell,total_units,n_paper,n_baseline,n_oracle,oracle_subset_of_paper,paper_subset_of_baseline,n_paper_only_vs_oracle,n_oracle_only_vs_paper,n_baseline_only_vs_paper,n_paper_only_vs_baseline,n_new_unit_files,n_removed_unit_files,header_identical,driver_identical
+SignalChain250/stage1,251,250,250,1,True,True,249,0,0,0,0,0,True,True
+SignalChain250/stage2,251,249,250,1,True,True,248,0,1,0,0,0,True,True
+SignalChain250/stage63,251,188,250,1,True,True,187,0,62,0,0,0,True,True
+SignalChain250/stage125,251,126,250,1,True,True,125,0,124,0,0,0,True,True
+SignalChain250/stage188,251,63,250,1,True,True,62,0,187,0,0,0,True,True
+SignalChain250/stage249,251,2,250,1,True,True,1,0,248,0,0,0,True,True
+SignalChain250/stage250,251,1,250,1,True,True,0,0,249,0,0,0,True,True
+ThermalSensorChain100/room1_stage1,799,5,5,1,True,True,4,0,0,0,0,0,True,True
+ThermalSensorChain100/room50_stage1,799,5,5,1,True,True,4,0,0,0,0,0,True,True
+ThermalSensorChain100/room50_stage3,799,3,5,1,True,True,2,0,2,0,0,0,True,True
+ThermalSensorChain100/room100_stage1,799,5,5,1,True,True,4,0,0,0,0,0,True,True
