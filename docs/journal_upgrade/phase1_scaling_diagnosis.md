@@ -54,9 +54,16 @@ on-access protection confirmed enabled (`Get-MpComputerStatus`). Defender CPU
 All 10 rebuilds: simulation output identical to the reference incremental build,
 every reused DLL byte-identical to its cache.
 
+Suspend check (Windows System log, Kernel-Power events, checked afterwards): the laptop
+was in Modern Standby from 02:10:56 to 02:23:07 (power button, then lid), during the
+untimed setup step and before the first timed rebuild (which started about 02:41). No
+suspend event falls inside any timed rebuild of this experiment, so the timed values
+stand; the setup duration below includes those 12 minutes.
+
 Additional observation (logged at 02:29 in `logs/phase1_firsttouch_observations.log`):
 the script's setup step only READ and hashed the 14,997 cached DLLs (last read
-about three hours earlier), yet took about 45 minutes, using 27 s of Python CPU in
+about three hours earlier), yet took about 45 minutes wall-clock (about 33 minutes
+excluding the 12-minute standby), using 27 s of Python CPU in
 total while Defender ran at 94% of a core. Similarly, each rep's post-rebuild
 correctness hashing of the 15k freshly written build-directory DLLs took about 8
 minutes (the gaps between W timestamps), for trivial Python CPU.
