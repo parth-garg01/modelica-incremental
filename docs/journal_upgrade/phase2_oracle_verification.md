@@ -140,9 +140,10 @@ Anomaly, preserved: on the thermal chains, the large within-cell outliers fall
 on whichever strategy ran first in the cell, not on a particular strategy:
 N=250 first strategy (paper) repeat 4 = 3.49 s vs about 2.0 s otherwise; N=1000
 first strategy (baseline) repeat 4 = 12.74 s vs about 6 s otherwise. This is
-consistent with the Phase 1 finding that freshly written DLL caches incur a
-first-read cost (Windows Defender real-time on-access scanning is enabled) that
-one warm-up rebuild does not fully absorb. These points are not removed.
+consistent with the Phase 1 finding that DLL files not recently touched incur a
+first-touch filesystem/I/O cost (antivirus on-access scanning is a likely
+contributor, not an established cause) that one warm-up rebuild does not fully
+absorb. These points are not removed.
 
 ## 8. Full rebuild comparison
 

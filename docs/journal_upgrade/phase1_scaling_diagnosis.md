@@ -76,37 +76,45 @@ minutes (the gaps between W timestamps), for trivial Python CPU.
   files not read recently.
 - **Waiting does not remove it** (FW = F): it is not a background scan backlog that
   drains with time; it is paid synchronously when the files are opened.
-- **Attribution to Defender: probable, not proven.** Defender CPU is about one full
-  core during every slow operation, and slow operations involve no compiler work.
-  But Defender CPU was also high during the fast W reps, so CPU level alone does not
-  separate slow from fast, and the exact rule for when a file is re-scanned is not
-  established: W rep 0 was slow even though the setup step had just read every
-  cache file. A plausible but UNVERIFIED explanation is a bounded scan-result
-  cache: the setup and the preceding writes touched about 30k to 60k executables.
-  Confirming this would require disabling or excluding the directory from Defender,
-  which changes host security settings and was not done.
+- **Demonstrated result: a first-touch filesystem/I/O overhead.** What the
+  experiment establishes is that opening files not recently touched costs about 25
+  to 30 ms per file on this host, independent of compilation and of how long one
+  waits. The underlying mechanism is NOT established.
+- **Likely contributing mechanism (not proven causality): antivirus on-access
+  scanning.** Windows Defender real-time protection is enabled, and its CPU use is
+  about one full core during every slow operation, which involves no compiler work.
+  But Defender CPU was also high during the fast W reps, so CPU level does not
+  separate slow from fast; and the pattern is not fully explained: W rep 0 was slow
+  even though the setup step had just read every cache file. Other contributors are
+  not ruled out (filesystem metadata and directory-creation costs at 15k files per
+  directory, NTFS/cache-manager behavior, the laptop's power state). A bounded
+  scan-result cache is one UNVERIFIED possibility. Establishing causality would need
+  a controlled run with the build directories excluded from on-access scanning (a
+  host security change, not made here) or on a host without on-access scanning.
 
-Classification (task categories): **mainly A (an environment artifact of the
-measurement host) interacting with B (a build-system design property)**. It is not
-C: the steady-state cost does not change regime. The design property is that every
+Classification (task categories): **mainly A (a host-environment effect on the
+measurement) interacting with B (a build-system design property)**. It is not C:
+the steady-state cost does not change regime. The design property is that every
 incremental rebuild materializes one new executable file per unit (N DLLs copied
-into a fresh directory), so any per-file cost imposed by the host scales with N and
+into a fresh directory), so any per-file first-touch cost scales with N and
 dominates at large N. The original 3.33x was a single timed rebuild that paid most
 of this cost.
 
-**Confidence:** high that the anomaly is a per-file first-touch cost, not
-compilation, linking, the change, or a scaling regime change (reproduced; parts
-measured; conditions discriminate). Moderate that the cost comes from Defender
-on-access scanning. Low on the exact re-scan trigger.
+**Confidence:** high that the anomaly is a per-file first-touch filesystem/I/O cost,
+not compilation, linking, the change, or a scaling regime change (reproduced; parts
+measured; conditions discriminate). Moderate that antivirus scanning contributes.
+Low on the exact mechanism and trigger.
 
 ## 5. Implications for the scaling claim
 
 - The growing-speedup claim can extend to 14,999 equations for steady-state
   rebuilds (about 39x at N=5,000, n=4 warm reps, single full-rebuild reference),
   stated with the caveat above.
-- A real operational limitation must be stated: on a host with on-access antivirus
-  scanning, the first rebuild after a cache is created or left idle for hours costs
-  about 400 s at N=5,000 (more than half the full rebuild). For a digital twin that
+- A real operational limitation must be stated: on this host, the first rebuild
+  after a cache is created or left idle for hours costs about 400 s at N=5,000
+  (more than half the full rebuild), due to first-touch filesystem/I/O overhead
+  (antivirus on-access scanning is a likely contributor, not an established cause;
+  other hosts may differ). For a digital twin that
   rebuilds rarely, this first-touch cost, not the steady state, may be the cost
   actually experienced.
 - The fix direction is the one the paper's future work already names: stop
