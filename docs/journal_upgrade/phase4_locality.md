@@ -94,4 +94,30 @@ recompile set.
 
 ## 6. Timing at sampled positions
 
-Pending (runs after the link ablation, serially, on AC power).
+`src/journal_extra_timing.py` (Phase 2's `run_cell_strategies` flow: warm-up + 5 repeats,
+strategy order rotated, bit-identical and byte-identical-reuse checks, oracle guard), run
+2026-09-23 15:57-16:43 IST, alone, on AC power, no suspend event in the window.
+SignalChain500 (501 units), stage-gain edit. Data:
+`results/journal_upgrade/extra_timing/extra_timing.csv`; statistics and pre-registered
+pairwise verdicts: `extra_timing_stats.csv`, `extra_pairwise.csv`.
+
+| Edit at stage | Paper method: units, incr s, speedup [95% CI] | Baseline | Source diff |
+|---|---|---|---|
+| 1 (head) | 500, 20.59, 1.15 [1.04, 1.26] | 500, 20.86, 1.13 [1.03, 1.24] | 1, 1.40, 16.91 [15.10, 18.86] |
+| 250 | 251, 11.75, 1.92 [1.78, 2.05] | 500, 22.32, 1.01 [0.94, 1.08] | 1, 1.67, 13.52 [12.51, 14.56] |
+| 500 (tail) | 1, 1.63, 14.16 [13.08, 15.27] | 500, 23.18, 0.99 [0.91, 1.09] | 1, 1.68, 13.72 [12.47, 15.06] |
+
+Full rebuild 22.5-23.6 s. All 9 builds bit-identical.
+
+- Build time follows the number of units recompiled (about 20.6 s for 500 units, 11.8 s
+  for 251, 1.4-1.7 s for 1), so reachability's position-dependent scope translates
+  directly into position-dependent cost: at the head of a long algebraic chain,
+  reachability-driven recompilation is effectively a full rebuild (1.15x).
+- The paper method beats the matching-free baseline at stages 250 and 500 (by 10.6 s and
+  21.5 s) and ties at stage 1, where both select 500 units.
+- The source diff keeps 13.5x-16.9x at every position and is faster than the paper method
+  at stages 1 and 250; it ties at stage 500, where both recompile the same single unit.
+
+Conclusion: locality of recompilation cost is a property of the selection mechanism. Under
+reachability it holds only where states cut algebraic chains; under source-diff selection
+it held at every position tested.
