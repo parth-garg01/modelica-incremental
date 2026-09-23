@@ -24,29 +24,17 @@ run_cell_strategies flow (strategy comparisons, rotated order); 95% t-CI, Fielle
 speedups; pre-registered win/tie rule (Welch CI excludes 0); no adaptive re-running,
 no outlier removal.
 
-## Progress
+## Progress: RUN COMPLETE (2026-09-23 16:45 IST)
 
-| Phase | State | Commit / file |
-|---|---|---|
-| 0 checklist | done | docs/journal_upgrade/phase0_checklist.md |
-| 1 N=5,000 diagnosis | done | 0c58548, 28c53b4, 9d98afe; phase1_scaling_diagnosis.md |
-| 2 oracle verification | done | d9412bb; phase2_oracle_verification.md |
-| 3 RC ladder / BridgedStar | graph done; timing PENDING | 42e964e, 1ae7909 |
-| 4 locality | graph done; signal-chain timing PENDING | 66a068c; phase4_locality.md |
-| 5 states ablation | done | 79d9990, 98c82d7; phase5_state_ablation.md |
-| 6 link ablation | RUNNING (logs/link_ablation.log) | results/journal_upgrade/link_ablation_parallel/ |
-| 7 stats audit | existing data done; rerun on new data PENDING | 5ef238b |
-| 8/9 final plan | draft committed, PENDING sections | 301b770; final_paper_plan.md |
-| OVERNIGHT_REPORT.md | not started | |
+All phases done and committed; experimentation deliberately stopped (Phase 8 decision in
+OVERNIGHT_REPORT.md Section 3). Do not rerun anything on resume.
 
-## Queue (strictly in order)
+| Deliverable | File |
+|---|---|
+| Phase reports | phase0_checklist.md, phase1_scaling_diagnosis.md, phase2_oracle_verification.md, phase4_locality.md, phase5_state_ablation.md, phase6_link_ablation.md, statistical_audit_existing.md |
+| Paper upgrade plan | final_paper_plan.md |
+| Final report | OVERNIGHT_REPORT.md |
+| Reproduction | REPRODUCE.md |
 
-1. Finish link ablation (N=1000: dynamic_stripped, static, dynamic_unstripped).
-2. Rerun suspend-flagged link cells once each: N=100 dynamic_stripped, N=500
-   dynamic_unstripped (`python -u src/journal_link_ablation.py` needs a small wrapper to
-   run single configs; append rows marked rerun, keep originals).
-3. `python -u src/journal_extra_timing.py` (SignalChain500 stages 1/250/500, BridgedStar250,
-   RcLadder1000), then suspend-check it.
-4. Stats over new data (src/journal_stats_audit.py, src/journal_parallel_analysis.py after
-   validating it), phase6_link_ablation.md, fill PENDING sections, OVERNIGHT_REPORT.md,
-   commit, push.
+Next step belongs to the user: decide the paper framing (OVERNIGHT_REPORT.md Section 20),
+then rewrite paper/main.tex per final_paper_plan.md.
