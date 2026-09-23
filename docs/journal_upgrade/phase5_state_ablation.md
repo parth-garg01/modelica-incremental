@@ -6,8 +6,8 @@ why a build is impossible under the naive variant). Script
 probe output persistence added, rerun 2026-09-23). Outputs in
 `results/journal_upgrade/states_ablation_parallel/`: `state_ablation_units.csv`,
 `state_ablation_ripple.csv`, `state_ablation_probes.json`. The rerun reproduced
-the worker's draft CSVs byte-for-byte (kept as `*.draft.csv`), as expected for a
-deterministic metric.
+the worker's draft CSVs byte-for-byte, as expected for a deterministic metric
+(the drafts were then removed as redundant copies).
 
 ## 1. Question and design
 
