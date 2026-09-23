@@ -1,0 +1,280 @@
+{
+  "codegen": [
+    {
+      "model": "OneLine",
+      "toggle": false,
+      "unit_codegen": "ok (1 files)",
+      "driver_codegen": "ok",
+      "driver_symbols_missing": []
+    },
+    {
+      "model": "OneLine",
+      "toggle": true,
+      "unit_codegen": "ok (1 files)",
+      "driver_codegen": "ok",
+      "driver_symbols_missing": []
+    },
+    {
+      "model": "DecoupledPair",
+      "toggle": false,
+      "unit_codegen": "ok (2 files)",
+      "driver_codegen": "ok",
+      "driver_symbols_missing": []
+    },
+    {
+      "model": "DecoupledPair",
+      "toggle": true,
+      "unit_codegen": "ok (2 files)",
+      "driver_codegen": "ok",
+      "driver_symbols_missing": []
+    },
+    {
+      "model": "RLCCircuit",
+      "toggle": false,
+      "unit_codegen": "ok (3 files)",
+      "driver_codegen": "ok",
+      "driver_symbols_missing": []
+    },
+    {
+      "model": "RLCCircuit",
+      "toggle": true,
+      "unit_codegen": "NotImplementedError: an unknown appears inside an unsupported node for affine extraction: ['BuiltinCall']",
+      "driver_codegen": "ok"
+    },
+    {
+      "model": "ThermalNetwork",
+      "toggle": false,
+      "unit_codegen": "ok (9 files)",
+      "driver_codegen": "ok",
+      "driver_symbols_missing": []
+    },
+    {
+      "model": "ThermalNetwork",
+      "toggle": true,
+      "unit_codegen": "NotImplementedError: an unknown appears inside an unsupported node for affine extraction: ['BuiltinCall']",
+      "driver_codegen": "ok"
+    },
+    {
+      "model": "Chain",
+      "toggle": false,
+      "unit_codegen": "ok (3 files)",
+      "driver_codegen": "ok",
+      "driver_symbols_missing": []
+    },
+    {
+      "model": "Chain",
+      "toggle": true,
+      "unit_codegen": "ok (3 files)",
+      "driver_codegen": "ok",
+      "driver_symbols_missing": []
+    },
+    {
+      "model": "CoupledAlgebraic",
+      "toggle": false,
+      "unit_codegen": "ok (1 files)",
+      "driver_codegen": "ok",
+      "driver_symbols_missing": []
+    },
+    {
+      "model": "CoupledAlgebraic",
+      "toggle": true,
+      "unit_codegen": "ok (1 files)",
+      "driver_codegen": "ok",
+      "driver_symbols_missing": []
+    },
+    {
+      "model": "CoupledDynamic",
+      "toggle": false,
+      "unit_codegen": "ok (2 files)",
+      "driver_codegen": "ok",
+      "driver_symbols_missing": []
+    },
+    {
+      "model": "CoupledDynamic",
+      "toggle": true,
+      "unit_codegen": "ok (2 files)",
+      "driver_codegen": "ok",
+      "driver_symbols_missing": []
+    },
+    {
+      "model": "MslRcCircuit",
+      "toggle": false,
+      "unit_codegen": "ok (23 files)",
+      "driver_codegen": "ok",
+      "driver_symbols_missing": []
+    },
+    {
+      "model": "MslRcCircuit",
+      "toggle": true,
+      "unit_codegen": "NotImplementedError: an unknown appears inside an unsupported node for affine extraction: ['BuiltinCall']",
+      "driver_codegen": "ok"
+    },
+    {
+      "model": "MslResistorNetwork",
+      "toggle": false,
+      "unit_codegen": "ok (22 files)",
+      "driver_codegen": "ok",
+      "driver_symbols_missing": []
+    },
+    {
+      "model": "MslResistorNetwork",
+      "toggle": true,
+      "unit_codegen": "ok (22 files)",
+      "driver_codegen": "ok",
+      "driver_symbols_missing": []
+    },
+    {
+      "model": "MslThermalChain",
+      "toggle": false,
+      "unit_codegen": "ok (20 files)",
+      "driver_codegen": "ok",
+      "driver_symbols_missing": []
+    },
+    {
+      "model": "MslThermalChain",
+      "toggle": true,
+      "unit_codegen": "NotImplementedError: an unknown appears inside an unsupported node for affine extraction: ['BuiltinCall']",
+      "driver_codegen": "ok"
+    },
+    {
+      "model": "ThermalChain10",
+      "toggle": false,
+      "unit_codegen": "ok (29 files)",
+      "driver_codegen": "ok",
+      "driver_symbols_missing": []
+    },
+    {
+      "model": "ThermalChain10",
+      "toggle": true,
+      "unit_codegen": "NotImplementedError: an unknown appears inside an unsupported node for affine extraction: ['BuiltinCall']",
+      "driver_codegen": "ok"
+    },
+    {
+      "model": "ThermalChain50",
+      "toggle": false,
+      "unit_codegen": "ok (149 files)",
+      "driver_codegen": "ok",
+      "driver_symbols_missing": []
+    },
+    {
+      "model": "ThermalChain50",
+      "toggle": true,
+      "unit_codegen": "NotImplementedError: an unknown appears inside an unsupported node for affine extraction: ['BuiltinCall']",
+      "driver_codegen": "ok"
+    },
+    {
+      "model": "RcLadder10",
+      "toggle": false,
+      "unit_codegen": "ok (21 files)",
+      "driver_codegen": "ok",
+      "driver_symbols_missing": []
+    },
+    {
+      "model": "RcLadder10",
+      "toggle": true,
+      "unit_codegen": "NotImplementedError: an unknown appears inside an unsupported node for affine extraction: ['BuiltinCall']",
+      "driver_codegen": "ok"
+    },
+    {
+      "model": "RcLadder50",
+      "toggle": false,
+      "unit_codegen": "ok (101 files)",
+      "driver_codegen": "ok",
+      "driver_symbols_missing": []
+    },
+    {
+      "model": "RcLadder50",
+      "toggle": true,
+      "unit_codegen": "NotImplementedError: an unknown appears inside an unsupported node for affine extraction: ['BuiltinCall']",
+      "driver_codegen": "ok"
+    }
+  ],
+  "semantic": [
+    [
+      "OneLine",
+      {
+        "linear": true,
+        "correct_dx": {
+          "x": -2.0
+        },
+        "naive_dx": {
+          "x": -0.0
+        },
+        "max_abs_dx_error": 2.0
+      }
+    ],
+    [
+      "DecoupledPair",
+      {
+        "linear": true,
+        "correct_dx": {
+          "x1": -1.0,
+          "x2": -1.1999999999999997
+        },
+        "naive_dx": {
+          "x1": -0.0,
+          "x2": 0.0
+        },
+        "max_abs_dx_error": 1.1999999999999997
+      }
+    ],
+    [
+      "RLCCircuit",
+      {
+        "linear": true,
+        "correct_dx": {
+          "i": -4.8707150532099295,
+          "v": 10.000000000000002
+        },
+        "naive_dx": {
+          "i": 0.04909934551261178,
+          "v": 0.4909934551261177
+        },
+        "max_abs_dx_error": 9.509006544873884
+      }
+    ],
+    [
+      "ThermalNetwork",
+      {
+        "linear": true,
+        "correct_dx": {
+          "T1": 50.15,
+          "T2": -0.2,
+          "T3": -0.55
+        },
+        "naive_dx": {
+          "T1": 39.538174538174545,
+          "T2": 7.506142506142507,
+          "T3": 2.5011375011375017
+        },
+        "max_abs_dx_error": 10.611825461825454
+      }
+    ],
+    [
+      "Chain",
+      {
+        "linear": true,
+        "correct_dx": {
+          "x": 5.0
+        },
+        "naive_dx": {
+          "x": 5.0
+        },
+        "max_abs_dx_error": 0.0
+      }
+    ],
+    [
+      "CoupledDynamic",
+      {
+        "linear": true,
+        "correct_dx": {
+          "x": -2.0
+        },
+        "naive_dx": {
+          "x": -0.0
+        },
+        "max_abs_dx_error": 2.0
+      }
+    ]
+  ]
+}

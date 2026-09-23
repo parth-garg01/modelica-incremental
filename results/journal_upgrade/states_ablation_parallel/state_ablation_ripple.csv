@@ -1,0 +1,35 @@
+cell,seed,variant,n_equations,total_units,affected_units,ripple_units,equations_recompiled,ripple_equations,traversal_equations,actually_changed_equations,sound_units,missed_units,sound_equations_superset
+ThermalNetwork swap,Q1,states_as_edge_sources=False,9,9,2,0.2222,2,0.2222,2,1,True,,True
+ThermalNetwork swap,Q1,states_as_edge_sources=True,9,1,1,1.0,9,1.0,9,1,True,,True
+ThermalNetwork swap,Q1,raw_phase1_graph,9,1,1,1.0,9,1.0,9,1,True,,True
+ThermalNetwork sensor,Qtotal,states_as_edge_sources=False,10,10,1,0.1,1,0.1,1,1,True,,True
+ThermalNetwork sensor,Qtotal,states_as_edge_sources=True,10,3,1,0.3333,1,0.1,1,1,True,,True
+ThermalNetwork sensor,Qtotal,raw_phase1_graph,10,3,1,0.3333,1,0.1,1,1,True,,True
+ThermalNetwork removal,T2,states_as_edge_sources=False,6,6,1,0.1667,1,0.1667,1,4,True,,True
+ThermalNetwork removal,T2,states_as_edge_sources=True,6,2,1,0.5,5,0.8333,5,4,True,,True
+ThermalNetwork removal,T2,raw_phase1_graph,6,2,1,0.5,5,0.8333,5,4,True,,True
+RLCCircuit swap,i,states_as_edge_sources=False,3,3,1,0.3333,1,0.3333,1,1,True,,True
+RLCCircuit swap,i,states_as_edge_sources=True,3,2,1,0.5,2,0.6667,2,1,True,,True
+RLCCircuit swap,i,raw_phase1_graph,3,2,1,0.5,2,0.6667,2,1,True,,True
+Chain swap,y1,states_as_edge_sources=False,3,3,3,1.0,3,1.0,3,1,True,,True
+Chain swap,y1,states_as_edge_sources=True,3,3,3,1.0,3,1.0,3,1,True,,True
+Chain swap,y1,raw_phase1_graph,3,3,3,1.0,3,1.0,3,1,True,,True
+MslRcCircuit swap,"R.G_actual,R.i",states_as_edge_sources=False,23,23,13,0.5652,13,0.5652,13,3,True,,True
+MslRcCircuit swap,"R.G_actual,R.i",states_as_edge_sources=True,23,16,9,0.5625,16,0.6957,16,3,True,,True
+MslThermalChain swap,"G1.Q_flow,G1.dT",states_as_edge_sources=False,22,20,7,0.35,7,0.3182,7,1,True,,True
+MslThermalChain swap,"G1.Q_flow,G1.dT",states_as_edge_sources=True,22,5,3,0.6,18,0.8182,18,1,True,,True
+MslRcCircuit sensor,P_R,states_as_edge_sources=False,24,24,1,0.0417,1,0.0417,1,1,True,,True
+MslRcCircuit sensor,P_R,states_as_edge_sources=True,24,17,1,0.0588,1,0.0417,1,1,True,,True
+MslResistorNetwork removal,"G.p.i,R1.p.i,V.n.v",states_as_edge_sources=False,26,18,11,0.6111,19,0.7308,19,12,True,,True
+MslResistorNetwork removal,"G.p.i,R1.p.i,V.n.v",states_as_edge_sources=True,26,18,11,0.6111,19,0.7308,19,12,True,,True
+ThermalChain10 swap_room_conductance(room 5),Q5env,states_as_edge_sources=False,29,29,2,0.069,2,0.069,2,1,True,,True
+ThermalChain10 swap_room_conductance(room 5),Q5env,states_as_edge_sources=True,29,1,1,1.0,29,1.0,29,1,True,,True
+ThermalChain10 swap_room_conductance(room 5),Q5env,raw_phase1_graph,29,1,1,1.0,29,1.0,29,1,True,,True
+ThermalChain50 swap_room_conductance(room 25),Q25env,states_as_edge_sources=False,149,149,2,0.0134,2,0.0134,2,1,True,,True
+ThermalChain50 swap_room_conductance(room 25),Q25env,states_as_edge_sources=True,149,1,1,1.0,149,1.0,149,1,True,,True
+ThermalChain50 swap_room_conductance(room 25),Q25env,raw_phase1_graph,149,1,1,1.0,149,1.0,149,1,True,,True
+ThermalChain250 swap_room_conductance(room 125),Q125env,states_as_edge_sources=False,749,749,2,0.0027,2,0.0027,2,1,True,,True
+ThermalChain250 swap_room_conductance(room 125),Q125env,states_as_edge_sources=True,749,1,1,1.0,749,1.0,749,1,True,,True
+ThermalChain250 swap_room_conductance(room 125),Q125env,raw_phase1_graph,749,1,1,1.0,749,1.0,749,1,True,,True
+ThermalChain1000 swap_room_conductance(room 500),Q500env,states_as_edge_sources=False,2999,2999,2,0.0007,2,0.0007,2,1,True,,True
+ThermalChain1000 swap_room_conductance(room 500),Q500env,states_as_edge_sources=True,2999,1,1,1.0,2999,1.0,2999,1,True,,True
