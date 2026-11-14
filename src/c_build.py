@@ -8,6 +8,7 @@ from __future__ import annotations
 import hashlib
 import os
 import shutil
+import sys
 import statistics
 import subprocess
 import time
@@ -19,7 +20,7 @@ from codegen_units import generate_all_units, generate_driver, generate_header
 from eval_order import algebraic_eval_order
 from model_layout import Layout, build_layout
 
-GCC = r"C:\msys64\mingw64\bin\gcc.exe"
+GCC = r"C:\msys64\mingw64\bin\gcc.exe" if sys.platform == "win32" else (shutil.which("gcc") or "cc")
 
 # Feature 12 (Stage B): a single gcc subprocess invocation carries a fixed
 # ~85ms overhead (process spawn + compile + exit), measured directly --
@@ -125,6 +126,7 @@ def link(o_paths: list[Path], exe_path: Path) -> float:
 
 
 def run_sim(exe_path: Path, t_end: float, dt: float) -> str:
+    exe_path = Path(exe_path).resolve()
     result = subprocess.run([str(exe_path), str(t_end), str(dt)], capture_output=True, text=True, cwd=str(exe_path.parent))
     if result.returncode != 0:
         raise RuntimeError(f"simulation binary failed: {result.stderr}")
@@ -288,10 +290,19 @@ def build_unit_dll(c_path: Path, dll_path: Path) -> float:
     simulation output (tests/test_dynamic_link.py) before being
     trusted for any timing number."""
     c_path, dll_path = c_path.resolve(), dll_path.resolve()
-    cmd = [
-        GCC, "-shared", "-s", "-ffunction-sections", "-fdata-sections", "-Wl,--gc-sections",
-        "-Wl,--no-insert-timestamp", str(c_path), "-o", str(dll_path),
-    ]
+    if sys.platform == "win32":
+        cmd = [
+            GCC, "-shared", "-s", "-ffunction-sections", "-fdata-sections", "-Wl,--gc-sections",
+            "-Wl,--no-insert-timestamp", str(c_path), "-o", str(dll_path),
+        ]
+    elif sys.platform == "darwin":
+        # Fixed install name: the default embeds the output path, so the same
+        # unit built in two directories would differ byte-for-byte.
+        cmd = [GCC, "-dynamiclib", "-ffunction-sections", "-fdata-sections", "-Wl,-dead_strip,-x",
+               f"-Wl,-install_name,@rpath/{dll_path.name}", str(c_path), "-o", str(dll_path)]
+    else:
+        cmd = [GCC, "-shared", "-fPIC", "-s", "-ffunction-sections", "-fdata-sections", "-Wl,--gc-sections",
+               str(c_path), "-o", str(dll_path)]
     return _run_timed(cmd, cwd=c_path.parent)
 
 
@@ -315,7 +326,10 @@ def link_driver_only(driver_o: Path, exe_path: Path) -> float:
     unit count N, unlike link() above, which is the whole point."""
     driver_o = driver_o.resolve()
     exe_path = exe_path.resolve()
-    return _run_timed([GCC, str(driver_o), "-o", str(exe_path)], cwd=exe_path.parent)
+    cmd = [GCC, str(driver_o), "-o", str(exe_path)]
+    if sys.platform.startswith("linux"):
+        cmd.append("-ldl")
+    return _run_timed(cmd, cwd=exe_path.parent)
 
 
 def full_rebuild_dynamic(sources: BuildSources, src_dir: Path, build_dir: Path) -> BuildResult:

@@ -39,6 +39,13 @@ def generate_header(model_name: str, layout: Layout) -> str:
         "#pragma once",
         "#include <stddef.h>",
         "",
+        "/* Unit sources spell their export as __declspec(dllexport) (Windows).",
+        "   Elsewhere, map it to default symbol visibility so dlopen/dlsym can",
+        "   find the function. */",
+        "#ifndef _WIN32",
+        "#define __declspec(x) __attribute__((visibility(\"default\")))",
+        "#endif",
+        "",
         "typedef double real_t;",
         "",
     ]
